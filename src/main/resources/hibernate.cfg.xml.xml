@@ -1,0 +1,32 @@
+<!DOCTYPE hibernate-configuration PUBLIC "-//Hibernate/Hibernate Configuration DTD 3.0//EN"
+        "http://hibernate.sourceforge.net/hibernate-configuration-3.0.dtd">
+<hibernate-configuration>
+    <session-factory>
+        <!-- JDBC Database connection settings -->
+        <property name="hibernate.connection.driver_class">org.sqlite.JDBC</property>
+        <property name="hibernate.connection.url">jdbc:sqlite:imageStoreMini.db</property>
+        <property name="hibernate.dialect">org.sqlite.hibernate.dialect.SQLiteDialect</property>
+
+        <!-- JDBC connection pool settings ... using built-in test pool -->
+        <property name="hibernate.connection.pool_size">1</property>
+
+        <!-- Enable Hibernate's automatic session context management -->
+        <property name="hibernate.current_session_context_class">thread</property>
+
+        <property name="hibernate.hbm2ddl.auto">create</property>
+
+        <!-- Disable the second-level cache  -->
+        <property name="hibernate.cache.provider_class">org.hibernate.cache.NoCacheProvider</property>
+
+        <!-- Echo all executed SQL to stdout -->
+        <property name="hibernate.show_sql">true</property>
+
+        <!-- Drop and re-create the database schema on startup -->
+        <property name="hibernate.hbm2ddl.auto">update</property>
+        <mapping class="com.imagelogic.characterstore.objects.Character_Object"/>
+        <mapping class="com.imagelogic.characterstore.objects.Platform_Object"/>
+        <mapping class="com.imagelogic.characterstore.objects.Character_Image_Object"/>
+        <mapping class="com.imagelogic.characterstore.objects.Tag_Object"/>
+
+    </session-factory>
+</hibernate-configuration>

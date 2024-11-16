@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.image.*?>
+<?import javafx.scene.layout.*?>
+
+<AnchorPane fx:id="rootPane" xmlns="http://javafx.com/javafx/17.0.2-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.confer.imgstoremini.controllers.ViewImageController">
+   <children>
+      <VBox alignment="TOP_CENTER" spacing="10.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+         <TextArea fx:id="tagsImg" minHeight="100.0" minWidth="500.0" />
+         <ScrollPane fx:id="imageScrollPane" fitToHeight="true" fitToWidth="true" VBox.vgrow="ALWAYS">
+            <content>
+               <ImageView fx:id="imageDisp" pickOnBounds="true" preserveRatio="true" />
+            </content>
+         </ScrollPane>
+         <Button fx:id="updateBtn" mnemonicParsing="false" onAction="#buttonClick" text="Update" />
+      </VBox>
+   </children>
+   <padding>
+      <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
+   </padding>
+</AnchorPane>
