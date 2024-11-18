@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.image.*?>
+<?import javafx.scene.layout.*?>
+
+<AnchorPane fx:id="rootPane" xmlns="http://javafx.com/javafx/17.0.2-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.confer.imgstoremini.controllers.AddImageContoller">
+   <children>
+      <VBox alignment="TOP_CENTER" spacing="10.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+         <TextArea fx:id="tagsImg" minHeight="100.0" minWidth="500.0" promptText="TAGS" />
+         <HBox alignment="TOP_CENTER" spacing="10.0">
+            <children>
+               <TextField fx:id="imageTitleTxtArea" promptText="Image Title" />
+               <TextField fx:id="imageTypeArea" disable="true" promptText="Image Type" />
+            </children>
+            <padding>
+               <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
+            </padding>
+         </HBox>
+         <Button fx:id="selectImage" mnemonicParsing="false" onAction="#buttonClick" text="Select Image" />
+         <ScrollPane fx:id="imageScrollPane" fitToHeight="true" fitToWidth="true" VBox.vgrow="ALWAYS">
+            <content>
+               <ImageView fx:id="imageDisp" pickOnBounds="true" preserveRatio="true" />
+            </content>
+         </ScrollPane>
+         <Button fx:id="addBtn" mnemonicParsing="false" onAction="#buttonClick" text="Add" />
+      </VBox>
+   </children>
+   <padding>
+      <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
+   </padding>
+</AnchorPane>

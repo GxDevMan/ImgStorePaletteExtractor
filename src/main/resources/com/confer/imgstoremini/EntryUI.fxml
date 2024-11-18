@@ -8,13 +8,15 @@
     <padding>
         <Insets bottom="20.0" left="20.0" right="20.0" top="20.0" />
     </padding>
-   <HBox alignment="TOP_CENTER" spacing="10.0">
-      <children>
-         <Button alignment="CENTER" fx:id="createNew" onAction="#buttonClick" text="Create New" />
-          <Button alignment="CENTER" fx:id="loadDB" onAction="#buttonClick" text="Load DB" HBox.hgrow="ALWAYS">
-            <HBox.margin>
-               <Insets />
-            </HBox.margin></Button>
-      </children>
-   </HBox>
+   <TextField fx:id="outputArea" disable="true" prefHeight="25.0" prefWidth="215.0" />
+    <HBox alignment="TOP_CENTER" spacing="10.0">
+        <children>
+            <Button fx:id="createNew" alignment="CENTER" onAction="#buttonClick" text="Create New" />
+            <Button fx:id="loadDB" alignment="CENTER" onAction="#buttonClick" text="Load DB" HBox.hgrow="ALWAYS">
+                <HBox.margin>
+                    <Insets />
+                </HBox.margin>
+            </Button>
+        </children>
+    </HBox>
 </VBox>

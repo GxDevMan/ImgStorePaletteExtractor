@@ -1,34 +1,51 @@
 package com.confer.imgstoremini.model;
+
 import javax.persistence.*;
+import java.sql.Date;
 
 @Entity
 @Table(name = "Image_Table")
 public class ImageObj {
 
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long imageId;
+
+    private String imageTitle;
 
     @Column(columnDefinition = "TEXT")
     private String imageTags;
+
     private String imageType;
-    private Byte[] imageByte;
+
+    private byte[] imageByte;
+
+    private Date imageDate;
 
     public ImageObj() {
     }
 
-    public ImageObj(long imageId, String imageTags, String imageType, Byte[] imageByte) {
+    public ImageObj(long imageId, String imageTags, ImageType imageType, byte[] imageByte, Date imageDate) {
         this.imageId = imageId;
         this.imageTags = imageTags;
-        this.imageType = imageType;
+        this.imageType = imageType.getExtension();
         this.imageByte = imageByte;
+        this.imageDate = imageDate;
     }
 
-    public Byte[] getImageByte() {
+    public ImageObj(String imageTitle, String imageTags, ImageType imageType, byte[] imageByte, Date imageDate) {
+        this.imageTitle = imageTitle;
+        this.imageTags = imageTags;
+        this.imageType = imageType.getExtension();
+        this.imageByte = imageByte;
+        this.imageDate = imageDate;
+    }
+
+    public byte[] getImageByte() {
         return imageByte;
     }
 
-    public void setImageByte(Byte[] imageByte) {
+    public void setImageByte(byte[] imageByte) {
         this.imageByte = imageByte;
     }
 
@@ -54,5 +71,21 @@ public class ImageObj {
 
     public void setImageId(long imageId) {
         this.imageId = imageId;
+    }
+
+    public Date getImageDate() {
+        return imageDate;
+    }
+
+    public void setImageDate(Date imageDate) {
+        this.imageDate = imageDate;
+    }
+
+    public String getImageTitle() {
+        return imageTitle;
+    }
+
+    public void setImageTitle(String imageTitle) {
+        this.imageTitle = imageTitle;
     }
 }

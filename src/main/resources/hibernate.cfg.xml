@@ -23,10 +23,6 @@
 
         <!-- Drop and re-create the database schema on startup -->
         <property name="hibernate.hbm2ddl.auto">update</property>
-        <mapping class="com.imagelogic.characterstore.objects.Character_Object"/>
-        <mapping class="com.imagelogic.characterstore.objects.Platform_Object"/>
-        <mapping class="com.imagelogic.characterstore.objects.Character_Image_Object"/>
-        <mapping class="com.imagelogic.characterstore.objects.Tag_Object"/>
-
+        <mapping class="com.confer.imgstoremini.model.ImageObj"/>
     </session-factory>
 </hibernate-configuration>

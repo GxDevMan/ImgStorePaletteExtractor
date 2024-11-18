@@ -14,14 +14,16 @@ module com.confer.imgstoremini {
     requires java.desktop;
     requires javafx.swing;
     requires java.persistence;
-    requires org.hibernate.orm.core;
     requires java.naming;
+    requires java.sql;
+    requires org.hibernate.orm.core;
 
-
+    opens com.confer.imgstoremini.model;
     opens com.confer.imgstoremini to javafx.fxml;
     exports com.confer.imgstoremini;
     exports com.confer.imgstoremini.controllers;
     opens com.confer.imgstoremini.controllers to javafx.fxml;
     exports com.confer.imgstoremini.model;
-    opens com.confer.imgstoremini.model to javafx.fxml;
+    exports com.confer.imgstoremini.util;
+    opens com.confer.imgstoremini.util to javafx.fxml;
 }

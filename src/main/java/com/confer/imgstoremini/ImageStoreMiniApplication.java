@@ -1,41 +1,38 @@
 package com.confer.imgstoremini;
-
-import com.confer.imgstoremini.controllers.ViewImageController;
+import com.confer.imgstoremini.util.DataStore;
+import com.confer.imgstoremini.util.hibernateUtil;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
-import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
-
 import java.io.IOException;
-import java.util.Random;
-
+import java.util.Map;
 public class ImageStoreMiniApplication extends Application {
+
     @Override
     public void start(Stage stage) throws IOException {
-        RandomImageGenerator generator = new RandomImageGenerator();
-
-        FXMLLoader fxmlLoader = new FXMLLoader(ImageStoreMiniApplication.class.getResource("MainUI.fxml"));
+        FXMLLoader fxmlLoader = new FXMLLoader(ImageStoreMiniApplication.class.getResource("EntryUI.fxml"));
         Scene scene = new Scene(fxmlLoader.load(), 300, 100);
         stage.setTitle("Image Store Mini");
         stage.setScene(scene);
         stage.show();
-
-//        FXMLLoader fxmlLoader = new FXMLLoader(ImageStoreMiniApplication.class.getResource("ViewImageUI.fxml"));
-//        Scene scene = new Scene(fxmlLoader.load(), 300, 100);
-//
-//        ViewImageController controller = fxmlLoader.getController();
-//        controller.setImageView(generator.generateRandomImage(1175,1500),"tags1,tags2,tags3,tags4");
-//
-//        stage.setTitle("Image Store Mini");
-//        stage.setScene(scene);
-//        stage.show();
-
     }
 
     public static void main(String[] args) {
         ConfigFileHandler configFileHandler = new ConfigFileHandler();
         configFileHandler.checkAndCreateConfigFile();
+        Map<String, String> jsonData = configFileHandler.getConfig();
+
+        String defaultDb = jsonData.get("default_db");
+        DataStore dataStore = DataStore.getInstance();
+        dataStore.insertObject("dbLoc", defaultDb);
         launch();
+    }
+
+    public void stop(){
+        hibernateUtil util = hibernateUtil.getInstance();
+        util.shutdown();
+        DataStore dataStore = DataStore.getInstance();
+        dataStore.DestroyStore();
     }
 }

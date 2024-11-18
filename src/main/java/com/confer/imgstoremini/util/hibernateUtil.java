@@ -1,4 +1,4 @@
-package com.confer.imgstoremini.model;
+package com.confer.imgstoremini.util;
 
 import org.hibernate.SessionFactory;
 import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
@@ -36,13 +36,14 @@ public class hibernateUtil {
             org.hibernate.cfg.Configuration configuration = new Configuration().configure();
             configuration.setProperty("hibernate.connection.url", dbURL);
 
+            configuration.addAnnotatedClass(com.confer.imgstoremini.model.ImageObj.class);
+
             ServiceRegistry serviceRegistry = new StandardServiceRegistryBuilder()
                     .applySettings(configuration.getProperties()).build();
 
             if (sessionFactory != null) {
                 sessionFactory.close();
             }
-
             sessionFactory = configuration.buildSessionFactory(serviceRegistry);
         } catch (Throwable ex) {
             throw new ExceptionInInitializerError(ex);

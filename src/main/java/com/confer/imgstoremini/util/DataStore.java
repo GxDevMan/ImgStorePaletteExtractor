@@ -1,4 +1,4 @@
-package com.confer.imgstoremini.model;
+package com.confer.imgstoremini.util;
 
 import java.util.HashMap;
 

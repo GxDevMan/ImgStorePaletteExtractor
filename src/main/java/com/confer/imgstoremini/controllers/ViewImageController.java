@@ -27,9 +27,9 @@ public class ViewImageController {
     private double lastMouseY;
 
     private double scale = 1.0;
-    private double SCALE_DELTA = 1.1;
-    private double MAX_ZOOM = 5.0;
-    private double MIN_ZOOM = 0.5;
+    private double deltaScale = 1.1;
+    private double maxZoom;
+    private double minZoom;
 
 
     @FXML
@@ -55,8 +55,8 @@ public class ViewImageController {
 
         double[] zoomLimits = calculateZoomLimits(imageWidth, imageHeight, viewportWidth, viewportHeight);
 
-        MIN_ZOOM = zoomLimits[0];
-        MAX_ZOOM = zoomLimits[1];
+        minZoom = zoomLimits[0];
+        maxZoom = zoomLimits[1];
     }
 
     @FXML
@@ -66,15 +66,15 @@ public class ViewImageController {
 
     private void handleZoom(ScrollEvent event) {
         if (event.getDeltaY() > 0) {
-            scale *= SCALE_DELTA;
+            scale *= deltaScale;
         } else {
-            scale /= SCALE_DELTA;
+            scale /= deltaScale;
         }
 
-        if (scale < MIN_ZOOM) {
-            scale = MIN_ZOOM;
-        } else if (scale > MAX_ZOOM) {
-            scale = MAX_ZOOM;
+        if (scale < minZoom) {
+            scale = minZoom;
+        } else if (scale > maxZoom) {
+            scale = maxZoom;
         }
 
         imageDisp.setScaleX(scale);

@@ -19,7 +19,7 @@
                         <Insets bottom="10.0" top="10.0" />
                      </padding>
                   </HBox>
-                  <Button fx:id="addImgBtn" mnemonicParsing="false" text="Add Image" />
+                  <Button fx:id="addImgBtn" onAction="#buttonClick" mnemonicParsing="false" text="Add Image" />
                   <ScrollPane fx:id="imageScrollPane" minHeight="500.0" minWidth="750.0" pannable="true" VBox.vgrow="ALWAYS">
                      <content>
                         <TilePane fx:id="imageViews" />
