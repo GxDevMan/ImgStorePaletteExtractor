@@ -28,6 +28,7 @@ public class ImageStoreMiniApplication extends Application {
         DataStore dataStore = DataStore.getInstance();
         dataStore.insertObject("dbLoc", defaultDb);
         dataStore.insertObject("default_pagesize",defaultPageSize);
+
         launch();
     }
 

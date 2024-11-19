@@ -20,7 +20,6 @@ import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.TilePane;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
-
 import java.util.List;
 import java.util.Optional;
 
@@ -30,6 +29,9 @@ public class MainUIController implements ImageContract {
     private Button searchBTN;
 
     @FXML
+    private Button regexSearchBTN;
+
+    @FXML
     private Button addImgBtn;
 
     @FXML
@@ -37,6 +39,9 @@ public class MainUIController implements ImageContract {
 
     @FXML
     private TextField imgSearchBox;
+
+    @FXML
+    private TextField regeximgSearchBox;
 
     @FXML
     private Pagination paginationChoice;
@@ -60,7 +65,7 @@ public class MainUIController implements ImageContract {
     @FXML
     protected void buttonClick(ActionEvent event) {
         if (event.getSource().equals(searchBTN)) {
-
+            refreshListSearch(imgSearchBox.getText());
         } else if (event.getSource().equals(addImgBtn)) {
             try {
                 FXMLLoader fxmlLoader = new FXMLLoader(ImageStoreMiniApplication.class.getResource("AddImageUI.fxml"));
@@ -75,7 +80,10 @@ public class MainUIController implements ImageContract {
             } catch (Exception e) {
                 e.printStackTrace();
             }
-        } else if (event.getSource().equals(backBtn)) {
+        } else if(event.getSource().equals(regexSearchBTN)){
+            refreshListSearchRegex(regeximgSearchBox.getText().trim());
+        }
+        else if (event.getSource().equals(backBtn)) {
             goToNextMenu(event);
         }
     }
@@ -187,8 +195,6 @@ public class MainUIController implements ImageContract {
         }).start();
     }
 
-
-
     private void refreshList() {
         DataStore dataStore = DataStore.getInstance();
         int totalPages = (int) dataStore.getObject("default_pagesize");
@@ -202,9 +208,51 @@ public class MainUIController implements ImageContract {
         paginationChoice.setCurrentPageIndex(0);
     }
 
+    private void refreshListSearch(String searchKey){
+        DataStore dataStore = DataStore.getInstance();
+        int totalPages = (int) dataStore.getObject("default_pagesize");
+        dataStore.insertObject("search_key",searchKey);
+        paginationChoice.setPageCount(handleImages.calculateTotalPages(totalPages, searchKey));
+
+        paginationChoice.setPageFactory(pageIndex -> {
+            updatePageSearch(pageIndex);
+            return new Label("");
+        });
+        paginationChoice.setCurrentPageIndex(0);
+    }
+
+    private void refreshListSearchRegex(String searchKey){
+        DataStore dataStore = DataStore.getInstance();
+        int totalPages = (int) dataStore.getObject("default_pagesize");
+        dataStore.insertObject("search_key",searchKey);
+        paginationChoice.setPageCount(handleImages.calculateTotalPagesRegex(totalPages, searchKey));
+
+        paginationChoice.setPageFactory(pageIndex -> {
+            updatePageSearchRegex(pageIndex);
+            return new Label("");
+        });
+        paginationChoice.setCurrentPageIndex(0);
+    }
+
     private void updatePage(int pageIndex) {
         int totalPages = (int) DataStore.getInstance().getObject("default_pagesize");
         List<ImageThumbObjDTO> imageObjList = handleImages.getImagesForPageThumb(pageIndex + 1, totalPages, true);
+        displayImages(imageObjList);
+    }
+
+    private void updatePageSearch(int pageIndex) {
+        DataStore dataStore = DataStore.getInstance();
+        String searchKey = (String) dataStore.getObject("search_key");
+        int totalPages = (int) DataStore.getInstance().getObject("default_pagesize");
+        List<ImageThumbObjDTO> imageObjList = handleImages.getImagesForPageThumb(pageIndex + 1, totalPages, true, searchKey);
+        displayImages(imageObjList);
+    }
+
+    private void updatePageSearchRegex(int pageIndex) {
+        DataStore dataStore = DataStore.getInstance();
+        String searchKey = (String) dataStore.getObject("search_key");
+        int totalPages = (int) DataStore.getInstance().getObject("default_pagesize");
+        List<ImageThumbObjDTO> imageObjList = handleImages.getImagesForPageThumbRegex(pageIndex + 1, totalPages, true, searchKey);
         displayImages(imageObjList);
     }
 

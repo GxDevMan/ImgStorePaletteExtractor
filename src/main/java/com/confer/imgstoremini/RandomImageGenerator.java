@@ -1,7 +1,6 @@
 package com.confer.imgstoremini;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.scene.image.Image;
-
 import java.awt.Color;
 import java.awt.image.BufferedImage;
 import java.util.Random;
