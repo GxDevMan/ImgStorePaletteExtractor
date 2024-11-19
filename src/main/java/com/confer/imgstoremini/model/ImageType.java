@@ -11,7 +11,15 @@ public enum ImageType {
         this.extension = extension;
     }
 
-    // Getter for the file extension
+    public static ImageType fromExtension(String extension) {
+        for (ImageType type : ImageType.values()) {
+            if (type.getExtension().equalsIgnoreCase(extension)) {
+                return type;
+            }
+        }
+        throw new IllegalArgumentException("No enum constant for extension: " + extension);
+    }
+
     public String getExtension() {
         return extension;
     }

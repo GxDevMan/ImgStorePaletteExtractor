@@ -7,13 +7,16 @@
 
 <AnchorPane xmlns="http://javafx.com/javafx/17.0.2-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.confer.imgstoremini.controllers.PreviewImageComponentUIController">
    <children>
-      <VBox spacing="10.0">
+      <VBox alignment="TOP_CENTER" spacing="10.0">
          <children>
             <ImageView fx:id="imagePlace" fitHeight="150.0" fitWidth="200.0" pickOnBounds="true" preserveRatio="true" />
+            <Label fx:id="dateAddedLbl" text="Date Added: %s" />
+            <Label fx:id="imageTitleLbl" text="Image Title" />
             <HBox alignment="TOP_CENTER" spacing="10.0">
                <children>
                   <Button fx:id="deleteButton" mnemonicParsing="false" onAction="#buttonClick" text="Delete" />
                   <Button fx:id="viewImgBtn" mnemonicParsing="false" onAction="#buttonClick" text="View" />
+                  <Button fx:id="pureViewBtn" layoutX="120.0" layoutY="10.0" mnemonicParsing="false" onAction="#buttonClick" text="Pure View" />
                </children>
             </HBox>
          </children>

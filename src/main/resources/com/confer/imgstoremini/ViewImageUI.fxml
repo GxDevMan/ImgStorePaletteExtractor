@@ -8,7 +8,10 @@
 <AnchorPane fx:id="rootPane" xmlns="http://javafx.com/javafx/17.0.2-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.confer.imgstoremini.controllers.ViewImageController">
    <children>
       <VBox alignment="TOP_CENTER" spacing="10.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
-         <TextArea fx:id="tagsImg" minHeight="100.0" minWidth="500.0" />
+         <TextField fx:id="messageBox" disable="true" promptText="Message" />
+         <TextArea fx:id="tagsImg" minHeight="100.0" minWidth="500.0" promptText="Image Tags" />
+         <Label fx:id="dateAddedLbl" text="Date Added: %s" />
+         <TextField fx:id="imageTitleField" promptText="Image Title" />
          <ScrollPane fx:id="imageScrollPane" fitToHeight="true" fitToWidth="true" VBox.vgrow="ALWAYS">
             <content>
                <ImageView fx:id="imageDisp" pickOnBounds="true" preserveRatio="true" />

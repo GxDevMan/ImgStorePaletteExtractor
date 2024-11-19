@@ -13,7 +13,21 @@ public class ImageToByteArray {
         BufferedImage bufferedImage = SwingFXUtils.fromFXImage(image, null);
 
         try (ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream()) {
-            javax.imageio.ImageIO.write(bufferedImage, type.name(), byteArrayOutputStream);
+            switch (type) {
+                case PNG -> {
+                    javax.imageio.ImageIO.write(bufferedImage, "png", byteArrayOutputStream);
+                }
+                case JPEG, JPG -> {
+                    BufferedImage jpegImage = new BufferedImage(
+                            bufferedImage.getWidth(),
+                            bufferedImage.getHeight(),
+                            BufferedImage.TYPE_INT_RGB
+                    );
+                    jpegImage.createGraphics().drawImage(bufferedImage, 0, 0, null);
+                    javax.imageio.ImageIO.write(jpegImage, "jpeg", byteArrayOutputStream);
+                }
+                default -> throw new UnsupportedOperationException("Unsupported image type: " + type);
+            }
             return byteArrayOutputStream.toByteArray();
         } catch (IOException e) {
             e.printStackTrace();

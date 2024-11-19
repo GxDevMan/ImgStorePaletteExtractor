@@ -7,8 +7,7 @@
         <property name="hibernate.connection.url">jdbc:sqlite:imageStoreMini.db</property>
         <property name="hibernate.dialect">org.sqlite.hibernate.dialect.SQLiteDialect</property>
 
-        <!-- JDBC connection pool settings ... using built-in test pool -->
-        <property name="hibernate.connection.pool_size">1</property>
+        <property name="hibernate.connection.pool_size">3</property>
 
         <!-- Enable Hibernate's automatic session context management -->
         <property name="hibernate.current_session_context_class">thread</property>
@@ -19,7 +18,7 @@
         <property name="hibernate.cache.provider_class">org.hibernate.cache.NoCacheProvider</property>
 
         <!-- Echo all executed SQL to stdout -->
-        <property name="hibernate.show_sql">true</property>
+        <property name="hibernate.show_sql">false</property>
 
         <!-- Drop and re-create the database schema on startup -->
         <property name="hibernate.hbm2ddl.auto">update</property>

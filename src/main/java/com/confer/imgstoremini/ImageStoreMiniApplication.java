@@ -24,15 +24,19 @@ public class ImageStoreMiniApplication extends Application {
         Map<String, String> jsonData = configFileHandler.getConfig();
 
         String defaultDb = jsonData.get("default_db");
+        int defaultPageSize = Integer.parseInt(jsonData.get("default_pagesize"));
         DataStore dataStore = DataStore.getInstance();
         dataStore.insertObject("dbLoc", defaultDb);
+        dataStore.insertObject("default_pagesize",defaultPageSize);
         launch();
     }
 
     public void stop(){
         hibernateUtil util = hibernateUtil.getInstance();
-        util.shutdown();
+        if(util != null)
+            util.shutdown();
         DataStore dataStore = DataStore.getInstance();
-        dataStore.DestroyStore();
+        if(dataStore != null)
+            dataStore.DestroyStore();
     }
 }

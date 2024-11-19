@@ -1,7 +1,9 @@
 package com.confer.imgstoremini;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
+
 import java.io.File;
 import java.util.Map;
 import java.io.IOException;
@@ -15,15 +17,7 @@ public class ConfigFileHandler {
 
         File configFile = new File(filePath);
         if (!configFile.exists()) {
-            Map<String, String> defaultConfig = new HashMap<>();
-            defaultConfig.put("default_db", "default_imageStore.db");
-            ObjectMapper mapper = new ObjectMapper();
-            ObjectWriter writer = mapper.writerWithDefaultPrettyPrinter();
-            try {
-                writer.writeValue(configFile, defaultConfig);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+            createConfigFile(configFile);
         }
     }
 
@@ -35,6 +29,7 @@ public class ConfigFileHandler {
 
         Map<String, String> defaultConfig = new HashMap<>();
         defaultConfig.put("default_db", "default_imageStore.db");
+        defaultConfig.put("default_pagesize", "10");
         ObjectMapper mapper = new ObjectMapper();
         ObjectWriter writer = mapper.writerWithDefaultPrettyPrinter();
         try {
@@ -58,15 +53,28 @@ public class ConfigFileHandler {
                 if (rootNode.has("default_db")) {
                     configData.put("default_db", rootNode.get("default_db").asText());
                 }
-
-            } catch (IOException e) {
-                e.printStackTrace();
+                if (rootNode.has("default_pagesize")) {
+                    configData.put("default_pagesize", rootNode.get("default_pagesize").asText());
+                }
+            } catch (Exception e) {
+                createConfigFile(configFile);
+                getConfig();
             }
-        } else {
-            System.out.println("Config file does not exist.");
         }
-
         return configData;
+    }
+
+    private void createConfigFile(File configFile) {
+        Map<String, String> defaultConfig = new HashMap<>();
+        defaultConfig.put("default_db", "default_imageStore.db");
+        defaultConfig.put("default_pagesize", "10");
+        ObjectMapper mapper = new ObjectMapper();
+        ObjectWriter writer = mapper.writerWithDefaultPrettyPrinter();
+        try {
+            writer.writeValue(configFile, defaultConfig);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
 }

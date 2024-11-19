@@ -18,35 +18,40 @@ public class ImageObj {
 
     private String imageType;
 
-    private byte[] imageByte;
+    private byte[] thumbnailImageByte;
+
+    private byte[] fullImageByte;
 
     private Date imageDate;
 
     public ImageObj() {
     }
 
-    public ImageObj(long imageId, String imageTags, ImageType imageType, byte[] imageByte, Date imageDate) {
+    public ImageObj(long imageId, String imageTitle, String imageTags, ImageType imageType, byte[] thumbnailImageByte, byte[] fullImageByte, Date imageDate) {
         this.imageId = imageId;
-        this.imageTags = imageTags;
-        this.imageType = imageType.getExtension();
-        this.imageByte = imageByte;
-        this.imageDate = imageDate;
-    }
-
-    public ImageObj(String imageTitle, String imageTags, ImageType imageType, byte[] imageByte, Date imageDate) {
         this.imageTitle = imageTitle;
         this.imageTags = imageTags;
         this.imageType = imageType.getExtension();
-        this.imageByte = imageByte;
+        this.thumbnailImageByte = thumbnailImageByte;
+        this.fullImageByte = fullImageByte;
         this.imageDate = imageDate;
     }
 
-    public byte[] getImageByte() {
-        return imageByte;
+    public ImageObj(String imageTitle, String imageTags, ImageType imageType, byte[] thumbnailImageByte, byte[] fullImageByte, Date imageDate) {
+        this.imageTitle = imageTitle;
+        this.imageTags = imageTags;
+        this.imageType = imageType.getExtension();
+        this.thumbnailImageByte = thumbnailImageByte;
+        this.fullImageByte = fullImageByte;
+        this.imageDate = imageDate;
     }
 
-    public void setImageByte(byte[] imageByte) {
-        this.imageByte = imageByte;
+    public byte[] getFullImageByte() {
+        return fullImageByte;
+    }
+
+    public void setFullImageByte(byte[] fullImageByte) {
+        this.fullImageByte = fullImageByte;
     }
 
     public String getImageType() {
@@ -54,7 +59,7 @@ public class ImageObj {
     }
 
     public void setImageType(ImageType type) {
-        this.imageType = type.name();
+        this.imageType = type.getExtension();
     }
 
     public String getImageTags() {
@@ -87,5 +92,13 @@ public class ImageObj {
 
     public void setImageTitle(String imageTitle) {
         this.imageTitle = imageTitle;
+    }
+
+    public byte[] getThumbnailImageByte() {
+        return thumbnailImageByte;
+    }
+
+    public void setThumbnailImageByte(byte[] thumbnailImageByte) {
+        this.thumbnailImageByte = thumbnailImageByte;
     }
 }

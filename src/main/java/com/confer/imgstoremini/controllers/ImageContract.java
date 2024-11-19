@@ -1,9 +1,11 @@
 package com.confer.imgstoremini.controllers;
-
-
-import javafx.scene.image.ImageView;
+import com.confer.imgstoremini.model.ImageObj;
+import com.confer.imgstoremini.model.ImageThumbObjDTO;
 
 public interface ImageContract {
-    void deleteImage(int imageId);
-    void viewImage(ImageView imageView);
+    void deleteImage(ImageThumbObjDTO deleteThisImage);
+    void viewImage(ImageThumbObjDTO imageObj);
+    void updateImage(ImageObj imageObj);
+    void addImage(ImageObj imageObj);
+    void pureViewImage(ImageThumbObjDTO imageThumbObjDTO);
 }

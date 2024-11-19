@@ -12,6 +12,7 @@
     <HBox alignment="TOP_CENTER" spacing="10.0">
         <children>
             <Button fx:id="createNew" alignment="CENTER" onAction="#buttonClick" text="Create New" />
+         <Button fx:id="loadDefaultBtn" onAction="#buttonClick" mnemonicParsing="false" text="Load Default" />
             <Button fx:id="loadDB" alignment="CENTER" onAction="#buttonClick" text="Load DB" HBox.hgrow="ALWAYS">
                 <HBox.margin>
                     <Insets />

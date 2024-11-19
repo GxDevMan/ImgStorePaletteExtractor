@@ -2,23 +2,29 @@ package com.confer.imgstoremini.controllers;
 
 import com.confer.imgstoremini.ImageStoreMiniApplication;
 import com.confer.imgstoremini.model.ImageObj;
+import com.confer.imgstoremini.model.ImageThumbObjDTO;
+import com.confer.imgstoremini.util.DataStore;
 import com.confer.imgstoremini.util.DbHandler;
+import com.confer.imgstoremini.util.ImageToByteArray;
+import com.confer.imgstoremini.util.hibernateUtil;
+import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.scene.control.Button;
-import javafx.scene.control.Pagination;
-import javafx.scene.control.ScrollPane;
-import javafx.scene.control.TextField;
-import javafx.scene.image.ImageView;
+import javafx.scene.control.*;
+import javafx.scene.image.Image;
+import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.TilePane;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 
-public class MainUIController implements ImageContract, AddImageContract {
+import java.util.List;
+import java.util.Optional;
+
+public class MainUIController implements ImageContract {
 
     @FXML
     private Button searchBTN;
@@ -27,13 +33,16 @@ public class MainUIController implements ImageContract, AddImageContract {
     private Button addImgBtn;
 
     @FXML
+    private Button backBtn;
+
+    @FXML
     private TextField imgSearchBox;
 
     @FXML
     private Pagination paginationChoice;
 
     @FXML
-    private ScrollPane scrollViewImg;
+    private ScrollPane imageScrollPane;
 
     @FXML
     private TilePane imageViews;
@@ -43,27 +52,10 @@ public class MainUIController implements ImageContract, AddImageContract {
 
     private DbHandler handleImages;
 
-
-    public void initialize() {
+    public void setMainUiController() {
         handleImages = new DbHandler();
-//        RandomImageGenerator generator = new RandomImageGenerator();
-//        Random random = new Random();
-
-//        for (int i = 1; i <= 10; i++) {
-//            try {
-//                // Load PreviewImageComponent from its FXML
-//                FXMLLoader loader = new FXMLLoader(ImageStoreMiniApplication.class.getResource("PreviewImageComponentUI.fxml"));
-//                AnchorPane previewComponent = loader.load();
-//
-//                PreviewImageComponentUIController controller = loader.getController();
-//                controller.setComponent(this, generator.generateRandomImage(random.nextInt(500),random.nextInt(500)),random.nextInt(1000) );
-//                imageViews.getChildren().add(previewComponent);
-//            } catch (Exception e) {
-//                e.printStackTrace();
-//            }
-//        }
+        refreshList();
     }
-
 
     @FXML
     protected void buttonClick(ActionEvent event) {
@@ -83,32 +75,57 @@ public class MainUIController implements ImageContract, AddImageContract {
             } catch (Exception e) {
                 e.printStackTrace();
             }
+        } else if (event.getSource().equals(backBtn)) {
+            goToNextMenu(event);
         }
     }
 
-
     @Override
-    public void deleteImage(int imageId) {
-        System.out.println("Image Id: " + imageId);
-        System.out.println("DELETE IMAGE WAS CLICKED");
+    public void deleteImage(ImageThumbObjDTO deleteThisImage) {
+        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+        alert.setTitle("Delete Confirmation");
+        alert.setHeaderText("Are you sure you want to delete this image?");
+        alert.setContentText("Image Title: " + deleteThisImage.getImageTitle());
+        Optional<ButtonType> result = alert.showAndWait();
+
+        if (result.isPresent() && result.get() == ButtonType.OK) {
+            try {
+                new Thread(() -> {
+                    try {
+                        handleImages.deleteImage(deleteThisImage);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                    Platform.runLater(() -> {
+                        refreshList();
+                    });
+
+                }).start();
+            } catch (Exception e) {
+                Alert alert2 = new Alert(Alert.AlertType.CONFIRMATION);
+                alert2.setTitle("Deletion Failed");
+                alert2.setHeaderText("There was a problem deleting this image");
+                alert2.setContentText("Image Title: " + deleteThisImage.getImageTitle());
+                alert2.showAndWait();
+
+            }
+        }
+        refreshList();
     }
 
     @Override
-    public void viewImage(ImageView imageView) {
-        System.out.println("VIEW IMAGE WAS CLICKED");
-
+    public void viewImage(ImageThumbObjDTO imageObj) {
         try {
             FXMLLoader fxmlLoader = new FXMLLoader(ImageStoreMiniApplication.class.getResource("ViewImageUI.fxml"));
             Scene scene = new Scene(fxmlLoader.load(), 500, 500);
 
-            ViewImageController controller = fxmlLoader.getController();
-            controller.setImageView(imageView.getImage(), "tags1,tags2,tags3,tags4");
-
             Stage stage = new Stage();
             stage.setTitle("Image Store Mini");
             stage.setScene(scene);
-
             stage.initModality(Modality.WINDOW_MODAL);
+
+            ViewImageController controller = fxmlLoader.getController();
+            controller.setImageView(handleImages.getImage(imageObj), this, stage);
 
             stage.show();
         } catch (Exception e) {
@@ -117,8 +134,94 @@ public class MainUIController implements ImageContract, AddImageContract {
     }
 
     @Override
+    public void pureViewImage(ImageThumbObjDTO imageThumbObjDTO) {
+        try {
+
+            FXMLLoader fxmlLoader = new FXMLLoader(ImageStoreMiniApplication.class.getResource("PureViewUI.fxml"));
+            Scene scene = new Scene(fxmlLoader.load(), 500, 500);
+
+            Stage stage = new Stage();
+            stage.setTitle("Image Store Mini");
+            stage.setScene(scene);
+            stage.initModality(Modality.WINDOW_MODAL);
+
+            PureViewUIController controller = fxmlLoader.getController();
+            ImageObj imageObjPure = handleImages.getImage(imageThumbObjDTO);
+            ImageToByteArray conversionImg = new ImageToByteArray();
+            Image imageFull = conversionImg.byteArraytoImage(imageObjPure.getFullImageByte());
+            controller.setPureViewUI(imageFull);
+
+            stage.show();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    public void updateImage(ImageObj imageObj) {
+        new Thread(() -> {
+            try {
+                handleImages.updateImage(imageObj);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            Platform.runLater(() -> {
+                refreshList();
+            });
+
+        }).start();
+    }
+
+    @Override
     public void addImage(ImageObj imageObj) {
-        handleImages.saveImage(imageObj);
+        new Thread(() -> {
+            try {
+                handleImages.saveImage(imageObj);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            Platform.runLater(() -> {
+                refreshList();
+            });
+
+        }).start();
+    }
+
+
+
+    private void refreshList() {
+        DataStore dataStore = DataStore.getInstance();
+        int totalPages = (int) dataStore.getObject("default_pagesize");
+
+        paginationChoice.setPageCount(handleImages.calculateTotalPages(totalPages));
+
+        paginationChoice.setPageFactory(pageIndex -> {
+            updatePage(pageIndex);
+            return new Label("");
+        });
+        paginationChoice.setCurrentPageIndex(0);
+    }
+
+    private void updatePage(int pageIndex) {
+        int totalPages = (int) DataStore.getInstance().getObject("default_pagesize");
+        List<ImageThumbObjDTO> imageObjList = handleImages.getImagesForPageThumb(pageIndex + 1, totalPages, true);
+        displayImages(imageObjList);
+    }
+
+    private void displayImages(List<ImageThumbObjDTO> imageObjList) {
+        imageViews.getChildren().clear();
+        for (ImageThumbObjDTO imageInstance : imageObjList) {
+            try {
+                FXMLLoader loader = new FXMLLoader(ImageStoreMiniApplication.class.getResource("PreviewImageComponentUI.fxml"));
+                AnchorPane previewComponent = loader.load();
+
+                PreviewImageComponentUIController controller = loader.getController();
+                controller.setComponent(this, imageInstance);
+                imageViews.getChildren().add(previewComponent);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     private void goToNextMenu(ActionEvent event) {
@@ -130,10 +233,14 @@ public class MainUIController implements ImageContract, AddImageContract {
             Stage sourceWin = (Stage) ((Node) event.getSource()).getScene().getWindow();
             sourceWin.setScene(viewScene);
 
+            hibernateUtil util = hibernateUtil.getInstance();
+            util.shutdown();
+
             sourceWin.show();
         } catch (Exception e) {
             e.printStackTrace();
         }
 
     }
+
 }

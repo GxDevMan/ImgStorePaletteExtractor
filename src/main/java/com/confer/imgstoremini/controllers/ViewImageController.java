@@ -1,18 +1,38 @@
 package com.confer.imgstoremini.controllers;
 
+import com.confer.imgstoremini.model.ImageObj;
+import com.confer.imgstoremini.model.ImageObjFactory;
+import com.confer.imgstoremini.model.ImageType;
+import com.confer.imgstoremini.util.ImageToByteArray;
 import javafx.fxml.FXML;
+import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextArea;
+import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.input.ScrollEvent;
 import javafx.scene.layout.AnchorPane;
+import javafx.stage.Stage;
 
 public class ViewImageController {
+    private ImageObj imageObj;
+    private Stage stage;
+
+    ImageContract contract;
 
     @FXML
     private TextArea tagsImg;
+
+    @FXML
+    private TextField messageBox;
+
+    @FXML
+    private TextField imageTitleField;
+
+    @FXML
+    private Label dateAddedLbl;
 
     @FXML
     private ImageView imageDisp;
@@ -33,7 +53,7 @@ public class ViewImageController {
 
 
     @FXML
-    public void initialize(){
+    public void initialize() {
         imageDisp.setOnScroll(this::handleZoom);
 
         imageDisp.setOnMousePressed(this::handleMousePressed);
@@ -44,9 +64,13 @@ public class ViewImageController {
     }
 
 
-    public void setImageView(Image image, String tags){
-        this.imageDisp.setImage(image);
-        tagsImg.setText(tags);
+    public void setImageView(ImageObj imageObj, ImageContract contract, Stage stage) {
+        this.imageObj = imageObj;
+        ImageToByteArray conversion = new ImageToByteArray();
+
+        this.imageDisp.setImage(conversion.byteArraytoImage(imageObj.getFullImageByte()));
+        tagsImg.setText(imageObj.getImageTags());
+        imageTitleField.setText(imageObj.getImageTitle());
 
         double imageWidth = imageDisp.getImage().getWidth();
         double imageHeight = imageDisp.getImage().getHeight();
@@ -57,11 +81,58 @@ public class ViewImageController {
 
         minZoom = zoomLimits[0];
         maxZoom = zoomLimits[1];
+
+        this.contract = contract;
+        this.stage = stage;
+
+        String formatThis = String.format(dateAddedLbl.getText(),imageObj.getImageDate().toString());
+        dateAddedLbl.setText(formatThis);
+        centerImageInScrollPane();
+    }
+
+    private void centerImageInScrollPane() {
+        Image image = imageDisp.getImage();
+        if (image == null) return;
+
+        double imageWidth = image.getWidth();
+        double imageHeight = image.getHeight();
+        double viewportWidth = imageScrollPane.getViewportBounds().getWidth();
+        double viewportHeight = imageScrollPane.getViewportBounds().getHeight();
+
+        double scaleX = viewportWidth / imageWidth;
+        double scaleY = viewportHeight / imageHeight;
+        double scale = Math.min(scaleX, scaleY);
+
+        imageDisp.setFitWidth(imageWidth * scale);
+        imageDisp.setFitHeight(imageHeight * scale);
+        imageDisp.setPreserveRatio(true);
+
+        double contentWidth = imageDisp.getBoundsInParent().getWidth();
+        double contentHeight = imageDisp.getBoundsInParent().getHeight();
+
+        double hValue = (contentWidth - viewportWidth) / 2 / (contentWidth - viewportWidth);
+        double vValue = (contentHeight - viewportHeight) / 2 / (contentHeight - viewportHeight);
+
+        imageScrollPane.setHvalue(Math.max(0, Math.min(1, hValue)));
+        imageScrollPane.setVvalue(Math.max(0, Math.min(1, vValue)));
     }
 
     @FXML
-    protected void buttonClick(){
-        System.out.println("UPDATE WAS CLICKED");
+    protected void buttonClick() {
+        try {
+            ImageObjFactory imageObjFactory = new ImageObjFactory();
+            imageObjFactory.createNewImageObj(imageTitleField.getText(),
+                    tagsImg.getText(),
+                    ImageType.fromExtension(imageObj.getImageType()), imageDisp.getImage(),
+                    imageObj.getImageDate());
+
+            imageObj.setImageTitle(imageTitleField.getText());
+            imageObj.setImageTags(tagsImg.getText());
+            this.contract.updateImage(imageObj);
+            stage.close();
+        } catch (Exception e) {
+            messageBox.setText("Error Updating, invalid information provided");
+        }
     }
 
     private void handleZoom(ScrollEvent event) {

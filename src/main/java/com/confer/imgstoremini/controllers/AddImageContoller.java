@@ -12,7 +12,9 @@ import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.input.TransferMode;
+import javafx.scene.input.MouseEvent;
+import javafx.scene.input.ScrollEvent;
+import javafx.scene.layout.AnchorPane;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 
@@ -24,7 +26,7 @@ import java.util.List;
 
 public class AddImageContoller {
 
-    private AddImageContract contract;
+    private ImageContract contract;
     private Stage addStage;
 
     @FXML
@@ -49,34 +51,29 @@ public class AddImageContoller {
     private ScrollPane imageScrollPane;
 
     @FXML
-    public void initialize() {
-        imageDisp.setOnDragOver(event -> {
-            if (event.getGestureSource() != imageDisp && event.getDragboard().hasFiles()) {
-                event.acceptTransferModes(TransferMode.COPY);
-            }
-            event.consume();
-        });
+    private AnchorPane rootPane;
 
-        imageDisp.setOnDragDropped(event -> {
-            var dragboard = event.getDragboard();
-            boolean success = false;
-            if (dragboard.hasFiles()) {
-                File file = dragboard.getFiles().get(0);
-                try {
-                    Image image = new Image(file.toURI().toString());
-                    imageDisp.setImage(image);
-                    success = true;
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-            event.setDropCompleted(success);
-            event.consume();
-        });
+    private double scale = 1.0;
+    private double deltaScale = 1.1;
+    private double maxZoom;
+    private double minZoom;
+
+    private double lastMouseX;
+    private double lastMouseY;
+
+    @FXML
+    public void initialize() {
+        imageDisp.setOnScroll(this::handleZoom);
+
+        imageDisp.setOnMousePressed(this::handleMousePressed);
+        imageDisp.setOnMouseDragged(this::handleMouseDragged);
+
+        imageScrollPane.prefWidthProperty().bind(rootPane.widthProperty());
+        imageScrollPane.prefHeightProperty().bind(rootPane.heightProperty());
     }
 
 
-    public void setContract(AddImageContract contract, Stage stage) {
+    public void setContract(ImageContract contract, Stage stage) {
         this.contract = contract;
         this.addStage = stage;
     }
@@ -109,27 +106,133 @@ public class AddImageContoller {
                     fileExtension = fileName.substring(dotIndex + 1);
                 }
 
+
                 this.imageTypeArea.setText(fileExtension);
                 Image selectedImage = new Image(selectedFile.toURI().toString());
                 imageDisp.setImage(selectedImage);
+
+                double imageWidth = imageDisp.getImage().getWidth();
+                double imageHeight = imageDisp.getImage().getHeight();
+                double viewportWidth = imageScrollPane.getViewportBounds().getWidth();
+                double viewportHeight = imageScrollPane.getViewportBounds().getHeight();
+                double[] zoomLimits = calculateZoomLimits(imageWidth, imageHeight, viewportWidth, viewportHeight);
+                minZoom = zoomLimits[0];
+                maxZoom = zoomLimits[1];
+
+                centerImageInScrollPane();
             }
         } else if (event.getSource().equals(addBtn)) {
-            ImageToByteArray imgConverter = new ImageToByteArray();
-            ImageType imgType;
-            try {
-                imgType = ImageType.valueOf(imageTypeArea.getText().toUpperCase());
-            } catch (IllegalArgumentException e) {
-                imgType = ImageType.PNG;
-            }
+            addImageDB(event);
+        }
+    }
 
-            byte[] imageBytes = imgConverter.convertImageToByteArray(imageDisp.getImage(), ImageType.PNG);
+    private void addImageDB(ActionEvent event) {
+        ImageToByteArray imgConverter = new ImageToByteArray();
+        ImageType imgType;
+        try {
+            imgType = ImageType.valueOf(imageTypeArea.getText().toUpperCase());
+        } catch (IllegalArgumentException e) {
+            imgType = ImageType.PNG;
+        }
+
+        try {
             LocalDate localDate = LocalDate.now();
             java.sql.Date sqlDate = java.sql.Date.valueOf(localDate);
 
             ImageObjFactory factory = new ImageObjFactory();
-            ImageObj newEntry = factory.createNewImageObj(imageTitleTxtArea.getText(), tagsImg.getText(), imgType, imageBytes, sqlDate);
+            ImageObj newEntry = factory.createNewImageObj(imageTitleTxtArea.getText(), tagsImg.getText(), imgType, imageDisp.getImage(), sqlDate);
             contract.addImage(newEntry);
             addStage.close();
+        } catch (Exception e) {
+            this.imageTypeArea.setText("Error Adding Image, missing or invalid information");
         }
     }
+
+    private void handleZoom(ScrollEvent event) {
+        if (imageDisp.getImage() == null) {
+            return;
+        }
+
+        if (event.getDeltaY() > 0) {
+            scale *= deltaScale;
+        } else {
+            scale /= deltaScale;
+        }
+
+        if (scale < minZoom) {
+            scale = minZoom;
+        } else if (scale > maxZoom) {
+            scale = maxZoom;
+        }
+
+        imageDisp.setScaleX(scale);
+        imageDisp.setScaleY(scale);
+
+        imageScrollPane.setVvalue(imageScrollPane.getVvalue());
+        imageScrollPane.setHvalue(imageScrollPane.getHvalue());
+
+        event.consume();
+    }
+
+    private void handleMousePressed(MouseEvent event) {
+        if (imageDisp.getImage() == null) {
+            return;
+        }
+
+        lastMouseX = event.getSceneX();
+        lastMouseY = event.getSceneY();
+    }
+
+    private void handleMouseDragged(MouseEvent event) {
+        if (imageDisp.getImage() == null) {
+            return;
+        }
+
+        double deltaX = lastMouseX - event.getSceneX();
+        double deltaY = lastMouseY - event.getSceneY();
+
+        imageScrollPane.setHvalue(imageScrollPane.getHvalue() + deltaX / imageScrollPane.getContent().getBoundsInLocal().getWidth());
+        imageScrollPane.setVvalue(imageScrollPane.getVvalue() + deltaY / imageScrollPane.getContent().getBoundsInLocal().getHeight());
+
+        lastMouseX = event.getSceneX();
+        lastMouseY = event.getSceneY();
+    }
+
+    public static double[] calculateZoomLimits(double imageWidth, double imageHeight, double viewportWidth, double viewportHeight) {
+        double minZoomX = viewportWidth / imageWidth;
+        double minZoomY = viewportHeight / imageHeight;
+        double minZoom = Math.min(minZoomX, minZoomY);
+
+        double maxZoom = 3.0;
+
+        return new double[]{minZoom, maxZoom};
+    }
+
+    private void centerImageInScrollPane() {
+        Image image = imageDisp.getImage();
+        if (image == null) return;
+
+        double imageWidth = image.getWidth();
+        double imageHeight = image.getHeight();
+        double viewportWidth = imageScrollPane.getViewportBounds().getWidth();
+        double viewportHeight = imageScrollPane.getViewportBounds().getHeight();
+
+        double scaleX = viewportWidth / imageWidth;
+        double scaleY = viewportHeight / imageHeight;
+        double scale = Math.min(scaleX, scaleY);
+
+        imageDisp.setFitWidth(imageWidth * scale);
+        imageDisp.setFitHeight(imageHeight * scale);
+        imageDisp.setPreserveRatio(true);
+
+        double contentWidth = imageDisp.getBoundsInParent().getWidth();
+        double contentHeight = imageDisp.getBoundsInParent().getHeight();
+
+        double hValue = (contentWidth - viewportWidth) / 2 / (contentWidth - viewportWidth);
+        double vValue = (contentHeight - viewportHeight) / 2 / (contentHeight - viewportHeight);
+
+        imageScrollPane.setHvalue(Math.max(0, Math.min(1, hValue)));
+        imageScrollPane.setVvalue(Math.max(0, Math.min(1, vValue)));
+    }
+
 }

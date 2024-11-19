@@ -26,6 +26,9 @@ public class EntryUIController {
     private Button loadDB;
 
     @FXML
+    private Button loadDefaultBtn;
+
+    @FXML
     private TextField outputArea;
 
     @FXML
@@ -47,20 +50,36 @@ public class EntryUIController {
             } else {
                 outputArea.setText("Invalid File Path");
             }
+        } else if (event.getSource().equals(loadDefaultBtn)) {
+            loadDefault(event);
         }
     }
 
-    private void goToNextMenu(ActionEvent event){
+    private void loadDefault(ActionEvent event) {
+        try {
+            DataStore dataStore = DataStore.getInstance();
+            hibernateUtil.getInstance((String) dataStore.getObject("dbLoc"));
+            goToNextMenu(event);
+        } catch (Exception e) {
+            outputArea.setText("Error loading Default");
+        }
+    }
+
+    private void goToNextMenu(ActionEvent event) {
         try {
             FXMLLoader fxmlLoader = new FXMLLoader(ImageStoreMiniApplication.class.getResource("MainUI.fxml"));
             Parent viewParent = fxmlLoader.load();
             Scene viewScene = new Scene(viewParent);
+
+            MainUIController mainUIController = fxmlLoader.getController();
+            mainUIController.setMainUiController();
 
             Stage sourceWin = (Stage) ((Node) event.getSource()).getScene().getWindow();
             sourceWin.setScene(viewScene);
 
             sourceWin.show();
         } catch (Exception e) {
+            e.printStackTrace();
             outputArea.setText("Something went wrong");
         }
 
