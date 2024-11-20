@@ -13,14 +13,13 @@ import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.Clipboard;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.input.ScrollEvent;
 import javafx.scene.layout.AnchorPane;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
-
 import java.io.File;
-import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -47,6 +46,9 @@ public class AddImageContoller {
 
     @FXML
     private Button selectImage;
+
+    @FXML
+    private Button pasteBTN;
 
     @FXML
     private ScrollPane imageScrollPane;
@@ -81,49 +83,74 @@ public class AddImageContoller {
 
     public void buttonClick(ActionEvent event) {
         if (event.getSource().equals(selectImage)) {
-            List<String> imgExtensions = new ArrayList<>();
-            for (ImageType imageType : ImageType.values()) {
-                imgExtensions.add(imageType.getExtension());
-            }
-
-            FileChooser fileChooser = new FileChooser();
-
-            for (String imgExtension : imgExtensions) {
-                FileChooser.ExtensionFilter imageFilter = new FileChooser.ExtensionFilter("Image Files", String.format("*%s", imgExtension));
-                fileChooser.getExtensionFilters().add(imageFilter);
-            }
-
-            String currentDir = System.getProperty("user.dir");
-            fileChooser.setInitialDirectory(new File(currentDir));
-
-            File selectedFile = fileChooser.showOpenDialog(null);
-
-            if (selectedFile != null) {
-                String fileName = selectedFile.getName();
-                String fileExtension = "";
-
-                int dotIndex = fileName.lastIndexOf(".");
-                if (dotIndex > 0) {
-                    fileExtension = fileName.substring(dotIndex + 1);
-                }
-
-
-                this.imageTypeArea.setText(fileExtension);
-                Image selectedImage = new Image(selectedFile.toURI().toString());
-                imageDisp.setImage(selectedImage);
-
-                double imageWidth = imageDisp.getImage().getWidth();
-                double imageHeight = imageDisp.getImage().getHeight();
-                double viewportWidth = imageScrollPane.getViewportBounds().getWidth();
-                double viewportHeight = imageScrollPane.getViewportBounds().getHeight();
-                double[] zoomLimits = calculateZoomLimits(imageWidth, imageHeight, viewportWidth, viewportHeight);
-                minZoom = zoomLimits[0];
-                maxZoom = zoomLimits[1];
-
-                centerImageInScrollPane();
-            }
+            addSelectedImage();
         } else if (event.getSource().equals(addBtn)) {
             addImageDB(event);
+        } else if (event.getSource().equals(pasteBTN)){
+            pasteImageFromClip();
+        }
+    }
+
+    private void pasteImageFromClip(){
+        Clipboard clipboard = Clipboard.getSystemClipboard();
+
+        if(clipboard.hasImage()){
+            Image image = clipboard.getImage();
+            imageDisp.setImage(image);
+
+            double imageWidth = imageDisp.getImage().getWidth();
+            double imageHeight = imageDisp.getImage().getHeight();
+            double viewportWidth = imageScrollPane.getViewportBounds().getWidth();
+            double viewportHeight = imageScrollPane.getViewportBounds().getHeight();
+            double[] zoomLimits = calculateZoomLimits(imageWidth, imageHeight, viewportWidth, viewportHeight);
+            minZoom = zoomLimits[0];
+            maxZoom = zoomLimits[1];
+
+            centerImageInScrollPane();
+        }
+    }
+
+    private void addSelectedImage(){
+        List<String> imgExtensions = new ArrayList<>();
+        for (ImageType imageType : ImageType.values()) {
+            imgExtensions.add(imageType.getExtension());
+        }
+
+        FileChooser fileChooser = new FileChooser();
+
+        for (String imgExtension : imgExtensions) {
+            FileChooser.ExtensionFilter imageFilter = new FileChooser.ExtensionFilter("Image Files", String.format("*%s", imgExtension));
+            fileChooser.getExtensionFilters().add(imageFilter);
+        }
+
+        String currentDir = System.getProperty("user.dir");
+        fileChooser.setInitialDirectory(new File(currentDir));
+
+        File selectedFile = fileChooser.showOpenDialog(null);
+
+        if (selectedFile != null) {
+            String fileName = selectedFile.getName();
+            String fileExtension = "";
+
+            int dotIndex = fileName.lastIndexOf(".");
+            if (dotIndex > 0) {
+                fileExtension = fileName.substring(dotIndex + 1);
+            }
+
+
+            this.imageTypeArea.setText(fileExtension);
+            Image selectedImage = new Image(selectedFile.toURI().toString());
+            imageDisp.setImage(selectedImage);
+
+            double imageWidth = imageDisp.getImage().getWidth();
+            double imageHeight = imageDisp.getImage().getHeight();
+            double viewportWidth = imageScrollPane.getViewportBounds().getWidth();
+            double viewportHeight = imageScrollPane.getViewportBounds().getHeight();
+            double[] zoomLimits = calculateZoomLimits(imageWidth, imageHeight, viewportWidth, viewportHeight);
+            minZoom = zoomLimits[0];
+            maxZoom = zoomLimits[1];
+
+            centerImageInScrollPane();
         }
     }
 
@@ -137,11 +164,9 @@ public class AddImageContoller {
         }
 
         try {
-            LocalDate localDate = LocalDate.now();
-            java.sql.Date sqlDate = java.sql.Date.valueOf(localDate);
 
             ImageObjFactory factory = new ImageObjFactory();
-            ImageObj newEntry = factory.createNewImageObj(imageTitleTxtArea.getText(), tagsImg.getText(), imgType, imageDisp.getImage(), sqlDate);
+            ImageObj newEntry = factory.createNewImageObj(imageTitleTxtArea.getText(), tagsImg.getText(), imgType, imageDisp.getImage());
             contract.addImage(newEntry);
             addStage.close();
         } catch (InvalidImgObjException e) {

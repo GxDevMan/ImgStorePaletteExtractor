@@ -1,14 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import java.net.*?>
 <?import javafx.geometry.*?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.image.*?>
 <?import javafx.scene.layout.*?>
 
 <AnchorPane fx:id="rootPane" xmlns="http://javafx.com/javafx/17.0.2-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.confer.imgstoremini.controllers.AddImageContoller">
+   <stylesheets>
+      <URL value="@styles/dark-theme.css" />
+   </stylesheets>
    <children>
       <VBox alignment="TOP_CENTER" spacing="10.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
-         <TextArea fx:id="tagsImg" minHeight="100.0" minWidth="500.0" promptText="TAGS" />
+         <TextArea fx:id="tagsImg" minHeight="87.0" minWidth="500.0" prefHeight="87.0" prefWidth="546.0" promptText="TAGS" />
          <HBox alignment="TOP_CENTER" spacing="10.0">
             <children>
                <TextField fx:id="imageTitleTxtArea" prefHeight="25.0" prefWidth="245.0" promptText="Image Title" HBox.hgrow="ALWAYS" />
@@ -18,8 +22,13 @@
                <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
             </padding>
          </HBox>
-         <Button fx:id="selectImage" mnemonicParsing="false" onAction="#buttonClick" text="Select Image" />
-         <ScrollPane fx:id="imageScrollPane" fitToHeight="true" fitToWidth="true" VBox.vgrow="ALWAYS">
+         <HBox alignment="TOP_CENTER">
+            <children>
+               <Button fx:id="pasteBTN" onAction="#buttonClick" mnemonicParsing="false" text="Paste Image" />
+               <Button fx:id="selectImage" mnemonicParsing="false" onAction="#buttonClick" text="Select Image" />
+            </children>
+         </HBox>
+         <ScrollPane fx:id="imageScrollPane" fitToHeight="true" fitToWidth="true" prefHeight="250.0" prefWidth="546.0" VBox.vgrow="ALWAYS">
             <content>
                <ImageView fx:id="imageDisp" pickOnBounds="true" preserveRatio="true" />
             </content>

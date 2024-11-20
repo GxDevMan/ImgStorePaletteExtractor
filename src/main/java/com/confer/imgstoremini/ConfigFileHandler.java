@@ -33,6 +33,9 @@ public class ConfigFileHandler {
                 configData.put("default_pagesize", rootNode.get("default_pagesize").asText());
             }
         } catch (Exception e) {
+            File configFile2 = new File(filePath);
+            createDefaultConfigFile(configFile2);
+            return getConfig();
         }
         return configData;
     }

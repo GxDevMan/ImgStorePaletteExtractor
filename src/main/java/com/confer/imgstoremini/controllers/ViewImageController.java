@@ -4,16 +4,14 @@ import com.confer.imgstoremini.model.ImageObj;
 import com.confer.imgstoremini.model.ImageObjFactory;
 import com.confer.imgstoremini.model.ImageType;
 import com.confer.imgstoremini.util.ImageConversion;
+import com.confer.imgstoremini.util.TimeFormatter;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.input.Clipboard;
-import javafx.scene.input.ClipboardContent;
-import javafx.scene.input.MouseEvent;
-import javafx.scene.input.ScrollEvent;
+import javafx.scene.input.*;
 import javafx.scene.layout.AnchorPane;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
@@ -38,6 +36,9 @@ public class ViewImageController {
 
     @FXML
     private Button saveImageBTN;
+
+    @FXML
+    private Button closeBTN;
 
     @FXML
     private TextArea tagsImg;
@@ -80,7 +81,6 @@ public class ViewImageController {
         imageScrollPane.prefHeightProperty().bind(rootPane.heightProperty());
     }
 
-
     public void setImageView(ImageObj imageObj, ImageContract contract, Stage stage) {
         this.imageObj = imageObj;
         ImageConversion conversion = new ImageConversion();
@@ -102,7 +102,11 @@ public class ViewImageController {
         this.contract = contract;
         this.stage = stage;
 
-        String formatThis = String.format(dateAddedLbl.getText(), imageObj.getImageDate().toString());
+        TimeFormatter timeFormatter = new TimeFormatter();
+        String time = timeFormatter.formatNumTime(imageObj.getImageDate());
+        String date = timeFormatter.getFormattedDate(imageObj.getImageDate());
+
+        String formatThis = String.format(dateAddedLbl.getText(), date, time);
         dateAddedLbl.setText(formatThis);
         centerImageInScrollPane();
     }
@@ -142,6 +146,8 @@ public class ViewImageController {
             copyImageToClipBoard(imageDisp.getImage());
         } else if (event.getSource().equals(saveImageBTN)) {
             saveImageToFile(imageDisp.getImage(), this.stage);
+        } else if (event.getSource().equals(closeBTN)){
+            stage.close();
         }
     }
 
@@ -166,9 +172,7 @@ public class ViewImageController {
             ImageObjFactory imageObjFactory = new ImageObjFactory();
             imageObjFactory.createNewImageObj(imageTitleField.getText(),
                     tagsImg.getText(),
-                    ImageType.fromExtension(imageObj.getImageType()), imageDisp.getImage(),
-                    imageObj.getImageDate());
-
+                    ImageType.fromExtension(imageObj.getImageType()), imageDisp.getImage());
             imageObj.setImageTitle(imageTitleField.getText());
             imageObj.setImageTags(tagsImg.getText());
             this.contract.updateImage(imageObj);

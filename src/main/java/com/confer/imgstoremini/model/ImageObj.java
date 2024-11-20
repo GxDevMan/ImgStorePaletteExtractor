@@ -2,6 +2,7 @@ package com.confer.imgstoremini.model;
 
 import javax.persistence.*;
 import java.sql.Date;
+import java.sql.Timestamp;
 
 @Entity
 @Table(name = "Image_Table")
@@ -22,12 +23,12 @@ public class ImageObj {
 
     private byte[] fullImageByte;
 
-    private Date imageDate;
+    private Timestamp imageDate;
 
     public ImageObj() {
     }
 
-    public ImageObj(long imageId, String imageTitle, String imageTags, ImageType imageType, byte[] thumbnailImageByte, byte[] fullImageByte, Date imageDate) {
+    public ImageObj(long imageId, String imageTitle, String imageTags, ImageType imageType, byte[] thumbnailImageByte, byte[] fullImageByte, Timestamp imageDate) {
         this.imageId = imageId;
         this.imageTitle = imageTitle;
         this.imageTags = imageTags;
@@ -37,7 +38,7 @@ public class ImageObj {
         this.imageDate = imageDate;
     }
 
-    public ImageObj(String imageTitle, String imageTags, ImageType imageType, byte[] thumbnailImageByte, byte[] fullImageByte, Date imageDate) {
+    public ImageObj(String imageTitle, String imageTags, ImageType imageType, byte[] thumbnailImageByte, byte[] fullImageByte, Timestamp imageDate) {
         this.imageTitle = imageTitle;
         this.imageTags = imageTags;
         this.imageType = imageType.getExtension();
@@ -78,11 +79,11 @@ public class ImageObj {
         this.imageId = imageId;
     }
 
-    public Date getImageDate() {
+    public Timestamp getImageDate() {
         return imageDate;
     }
 
-    public void setImageDate(Date imageDate) {
+    public void setImageDate(Timestamp imageDate) {
         this.imageDate = imageDate;
     }
 

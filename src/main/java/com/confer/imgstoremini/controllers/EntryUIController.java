@@ -1,5 +1,4 @@
 package com.confer.imgstoremini.controllers;
-
 import com.confer.imgstoremini.ConfigFileHandler;
 import com.confer.imgstoremini.ImageStoreMiniApplication;
 import com.confer.imgstoremini.util.DataStore;
@@ -12,10 +11,10 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.TextField;
+import javafx.scene.image.Image;
 import javafx.stage.FileChooser;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
-
 import java.io.File;
 import java.util.Map;
 import java.util.Optional;
@@ -80,11 +79,16 @@ public class EntryUIController {
             stage.setScene(scene);
             stage.initModality(Modality.APPLICATION_MODAL);
 
+            DataStore dataStore = DataStore.getInstance();
+            Image icon = (Image) dataStore.getObject("image_icon");
+            stage.getIcons().add(icon);
+
             SettingsConfigUIController controller = fxmlLoader.getController();
             controller.setConfigurationSetting(stage);
 
             stage.show();
         } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 
@@ -108,6 +112,10 @@ public class EntryUIController {
             mainUIController.setMainUiController();
 
             Stage sourceWin = (Stage) ((Node) event.getSource()).getScene().getWindow();
+            String stageTitle = sourceWin.getTitle();
+            DataStore dataStore = DataStore.getInstance();
+            String connectedDB = (String) dataStore.getObject("db_name");
+            sourceWin.setTitle(String.format("%s - %s", stageTitle, connectedDB));
             sourceWin.setScene(viewScene);
 
             sourceWin.show();

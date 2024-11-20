@@ -6,10 +6,12 @@ import javafx.embed.swing.SwingFXUtils;
 import javafx.scene.image.Image;
 
 import java.awt.image.BufferedImage;
-import java.sql.Date;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 
 public class ImageObjFactory {
-    public ImageObj createNewImageObj(String imageTitle, String imageTags, ImageType imageType, Image image, Date imageDate) throws InvalidImgObjException {
+    public ImageObj createNewImageObj(String imageTitle, String imageTags, ImageType imageType, Image image) throws InvalidImgObjException {
         ImageConversion conversion = new ImageConversion();
         byte[] imageByte;
         try {
@@ -41,19 +43,26 @@ public class ImageObjFactory {
             throw new InvalidImgObjException("Image byte array is null or empty");
         }
 
-        if (imageDate == null) {
-            throw new InvalidImgObjException("Image date is null");
-        }
+
+        LocalDate localDate = LocalDate.now();
+        LocalTime localTime = LocalTime.now();
+        LocalDateTime localDateTime = LocalDateTime.of(localDate, localTime);
+        java.sql.Timestamp date = java.sql.Timestamp.valueOf(localDateTime);
 
         BufferedImage resizedImagedBfr = resizeImgContext.executeResize(SwingFXUtils.fromFXImage(image, null), 500, 500);
         Image resizedImage = SwingFXUtils.toFXImage(resizedImagedBfr, null);
-        byte[] thumbnailByte = conversion.convertImageToByteArray(resizedImage, imageType);
+
+        byte[] thumbnailByte;
+        try {
+           thumbnailByte = conversion.convertImageToByteArray(resizedImage, imageType);
+        } catch (Exception e) {
+            throw new InvalidImgObjException("Thumbnail Conversion Failed");
+        }
 
         if (thumbnailByte == null || thumbnailByte.length == 0)
             throw new InvalidImgObjException("Resizing failed");
 
-
-        return new ImageObj(imageTitle.trim(), imageTags.trim(), imageType, thumbnailByte, imageByte, imageDate);
+        return new ImageObj(imageTitle.trim(), imageTags.trim(), imageType, thumbnailByte, imageByte, date);
     }
 
     private boolean isNullOrEmpty(String str) {

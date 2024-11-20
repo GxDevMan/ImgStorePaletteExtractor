@@ -1,16 +1,20 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import java.net.*?>
 <?import javafx.geometry.*?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.image.*?>
 <?import javafx.scene.layout.*?>
 
 <AnchorPane fx:id="rootPane" xmlns="http://javafx.com/javafx/17.0.2-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.confer.imgstoremini.controllers.ViewImageController">
+   <stylesheets>
+      <URL value="@styles/dark-theme.css" />
+   </stylesheets>
    <children>
       <VBox alignment="TOP_CENTER" spacing="10.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
          <TextField fx:id="messageBox" disable="true" promptText="Message" />
-         <TextArea fx:id="tagsImg" minHeight="100.0" minWidth="500.0" promptText="Image Tags" />
-         <Label fx:id="dateAddedLbl" text="Date Added: %s" />
+         <TextArea fx:id="tagsImg" minWidth="300.0" prefHeight="133.0" prefWidth="478.0" promptText="Image Tags" wrapText="true" />
+         <Label fx:id="dateAddedLbl" text="Date Added: %s %s" />
          <TextField fx:id="imageTitleField" promptText="Image Title" />
          <ScrollPane fx:id="imageScrollPane" fitToHeight="true" fitToWidth="true" VBox.vgrow="ALWAYS">
             <content>
@@ -22,6 +26,7 @@
                <Button fx:id="updateBTN" mnemonicParsing="false" onAction="#buttonClick" text="Update" />
                <Button fx:id="copyImageBTN" mnemonicParsing="false" onAction="#buttonClick" text="Copy Image" />
                <Button fx:id="saveImageBTN" mnemonicParsing="false" onAction="#buttonClick" text="Save Image" />
+               <Button fx:id="closeBTN" mnemonicParsing="false" onAction="#buttonClick" text="Close" />
             </children>
          </HBox>
       </VBox>

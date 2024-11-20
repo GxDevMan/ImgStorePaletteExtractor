@@ -2,6 +2,7 @@ package com.confer.imgstoremini.controllers;
 
 import com.confer.imgstoremini.model.ImageThumbObjDTO;
 import com.confer.imgstoremini.util.ImageConversion;
+import com.confer.imgstoremini.util.TimeFormatter;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
@@ -40,7 +41,11 @@ public class PreviewImageComponentUIController {
         this.imageObj = imageObj;
         this.contract = contract;
         imageTitleLbl.setText(imageObj.getImageTitle());
-        String formatThis = String.format(dateAddedLbl.getText(),imageObj.getImageDate().toString());
+
+        TimeFormatter timeFormatter = new TimeFormatter();
+        String timeNum = timeFormatter.formatNumTime(imageObj.getImageDate());
+        String dateDay = timeFormatter.getFormattedDate(imageObj.getImageDate());
+        String formatThis = String.format(dateAddedLbl.getText(), dateDay,timeNum);
         dateAddedLbl.setText(formatThis);
     }
 

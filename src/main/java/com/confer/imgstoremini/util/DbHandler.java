@@ -78,17 +78,6 @@ public class DbHandler {
         }
     }
 
-    public List<ImageObj> searchByTitleOrTags(String keyword) {
-        Session session = getSession();
-        Transaction transaction = session.beginTransaction();
-        String hql = "FROM ImageObj WHERE imageTitle LIKE :keyword OR imageTags LIKE :keyword";
-        Query<ImageObj> query = session.createQuery(hql, ImageObj.class);
-        query.setParameter("keyword", "%" + keyword + "%");
-        List<ImageObj> imageList = query.getResultList();
-        transaction.commit();
-        return imageList;
-    }
-
     public int calculateTotalPages(int pageSize) {
         Session session = getSession();
         Transaction transaction = session.beginTransaction();
@@ -102,6 +91,39 @@ public class DbHandler {
         Query<Long> query = session.createQuery(cq);
         long totalRecords = query.getSingleResult();
         transaction.commit();
+
+        return (int) Math.ceil((double) totalRecords / pageSize);
+    }
+
+    public int calculateTotalPages(int pageSize, String searchQuery) {
+        Session session = getSession();
+        Transaction transaction = null;
+        long totalRecords = 0;
+
+        try {
+            transaction = session.beginTransaction();
+            CriteriaBuilder cb = session.getCriteriaBuilder();
+            CriteriaQuery<Long> countQuery = cb.createQuery(Long.class);
+            Root<ImageObj> root = countQuery.from(ImageObj.class);
+
+            Predicate filter = cb.or(
+                    cb.like(cb.lower(root.get("imageTitle")), "%" + searchQuery.toLowerCase() + "%"),
+                    cb.like(cb.lower(root.get("imageTags")), "%" + searchQuery.toLowerCase() + "%")
+            );
+            countQuery.select(cb.count(root)).where(filter);
+
+            totalRecords = session.createQuery(countQuery).getSingleResult();
+
+            if (transaction != null) {
+                transaction.commit();
+            }
+
+        } catch (Exception e) {
+            if (transaction != null) {
+                transaction.rollback();
+            }
+            e.printStackTrace();
+        }
 
         return (int) Math.ceil((double) totalRecords / pageSize);
     }
@@ -133,39 +155,6 @@ public class DbHandler {
             }
             Predicate finalPredicate = cb.or(predicates.toArray(new Predicate[0]));
             countQuery.select(cb.count(root)).where(finalPredicate);
-
-            totalRecords = session.createQuery(countQuery).getSingleResult();
-
-            if (transaction != null) {
-                transaction.commit();
-            }
-
-        } catch (Exception e) {
-            if (transaction != null) {
-                transaction.rollback();
-            }
-            e.printStackTrace();
-        }
-
-        return (int) Math.ceil((double) totalRecords / pageSize);
-    }
-
-    public int calculateTotalPages(int pageSize, String searchQuery) {
-        Session session = getSession();
-        Transaction transaction = null;
-        long totalRecords = 0;
-
-        try {
-            transaction = session.beginTransaction();
-            CriteriaBuilder cb = session.getCriteriaBuilder();
-            CriteriaQuery<Long> countQuery = cb.createQuery(Long.class);
-            Root<ImageObj> root = countQuery.from(ImageObj.class);
-
-            Predicate filter = cb.or(
-                    cb.like(cb.lower(root.get("imageTitle")), "%" + searchQuery.toLowerCase() + "%"),
-                    cb.like(cb.lower(root.get("imageTags")), "%" + searchQuery.toLowerCase() + "%")
-            );
-            countQuery.select(cb.count(root)).where(filter);
 
             totalRecords = session.createQuery(countQuery).getSingleResult();
 

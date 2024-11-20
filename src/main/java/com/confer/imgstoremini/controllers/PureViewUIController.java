@@ -1,12 +1,17 @@
 package com.confer.imgstoremini.controllers;
 
+import com.confer.imgstoremini.util.ImageConversion;
+import javafx.embed.swing.SwingFXUtils;
 import javafx.fxml.FXML;
+import javafx.scene.control.ContextMenu;
+import javafx.scene.control.MenuItem;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.input.MouseEvent;
-import javafx.scene.input.ScrollEvent;
+import javafx.scene.input.*;
 import javafx.scene.layout.AnchorPane;
+
+import java.awt.image.BufferedImage;
 
 
 public class PureViewUIController {
@@ -53,6 +58,21 @@ public class PureViewUIController {
         maxZoom = zoomLimits[1];
 
         centerImageInScrollPane();
+
+        ContextMenu contextMenu = new ContextMenu();
+        MenuItem copyImageItem = new MenuItem("Copy Image");
+        copyImageItem.setOnAction(e -> {
+            copyImageToClipBoard(dispImageView.getImage());
+        });
+        contextMenu.getItems().addAll(copyImageItem);
+
+        dispImageView.setOnMouseClicked(event -> {
+            if (event.getButton() == MouseButton.SECONDARY) {
+                contextMenu.show(dispImageView, event.getScreenX(), event.getScreenY());
+            } else {
+                contextMenu.hide();
+            }
+        });
     }
 
     private void centerImageInScrollPane() {
@@ -127,6 +147,22 @@ public class PureViewUIController {
         double maxZoom = 3.0;
 
         return new double[]{minZoom, maxZoom};
+    }
+
+    private void copyImageToClipBoard(Image image) {
+        if (image == null) {
+            return;
+        }
+        ImageConversion imageConversion = new ImageConversion();
+        BufferedImage bufferedImage = imageConversion.convertImageToBufferedImage(image);
+
+        if (bufferedImage != null) {
+            BufferedImage compatibleImage = new BufferedImage(bufferedImage.getWidth(), bufferedImage.getHeight(), BufferedImage.TYPE_INT_ARGB);
+            compatibleImage.createGraphics().drawImage(bufferedImage, 0, 0, null);
+            ClipboardContent clipboardContent = new ClipboardContent();
+            clipboardContent.putImage(SwingFXUtils.toFXImage(compatibleImage, null));
+            Clipboard.getSystemClipboard().setContent(clipboardContent);
+        }
     }
 
 }

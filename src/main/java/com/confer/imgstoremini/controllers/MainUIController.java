@@ -1,13 +1,13 @@
 package com.confer.imgstoremini.controllers;
 
 import com.confer.imgstoremini.ImageStoreMiniApplication;
-import com.confer.imgstoremini.model.ImageObj;
-import com.confer.imgstoremini.model.ImageThumbObjDTO;
+import com.confer.imgstoremini.model.*;
 import com.confer.imgstoremini.util.DataStore;
 import com.confer.imgstoremini.util.DbHandler;
 import com.confer.imgstoremini.util.ImageConversion;
 import com.confer.imgstoremini.util.hibernateUtil;
 import javafx.application.Platform;
+import javafx.embed.swing.SwingFXUtils;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -16,11 +16,15 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.TilePane;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
+import javafx.scene.control.Alert;
 
+import java.awt.image.BufferedImage;
+import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
 
@@ -76,7 +80,7 @@ public class MainUIController implements ImageContract {
             refreshListSearchRegex(regeximgSearchBox.getText().trim());
         } else if (event.getSource().equals(backBtn)) {
             goToNextMenu(event);
-        } else if (event.getSource().equals(resetBTN)){
+        } else if (event.getSource().equals(resetBTN)) {
             imgSearchBox.setText("");
             regeximgSearchBox.setText("");
             refreshList();
@@ -89,6 +93,37 @@ public class MainUIController implements ImageContract {
         alert.setTitle("Delete Confirmation");
         alert.setHeaderText("Are you sure you want to delete this image?");
         alert.setContentText("Image Title: " + deleteThisImage.getImageTitle());
+        DialogPane dialogPane = alert.getDialogPane();
+        dialogPane.getStylesheets().add(ImageStoreMiniApplication.class.getResource("styles/dark-theme.css").toExternalForm());
+
+        Stage stage = (Stage) alert.getDialogPane().getScene().getWindow();
+        DataStore dataStore = DataStore.getInstance();
+        Image icon = (Image) dataStore.getObject("image_icon");
+        stage.getIcons().add(icon);
+
+        ImageConversion conversion = new ImageConversion();
+        Image ThumbNail = conversion.byteArraytoImage(deleteThisImage.getThumbnailImageByte());
+
+        ResizeImgContext resizeImgContext = new ResizeImgContext();
+        switch (ImageType.fromExtension(deleteThisImage.getImageType())) {
+            case JPG, JPEG -> resizeImgContext.setStrategy(new JpegResizeStrategy());
+            case PNG -> resizeImgContext.setStrategy(new PngResizeStrategy());
+            default -> {
+                return;
+            }
+        }
+        BufferedImage bufferedImage = resizeImgContext.executeResize(
+                SwingFXUtils.fromFXImage(ThumbNail, null),
+                100, 100);
+
+        try {
+            ThumbNail = conversion.convertBufferedImageToImage(bufferedImage);
+        } catch (IOException e) {
+            return;
+        }
+        ImageView imageView = new ImageView(ThumbNail);
+        alert.setGraphic(imageView);
+
         Optional<ButtonType> result = alert.showAndWait();
 
         if (result.isPresent() && result.get() == ButtonType.OK) {
@@ -109,8 +144,12 @@ public class MainUIController implements ImageContract {
                 alert2.setTitle("Deletion Failed");
                 alert2.setHeaderText("There was a problem deleting this image");
                 alert2.setContentText("Image Title: " + deleteThisImage.getImageTitle());
-                alert2.showAndWait();
 
+                DialogPane dialogPane2 = alert2.getDialogPane();
+                dialogPane2.getStylesheets().add(ImageStoreMiniApplication.class.getResource("styles/dark-theme.css").toExternalForm());
+
+                alert2.setGraphic(imageView);
+                alert2.showAndWait();
             }
         }
         refreshList();
@@ -126,6 +165,10 @@ public class MainUIController implements ImageContract {
             stage.setTitle("Image Store Mini");
             stage.setScene(scene);
             stage.initModality(Modality.WINDOW_MODAL);
+
+            DataStore dataStore = DataStore.getInstance();
+            Image icon = (Image) dataStore.getObject("image_icon");
+            stage.getIcons().add(icon);
 
             ViewImageController controller = fxmlLoader.getController();
             controller.setImageView(handleImages.getImage(imageObj), this, stage);
@@ -147,6 +190,10 @@ public class MainUIController implements ImageContract {
             stage.setTitle("Image Store Mini");
             stage.setScene(scene);
             stage.initModality(Modality.WINDOW_MODAL);
+
+            DataStore dataStore = DataStore.getInstance();
+            Image icon = (Image) dataStore.getObject("image_icon");
+            stage.getIcons().add(icon);
 
             PureViewUIController controller = fxmlLoader.getController();
             ImageObj imageObjPure = handleImages.getImage(imageThumbObjDTO);
@@ -190,15 +237,21 @@ public class MainUIController implements ImageContract {
         }).start();
     }
 
-    private void goToAddImage(){
+    private void goToAddImage() {
         try {
             FXMLLoader fxmlLoader = new FXMLLoader(ImageStoreMiniApplication.class.getResource("AddImageUI.fxml"));
             Scene scene = new Scene(fxmlLoader.load(), 500, 500);
             AddImageContoller imgController = fxmlLoader.getController();
+
             Stage stage = new Stage();
             stage.setTitle("Add Image to Database");
             stage.setScene(scene);
             stage.initModality(Modality.APPLICATION_MODAL);
+
+            DataStore dataStore = DataStore.getInstance();
+            Image icon = (Image) dataStore.getObject("image_icon");
+            stage.getIcons().add(icon);
+
             imgController.setContract(this, stage);
             stage.show();
         } catch (Exception e) {
@@ -292,8 +345,11 @@ public class MainUIController implements ImageContract {
             Stage sourceWin = (Stage) ((Node) event.getSource()).getScene().getWindow();
             sourceWin.setScene(viewScene);
 
+            sourceWin.setTitle("Image Store Mini");
+
             hibernateUtil util = hibernateUtil.getInstance();
-            util.shutdown();
+            if (util != null)
+                util.shutdown();
 
             sourceWin.show();
         } catch (Exception e) {

@@ -8,6 +8,7 @@ import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 
 import com.confer.imgstoremini.model.ImageType;
 
@@ -47,6 +48,16 @@ public class ImageConversion {
             e.printStackTrace();
             return new byte[0];
         }
+    }
+
+    public Image convertBufferedImageToImage(BufferedImage bufferedImage) throws IOException {
+        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+        ImageIO.write(bufferedImage, "png", byteArrayOutputStream);
+        byte[] imageData = byteArrayOutputStream.toByteArray();
+
+        InputStream inputStream = new ByteArrayInputStream(imageData);
+
+        return new Image(inputStream);
     }
 
     public BufferedImage convertImageToBufferedImage(Image image) {
