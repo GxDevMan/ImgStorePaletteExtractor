@@ -1,5 +1,6 @@
 package com.confer.imgstoremini.controllers;
 
+import com.confer.imgstoremini.exceptions.InvalidImgObjException;
 import com.confer.imgstoremini.model.ImageObj;
 import com.confer.imgstoremini.model.ImageObjFactory;
 import com.confer.imgstoremini.model.ImageType;
@@ -143,9 +144,8 @@ public class AddImageContoller {
             ImageObj newEntry = factory.createNewImageObj(imageTitleTxtArea.getText(), tagsImg.getText(), imgType, imageDisp.getImage(), sqlDate);
             contract.addImage(newEntry);
             addStage.close();
-        } catch (Exception e) {
-            e.printStackTrace();
-            this.imageTypeArea.setText("Error Adding Image, missing or invalid information");
+        } catch (InvalidImgObjException e) {
+            this.imageTypeArea.setText(e.getMessage());
         }
     }
 

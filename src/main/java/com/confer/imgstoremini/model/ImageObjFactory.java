@@ -11,7 +11,12 @@ import java.sql.Date;
 public class ImageObjFactory {
     public ImageObj createNewImageObj(String imageTitle, String imageTags, ImageType imageType, Image image, Date imageDate) throws InvalidImgObjException {
         ImageConversion conversion = new ImageConversion();
-        byte[] imageByte = conversion.convertImageToByteArray(image, imageType);
+        byte[] imageByte;
+        try {
+            imageByte = conversion.convertImageToByteArray(image, imageType);
+        } catch (Exception e) {
+            throw new InvalidImgObjException("Full Image Byte conversion Failed");
+        }
 
         if (isNullOrEmpty(imageTitle)) {
             throw new InvalidImgObjException("No Image Title provided");
@@ -27,7 +32,7 @@ public class ImageObjFactory {
 
         ResizeImgContext resizeImgContext = new ResizeImgContext();
         switch (imageType) {
-            case  PNG -> resizeImgContext.setStrategy(new PngResizeStrategy());
+            case PNG -> resizeImgContext.setStrategy(new PngResizeStrategy());
             case JPG, JPEG -> resizeImgContext.setStrategy(new JpegResizeStrategy());
             default -> throw new InvalidImgObjException("Invalid Image Type");
         }

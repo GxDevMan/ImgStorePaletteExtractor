@@ -1,5 +1,6 @@
 package com.confer.imgstoremini.controllers;
 
+import com.confer.imgstoremini.ConfigFileHandler;
 import com.confer.imgstoremini.ImageStoreMiniApplication;
 import com.confer.imgstoremini.util.DataStore;
 import com.confer.imgstoremini.util.hibernateUtil;
@@ -12,9 +13,11 @@ import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.TextField;
 import javafx.stage.FileChooser;
+import javafx.stage.Modality;
 import javafx.stage.Stage;
 
 import java.io.File;
+import java.util.Map;
 import java.util.Optional;
 
 public class EntryUIController {
@@ -26,6 +29,9 @@ public class EntryUIController {
     private Button loadDB;
 
     @FXML
+    private Button settingsBTN;
+
+    @FXML
     private Button loadDefaultBtn;
 
     @FXML
@@ -34,31 +40,57 @@ public class EntryUIController {
     @FXML
     protected void buttonClick(ActionEvent event) {
         if (event.getSource().equals(createNew)) {
-            if (checkDefaultDb()) {
-                outputArea.setText("Default DB already exists");
-                return;
-            }
-            DataStore dataStore = DataStore.getInstance();
-            hibernateUtil.getInstance((String) dataStore.getObject("dbLoc"));
-            goToNextMenu(event);
+         createNewDBandGoTo(event);
         } else if (event.getSource().equals(loadDB)) {
-            String filePath = openDbFileChooser();
-            Optional<String> OptFilepath = Optional.ofNullable(filePath);
-            if (OptFilepath.isPresent()) {
-                hibernateUtil.getInstance(OptFilepath.get());
-                goToNextMenu(event);
-            } else {
-                outputArea.setText("Invalid File Path");
-            }
+          goToSelectedDB(event);
         } else if (event.getSource().equals(loadDefaultBtn)) {
             loadDefault(event);
+        } else if (event.getSource().equals(settingsBTN)) {
+            goToSettingsConfigUI();
+        }
+    }
+
+    private void createNewDBandGoTo(ActionEvent event){
+        if (checkDefaultDb()) {
+            outputArea.setText("Default DB already exists");
+            return;
+        }
+        hibernateUtil util = hibernateUtil.getInstance(getConfigSetting("default_db"));
+        util.shutdown();
+    }
+
+    private void goToSelectedDB(ActionEvent event){
+        String filePath = openDbFileChooser();
+        Optional<String> OptFilepath = Optional.ofNullable(filePath);
+        if (OptFilepath.isPresent()) {
+            hibernateUtil.getInstance(OptFilepath.get());
+            goToNextMenu(event);
+        } else {
+            outputArea.setText("Invalid File Path");
+        }
+    }
+
+    private void goToSettingsConfigUI() {
+        try {
+            FXMLLoader fxmlLoader = new FXMLLoader(ImageStoreMiniApplication.class.getResource("SettingsConfigUI.fxml"));
+            Scene scene = new Scene(fxmlLoader.load(), 500, 170);
+
+            Stage stage = new Stage();
+            stage.setTitle("Image Store Mini");
+            stage.setScene(scene);
+            stage.initModality(Modality.APPLICATION_MODAL);
+
+            SettingsConfigUIController controller = fxmlLoader.getController();
+            controller.setConfigurationSetting(stage);
+
+            stage.show();
+        } catch (Exception e) {
         }
     }
 
     private void loadDefault(ActionEvent event) {
         try {
-            DataStore dataStore = DataStore.getInstance();
-            hibernateUtil.getInstance((String) dataStore.getObject("dbLoc"));
+            hibernateUtil.getInstance(getConfigSetting("default_db"));
             goToNextMenu(event);
         } catch (Exception e) {
             outputArea.setText("Error loading Default");
@@ -67,6 +99,7 @@ public class EntryUIController {
 
     private void goToNextMenu(ActionEvent event) {
         try {
+            loadFinalDataStoreConfiguration();
             FXMLLoader fxmlLoader = new FXMLLoader(ImageStoreMiniApplication.class.getResource("MainUI.fxml"));
             Parent viewParent = fxmlLoader.load();
             Scene viewScene = new Scene(viewParent);
@@ -83,6 +116,14 @@ public class EntryUIController {
             outputArea.setText("Something went wrong");
         }
 
+    }
+
+    private void loadFinalDataStoreConfiguration(){
+        DataStore dataStore = DataStore.getInstance();
+        ConfigFileHandler configFileHandler = new ConfigFileHandler();
+        Map<String, String> savedConfiguration = configFileHandler.getConfig();
+        dataStore.insertObject("dbLoc", savedConfiguration.get("default_db"));
+        dataStore.insertObject("default_pagesize", Integer.parseInt(savedConfiguration.get("default_pagesize")));
     }
 
     public String openDbFileChooser() {
@@ -104,9 +145,13 @@ public class EntryUIController {
     }
 
     private boolean checkDefaultDb() {
-        DataStore dataStore = DataStore.getInstance();
-        String filepath = (String) dataStore.getObject("dbLoc");
-        File defaultDb = new File(filepath);
-        return defaultDb.exists();
+        ConfigFileHandler configFileHandler = new ConfigFileHandler();
+        return configFileHandler.checkDBSpecifiedInConfigFile();
+    }
+
+    private String getConfigSetting(String key){
+        ConfigFileHandler configFileHandler = new ConfigFileHandler();
+        Map<String, String> loadedConfiguration = configFileHandler.getConfig();
+        return loadedConfiguration.get(key);
     }
 }

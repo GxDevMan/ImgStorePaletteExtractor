@@ -11,60 +11,56 @@ import java.util.HashMap;
 
 public class ConfigFileHandler {
 
-    public void checkAndCreateConfigFile() {
-        String currentDir = System.getProperty("user.dir");
-        String filePath = currentDir + File.separator + "config.json";
-
-        File configFile = new File(filePath);
-        if (!configFile.exists()) {
-            createConfigFile(configFile);
-        }
-    }
-
-    public void checkAndCreateConfigFile(String dbName) {
-        String currentDir = System.getProperty("user.dir");
-        String filePath = currentDir + File.separator + "config.json";
-
-        File configFile = new File(filePath);
-
-        Map<String, String> defaultConfig = new HashMap<>();
-        defaultConfig.put("default_db", "default_imageStore.db");
-        defaultConfig.put("default_pagesize", "10");
-        ObjectMapper mapper = new ObjectMapper();
-        ObjectWriter writer = mapper.writerWithDefaultPrettyPrinter();
-        try {
-            writer.writeValue(configFile, defaultConfig);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
     public Map<String, String> getConfig() {
         String currentDir = System.getProperty("user.dir");
         String filePath = currentDir + File.separator + "config.json";
         File configFile = new File(filePath);
+        boolean configExistTest = checkConfigFile();
+
+        if (!configExistTest) {
+            createDefaultConfigFile(configFile);
+            return getConfig();
+        }
 
         Map<String, String> configData = new HashMap<>();
-
-        if (configFile.exists()) {
-            ObjectMapper mapper = new ObjectMapper();
-            try {
-                JsonNode rootNode = mapper.readTree(configFile);
-                if (rootNode.has("default_db")) {
-                    configData.put("default_db", rootNode.get("default_db").asText());
-                }
-                if (rootNode.has("default_pagesize")) {
-                    configData.put("default_pagesize", rootNode.get("default_pagesize").asText());
-                }
-            } catch (Exception e) {
-                createConfigFile(configFile);
-                getConfig();
+        ObjectMapper mapper = new ObjectMapper();
+        try {
+            JsonNode rootNode = mapper.readTree(configFile);
+            if (rootNode.has("default_db")) {
+                configData.put("default_db", rootNode.get("default_db").asText());
             }
+            if (rootNode.has("default_pagesize")) {
+                configData.put("default_pagesize", rootNode.get("default_pagesize").asText());
+            }
+        } catch (Exception e) {
         }
         return configData;
     }
 
-    private void createConfigFile(File configFile) {
+    private boolean checkConfigFile() {
+        String currentDir = System.getProperty("user.dir");
+        String filePath = currentDir + File.separator + "config.json";
+
+        File configFile = new File(filePath);
+        return configFile.exists();
+    }
+
+    public boolean checkDBSpecifiedInConfigFile() {
+        try {
+            Map<String, String> loadedConfig = getConfig();
+            String dbPath = loadedConfig.get("default_db");
+            File dbfile = new File(dbPath);
+            return dbfile.exists();
+        } catch (Exception e){
+            String currentDir = System.getProperty("user.dir");
+            String filePath = currentDir + File.separator + "config.json";
+            File configFile = new File(filePath);
+            createDefaultConfigFile(configFile);
+            return checkDBSpecifiedInConfigFile();
+        }
+    }
+
+    public void createDefaultConfigFile(File configFile) {
         Map<String, String> defaultConfig = new HashMap<>();
         defaultConfig.put("default_db", "default_imageStore.db");
         defaultConfig.put("default_pagesize", "10");
@@ -73,7 +69,19 @@ public class ConfigFileHandler {
         try {
             writer.writeValue(configFile, defaultConfig);
         } catch (IOException e) {
-            e.printStackTrace();
+        }
+    }
+
+    public void createCustomConfigFile(Map<String, String> customConfig) {
+        String currentDir = System.getProperty("user.dir");
+        String filePath = currentDir + File.separator + "config.json";
+        File configFile = new File(filePath);
+        ObjectMapper mapper = new ObjectMapper();
+        ObjectWriter writer = mapper.writerWithDefaultPrettyPrinter();
+
+        try {
+            writer.writeValue(configFile, customConfig);
+        } catch (IOException e) {
         }
     }
 
