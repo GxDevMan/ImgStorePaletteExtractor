@@ -5,7 +5,7 @@ import com.confer.imgstoremini.model.ImageObj;
 import com.confer.imgstoremini.model.ImageThumbObjDTO;
 import com.confer.imgstoremini.util.DataStore;
 import com.confer.imgstoremini.util.DbHandler;
-import com.confer.imgstoremini.util.ImageToByteArray;
+import com.confer.imgstoremini.util.ImageConversion;
 import com.confer.imgstoremini.util.hibernateUtil;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
@@ -20,6 +20,7 @@ import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.TilePane;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
+
 import java.util.List;
 import java.util.Optional;
 
@@ -36,6 +37,9 @@ public class MainUIController implements ImageContract {
 
     @FXML
     private Button backBtn;
+
+    @FXML
+    private Button resetBTN;
 
     @FXML
     private TextField imgSearchBox;
@@ -67,24 +71,15 @@ public class MainUIController implements ImageContract {
         if (event.getSource().equals(searchBTN)) {
             refreshListSearch(imgSearchBox.getText());
         } else if (event.getSource().equals(addImgBtn)) {
-            try {
-                FXMLLoader fxmlLoader = new FXMLLoader(ImageStoreMiniApplication.class.getResource("AddImageUI.fxml"));
-                Scene scene = new Scene(fxmlLoader.load(), 500, 500);
-                AddImageContoller imgController = fxmlLoader.getController();
-                Stage stage = new Stage();
-                stage.setTitle("Add Image to Database");
-                stage.setScene(scene);
-                stage.initModality(Modality.APPLICATION_MODAL);
-                imgController.setContract(this, stage);
-                stage.show();
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        } else if(event.getSource().equals(regexSearchBTN)){
+            goToAddImage();
+        } else if (event.getSource().equals(regexSearchBTN)) {
             refreshListSearchRegex(regeximgSearchBox.getText().trim());
-        }
-        else if (event.getSource().equals(backBtn)) {
+        } else if (event.getSource().equals(backBtn)) {
             goToNextMenu(event);
+        } else if (event.getSource().equals(resetBTN)){
+            imgSearchBox.setText("");
+            regeximgSearchBox.setText("");
+            refreshList();
         }
     }
 
@@ -155,7 +150,7 @@ public class MainUIController implements ImageContract {
 
             PureViewUIController controller = fxmlLoader.getController();
             ImageObj imageObjPure = handleImages.getImage(imageThumbObjDTO);
-            ImageToByteArray conversionImg = new ImageToByteArray();
+            ImageConversion conversionImg = new ImageConversion();
             Image imageFull = conversionImg.byteArraytoImage(imageObjPure.getFullImageByte());
             controller.setPureViewUI(imageFull);
 
@@ -195,6 +190,22 @@ public class MainUIController implements ImageContract {
         }).start();
     }
 
+    private void goToAddImage(){
+        try {
+            FXMLLoader fxmlLoader = new FXMLLoader(ImageStoreMiniApplication.class.getResource("AddImageUI.fxml"));
+            Scene scene = new Scene(fxmlLoader.load(), 500, 500);
+            AddImageContoller imgController = fxmlLoader.getController();
+            Stage stage = new Stage();
+            stage.setTitle("Add Image to Database");
+            stage.setScene(scene);
+            stage.initModality(Modality.APPLICATION_MODAL);
+            imgController.setContract(this, stage);
+            stage.show();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
     private void refreshList() {
         DataStore dataStore = DataStore.getInstance();
         int totalPages = (int) dataStore.getObject("default_pagesize");
@@ -208,10 +219,10 @@ public class MainUIController implements ImageContract {
         paginationChoice.setCurrentPageIndex(0);
     }
 
-    private void refreshListSearch(String searchKey){
+    private void refreshListSearch(String searchKey) {
         DataStore dataStore = DataStore.getInstance();
         int totalPages = (int) dataStore.getObject("default_pagesize");
-        dataStore.insertObject("search_key",searchKey);
+        dataStore.insertObject("search_key", searchKey);
         paginationChoice.setPageCount(handleImages.calculateTotalPages(totalPages, searchKey));
 
         paginationChoice.setPageFactory(pageIndex -> {
@@ -221,10 +232,10 @@ public class MainUIController implements ImageContract {
         paginationChoice.setCurrentPageIndex(0);
     }
 
-    private void refreshListSearchRegex(String searchKey){
+    private void refreshListSearchRegex(String searchKey) {
         DataStore dataStore = DataStore.getInstance();
         int totalPages = (int) dataStore.getObject("default_pagesize");
-        dataStore.insertObject("search_key",searchKey);
+        dataStore.insertObject("search_key", searchKey);
         paginationChoice.setPageCount(handleImages.calculateTotalPagesRegex(totalPages, searchKey));
 
         paginationChoice.setPageFactory(pageIndex -> {

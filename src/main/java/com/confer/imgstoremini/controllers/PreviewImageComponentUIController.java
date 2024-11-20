@@ -1,7 +1,7 @@
 package com.confer.imgstoremini.controllers;
 
 import com.confer.imgstoremini.model.ImageThumbObjDTO;
-import com.confer.imgstoremini.util.ImageToByteArray;
+import com.confer.imgstoremini.util.ImageConversion;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
@@ -34,7 +34,7 @@ public class PreviewImageComponentUIController {
     private Label imageTitleLbl;
 
     public void setComponent(ImageContract contract, ImageThumbObjDTO imageObj) {
-        ImageToByteArray conversion = new ImageToByteArray();
+        ImageConversion conversion = new ImageConversion();
         Image image = conversion.byteArraytoImage(imageObj.getThumbnailImageByte());
         imagePlace.setImage(image);
         this.imageObj = imageObj;

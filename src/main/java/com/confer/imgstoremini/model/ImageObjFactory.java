@@ -1,7 +1,7 @@
 package com.confer.imgstoremini.model;
 
 import com.confer.imgstoremini.exceptions.InvalidImgObjException;
-import com.confer.imgstoremini.util.ImageToByteArray;
+import com.confer.imgstoremini.util.ImageConversion;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.scene.image.Image;
 
@@ -10,7 +10,7 @@ import java.sql.Date;
 
 public class ImageObjFactory {
     public ImageObj createNewImageObj(String imageTitle, String imageTags, ImageType imageType, Image image, Date imageDate) throws InvalidImgObjException {
-        ImageToByteArray conversion = new ImageToByteArray();
+        ImageConversion conversion = new ImageConversion();
         byte[] imageByte = conversion.convertImageToByteArray(image, imageType);
 
         if (isNullOrEmpty(imageTitle)) {
@@ -27,8 +27,8 @@ public class ImageObjFactory {
 
         ResizeImgContext resizeImgContext = new ResizeImgContext();
         switch (imageType) {
+            case  PNG -> resizeImgContext.setStrategy(new PngResizeStrategy());
             case JPG, JPEG -> resizeImgContext.setStrategy(new JpegResizeStrategy());
-            case PNG -> resizeImgContext.setStrategy(new PngResizeStrategy());
             default -> throw new InvalidImgObjException("Invalid Image Type");
         }
 

@@ -28,7 +28,12 @@
                         <Insets bottom="10.0" top="10.0" />
                      </padding>
                   </HBox>
-                  <Button fx:id="addImgBtn" mnemonicParsing="false" onAction="#buttonClick" text="Add Image" />
+                  <HBox alignment="TOP_CENTER" spacing="10.0">
+                     <children>
+                        <Button fx:id="resetBTN" mnemonicParsing="false"  onAction="#buttonClick" text="Reset" />
+                        <Button fx:id="addImgBtn" mnemonicParsing="false" onAction="#buttonClick" text="Add Image" />
+                     </children>
+                  </HBox>
                   <ScrollPane fx:id="imageScrollPane" minHeight="500.0" minWidth="750.0" pannable="true" VBox.vgrow="ALWAYS">
                      <content>
                         <TilePane fx:id="imageViews" />

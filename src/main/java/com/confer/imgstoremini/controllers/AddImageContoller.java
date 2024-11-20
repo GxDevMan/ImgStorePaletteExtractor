@@ -3,7 +3,7 @@ package com.confer.imgstoremini.controllers;
 import com.confer.imgstoremini.model.ImageObj;
 import com.confer.imgstoremini.model.ImageObjFactory;
 import com.confer.imgstoremini.model.ImageType;
-import com.confer.imgstoremini.util.ImageToByteArray;
+import com.confer.imgstoremini.util.ImageConversion;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
@@ -127,7 +127,7 @@ public class AddImageContoller {
     }
 
     private void addImageDB(ActionEvent event) {
-        ImageToByteArray imgConverter = new ImageToByteArray();
+        ImageConversion imgConverter = new ImageConversion();
         ImageType imgType;
         try {
             imgType = ImageType.valueOf(imageTypeArea.getText().toUpperCase());
@@ -144,6 +144,7 @@ public class AddImageContoller {
             contract.addImage(newEntry);
             addStage.close();
         } catch (Exception e) {
+            e.printStackTrace();
             this.imageTypeArea.setText("Error Adding Image, missing or invalid information");
         }
     }

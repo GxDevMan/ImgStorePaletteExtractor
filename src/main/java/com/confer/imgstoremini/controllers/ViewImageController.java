@@ -3,24 +3,41 @@ package com.confer.imgstoremini.controllers;
 import com.confer.imgstoremini.model.ImageObj;
 import com.confer.imgstoremini.model.ImageObjFactory;
 import com.confer.imgstoremini.model.ImageType;
-import com.confer.imgstoremini.util.ImageToByteArray;
+import com.confer.imgstoremini.util.ImageConversion;
+import javafx.embed.swing.SwingFXUtils;
+import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-import javafx.scene.control.Label;
-import javafx.scene.control.ScrollPane;
-import javafx.scene.control.TextArea;
-import javafx.scene.control.TextField;
+import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.Clipboard;
+import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.input.ScrollEvent;
 import javafx.scene.layout.AnchorPane;
+import javafx.stage.FileChooser;
 import javafx.stage.Stage;
+
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
+
 
 public class ViewImageController {
     private ImageObj imageObj;
     private Stage stage;
 
     ImageContract contract;
+
+    @FXML
+    private Button updateBTN;
+
+    @FXML
+    private Button copyImageBTN;
+
+    @FXML
+    private Button saveImageBTN;
 
     @FXML
     private TextArea tagsImg;
@@ -66,7 +83,7 @@ public class ViewImageController {
 
     public void setImageView(ImageObj imageObj, ImageContract contract, Stage stage) {
         this.imageObj = imageObj;
-        ImageToByteArray conversion = new ImageToByteArray();
+        ImageConversion conversion = new ImageConversion();
 
         this.imageDisp.setImage(conversion.byteArraytoImage(imageObj.getFullImageByte()));
         tagsImg.setText(imageObj.getImageTags());
@@ -85,7 +102,7 @@ public class ViewImageController {
         this.contract = contract;
         this.stage = stage;
 
-        String formatThis = String.format(dateAddedLbl.getText(),imageObj.getImageDate().toString());
+        String formatThis = String.format(dateAddedLbl.getText(), imageObj.getImageDate().toString());
         dateAddedLbl.setText(formatThis);
         centerImageInScrollPane();
     }
@@ -118,7 +135,33 @@ public class ViewImageController {
     }
 
     @FXML
-    protected void buttonClick() {
+    protected void buttonClick(ActionEvent event) {
+        if (event.getSource().equals(updateBTN)) {
+            updateImage();
+        } else if (event.getSource().equals(copyImageBTN)) {
+            copyImageToClipBoard(imageDisp.getImage());
+        } else if (event.getSource().equals(saveImageBTN)) {
+            saveImageToFile(imageDisp.getImage(), this.stage);
+        }
+    }
+
+    private void copyImageToClipBoard(Image image) {
+        if (image == null) {
+            return;
+        }
+        ImageConversion imageConversion = new ImageConversion();
+        BufferedImage bufferedImage = imageConversion.convertImageToBufferedImage(image);
+
+        if (bufferedImage != null) {
+            BufferedImage compatibleImage = new BufferedImage(bufferedImage.getWidth(), bufferedImage.getHeight(), BufferedImage.TYPE_INT_ARGB);
+            compatibleImage.createGraphics().drawImage(bufferedImage, 0, 0, null);
+            ClipboardContent clipboardContent = new ClipboardContent();
+            clipboardContent.putImage(SwingFXUtils.toFXImage(compatibleImage, null));
+            Clipboard.getSystemClipboard().setContent(clipboardContent);
+        }
+    }
+
+    private void updateImage() {
         try {
             ImageObjFactory imageObjFactory = new ImageObjFactory();
             imageObjFactory.createNewImageObj(imageTitleField.getText(),
@@ -181,5 +224,40 @@ public class ViewImageController {
         double maxZoom = 3.0;
 
         return new double[]{minZoom, maxZoom};
+    }
+
+    public void saveImageToFile(Image image, Stage stage) {
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.getExtensionFilters().add(
+                new FileChooser.ExtensionFilter("Image Files", "*.png", "*.jpg", "*.jpeg")
+        );
+        fileChooser.setInitialFileName(imageObj.getImageTitle());
+        File file = fileChooser.showSaveDialog(stage);
+
+        if (file != null) {
+            BufferedImage bufferedImage = SwingFXUtils.fromFXImage(image, null);
+            ImageType imageType = ImageType.fromExtension(imageObj.getImageType());
+            try {
+                switch (imageType) {
+                    case PNG:
+                        ImageIO.write(bufferedImage, "PNG", file);
+                        break;
+                    case JPEG:
+                    case JPG:
+                        BufferedImage jpegImage = new BufferedImage(
+                                bufferedImage.getWidth(),
+                                bufferedImage.getHeight(),
+                                BufferedImage.TYPE_INT_RGB
+                        );
+                        jpegImage.createGraphics().drawImage(bufferedImage, 0, 0, null);
+                        ImageIO.write(jpegImage, "JPEG", file);
+                        break;
+                    default:
+                        break;
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
     }
 }

@@ -1,6 +1,5 @@
 package com.confer.imgstoremini.util;
 
-
 import com.confer.imgstoremini.model.ImageObj;
 import com.confer.imgstoremini.model.ImageThumbObjDTO;
 import org.hibernate.Session;
@@ -8,7 +7,6 @@ import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
 import org.hibernate.query.Query;
 import com.confer.SearchCriteriaExtractor;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;

@@ -17,7 +17,13 @@
                <ImageView fx:id="imageDisp" pickOnBounds="true" preserveRatio="true" />
             </content>
          </ScrollPane>
-         <Button fx:id="updateBtn" mnemonicParsing="false" onAction="#buttonClick" text="Update" />
+         <HBox alignment="TOP_CENTER" spacing="10.0">
+            <children>
+               <Button fx:id="updateBTN" mnemonicParsing="false" onAction="#buttonClick" text="Update" />
+               <Button fx:id="copyImageBTN" mnemonicParsing="false" onAction="#buttonClick" text="Copy Image" />
+               <Button fx:id="saveImageBTN" mnemonicParsing="false" onAction="#buttonClick" text="Save Image" />
+            </children>
+         </HBox>
       </VBox>
    </children>
    <padding>
