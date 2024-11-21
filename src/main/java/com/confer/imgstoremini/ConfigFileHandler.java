@@ -26,15 +26,21 @@ public class ConfigFileHandler {
         ObjectMapper mapper = new ObjectMapper();
         try {
             JsonNode rootNode = mapper.readTree(configFile);
-            if (rootNode.has("default_db")) {
-                configData.put("default_db", rootNode.get("default_db").asText());
+            boolean default_db = rootNode.has("default_db");
+            boolean default_pagesize = rootNode.has("default_pagesize");
+            boolean default_regionspalette = rootNode.has("default_regionspalette");
+            boolean default_kmeansiter = rootNode.has("default_kmeansiter");
+
+            boolean fieldsCheck = default_db && default_pagesize && default_regionspalette && default_kmeansiter;
+
+            if(!fieldsCheck) {
+                createDefaultConfigFile(configFile);
+                return getConfig();
             }
-            if (rootNode.has("default_pagesize")) {
-                configData.put("default_pagesize", rootNode.get("default_pagesize").asText());
-            }
-            if(rootNode.has("default_regionspalette")){
-                configData.put("default_regionspalette", rootNode.get("default_regionspalette").asText());
-            }
+            configData.put("default_db", rootNode.get("default_db").asText());
+            configData.put("default_pagesize", rootNode.get("default_pagesize").asText());
+            configData.put("default_regionspalette", rootNode.get("default_regionspalette").asText());
+            configData.put("default_kmeansiter", rootNode.get("default_kmeansiter").asText());
 
         } catch (Exception e) {
             File configFile2 = new File(filePath);
@@ -72,6 +78,7 @@ public class ConfigFileHandler {
         defaultConfig.put("default_db", "default_imageStore.db");
         defaultConfig.put("default_pagesize", "10");
         defaultConfig.put("default_regionspalette","4");
+        defaultConfig.put("default_kmeansiter","20");
         ObjectMapper mapper = new ObjectMapper();
         ObjectWriter writer = mapper.writerWithDefaultPrettyPrinter();
         try {

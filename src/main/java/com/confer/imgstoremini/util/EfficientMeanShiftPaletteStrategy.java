@@ -3,69 +3,102 @@ import java.awt.Color;
 import java.awt.image.BufferedImage;
 import java.util.*;
 import java.util.List;
+import java.util.concurrent.CancellationException;
+import java.util.function.Supplier;
+
 import org.apache.commons.math3.ml.clustering.CentroidCluster;
 import org.apache.commons.math3.ml.clustering.KMeansPlusPlusClusterer;
 import org.apache.commons.math3.ml.clustering.DoublePoint;
 
 public class EfficientMeanShiftPaletteStrategy implements PaletteExtractionStrategy {
-
     private static final int MAX_ITERATIONS = 100;
     private static final double CONVERGENCE_THRESHOLD = 0.1;
 
+    private Supplier<Boolean> isCancelled;
+    private ProgressObserver observer;
+
     @Override
-    public List<Color> extractPalette(BufferedImage image, int colorCount) {
-        return generateColorPalette(image, colorCount);
+    public List<Color> extractPalette(BufferedImage image, int colorCount, ProgressObserver observer, Supplier<Boolean> isCancelled) {
+        this.isCancelled = isCancelled;
+        this.observer = observer;
+        return generateColorPalette(image, colorCount, observer, isCancelled);
     }
 
-    private List<Color> generateColorPalette(BufferedImage image, int topColorsCount) {
-        List<Color> colors = getAllColors(image);
-        List<Color> dominantColors = meanShiftClustering(colors, topColorsCount);
+    private List<Color> generateColorPalette(BufferedImage image, int topColorsCount, ProgressObserver observer, Supplier<Boolean> isCancelled) {
+        observer.updateStatus("Initializing palette extraction...");
+        observer.updateProgress(0);
+
+        List<Color> colors = getAllColors(image, observer, isCancelled);
+        List<Color> dominantColors = meanShiftClustering(colors, topColorsCount, observer, isCancelled);
+
+        observer.updateStatus("Palette extraction complete!");
+        observer.updateProgress(1);
         return dominantColors;
     }
 
-    private List<Color> getAllColors(BufferedImage image) {
+    private List<Color> getAllColors(BufferedImage image, ProgressObserver observer, Supplier<Boolean> isCancelled) {
+        observer.updateStatus("Extracting all colors from the image...");
         List<Color> colors = new ArrayList<>();
+        int totalPixels = image.getWidth() * image.getHeight();
+        int processedPixels = 0;
+
         for (int y = 0; y < image.getHeight(); y++) {
             for (int x = 0; x < image.getWidth(); x++) {
-                int rgb = image.getRGB(x, y);
-                Color color = new Color(rgb);
-                colors.add(color);
+                checkInterrupt();
+                colors.add(new Color(image.getRGB(x, y)));
+
+                // Update progress for every 10% of pixels processed
+                processedPixels++;
+                if (processedPixels % (totalPixels / 10) == 0) {
+                    observer.updateProgress(0.1 * processedPixels / totalPixels);
+                }
             }
         }
+        observer.updateProgress(0.3); // Progress after extracting all colors
         return colors;
     }
 
-    private List<Color> meanShiftClustering(List<Color> colors, int topColorsCount) {
-        // Step 1: Convert colors to a suitable color space (Lab is used here)
+    private List<Color> meanShiftClustering(List<Color> colors, int topColorsCount, ProgressObserver observer, Supplier<Boolean> isCancelled) {
+        observer.updateStatus("Converting colors to LAB color space...");
         List<double[]> colorPoints = new ArrayList<>();
+        int totalColors = colors.size();
+        int processedColors = 0;
+
         for (Color color : colors) {
+            checkInterrupt();
             float[] lab = rgbToLab(color);
             colorPoints.add(new double[]{lab[0], lab[1], lab[2]});
+
+            // Update progress for every 10% of colors converted
+            processedColors++;
+            if (processedColors % (totalColors / 10) == 0) {
+                observer.updateProgress(0.3 + 0.1 * processedColors / totalColors); // Progress 30%-40%
+            }
         }
 
-        // Step 2: Apply K-Means++ initialization to select initial centroids
+        observer.updateStatus("Performing KMeans++ clustering...");
         KMeansPlusPlusClusterer<DoublePoint> clusterer = new KMeansPlusPlusClusterer<>(topColorsCount);
         List<DoublePoint> points = new ArrayList<>();
         for (double[] point : colorPoints) {
+            checkInterrupt();
             points.add(new DoublePoint(point));
         }
 
-        // Step 3: Get the clusters from KMeansPlusPlusClusterer
+        observer.updateStatus("Clustering centroids...");
         List<CentroidCluster<DoublePoint>> clusters = clusterer.cluster(points);
 
-        // Step 4: Extract the dominant colors from the centroids
+        observer.updateStatus("Extracting dominant colors...");
         List<Color> dominantColors = new ArrayList<>();
         for (CentroidCluster<DoublePoint> cluster : clusters) {
-            // Get the centroid of the cluster
+            checkInterrupt();
             double[] centroid = cluster.getCenter().getPoint();
-
-            // Convert back to RGB from LAB
-            Color color = labToRgb((float) centroid[0], (float) centroid[1], (float) centroid[2]);
-            dominantColors.add(color);
+            dominantColors.add(labToRgb((float) centroid[0], (float) centroid[1], (float) centroid[2]));
         }
 
+        observer.updateProgress(0.9); // Almost complete
         return dominantColors;
     }
+
 
     private float[] rgbToLab(Color color) {
         // Convert RGB to LAB using standard conversion
@@ -149,5 +182,14 @@ public class EfficientMeanShiftPaletteStrategy implements PaletteExtractionStrat
                 Math.min(255, Math.max(0, (int) (g * 255))),
                 Math.min(255, Math.max(0, (int) (b * 255))));
     }
+
+    private void checkInterrupt(){
+        if(isCancelled.get()){
+            observer.updateStatus("Mean Shift Cancelled");
+            observer.updateProgress(0);
+            throw new CancellationException("Mean Shift Computation Cancelled");
+        }
+    }
+
 }
 

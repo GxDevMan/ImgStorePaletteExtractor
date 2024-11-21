@@ -144,17 +144,7 @@ public class MainUIController implements ImageContract {
             } catch (Exception e) {
                 ErrorDialog errorDialog = new ErrorDialog();
                 errorDialog.errorDialog(e,"Deletion Failed","There was a problem deleting this image", imageView,deleteThisImage);
-                Alert alert2 = new Alert(Alert.AlertType.ERROR);
-                alert2.setTitle("Deletion Failed");
-                alert2.setHeaderText("There was a problem deleting this image");
-                alert2.setContentText("Image Title: " + deleteThisImage.getImageTitle());
-                stage.getIcons().add(icon);
-
-                DialogPane dialogPane2 = alert2.getDialogPane();
-                dialogPane2.getStylesheets().add(ImageStoreMiniApplication.class.getResource("styles/dark-theme.css").toExternalForm());
-
-                alert2.setGraphic(imageView);
-                alert2.showAndWait();
+                return;
             }
         }
         refreshList();

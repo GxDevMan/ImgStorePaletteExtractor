@@ -26,6 +26,12 @@
                         <Spinner fx:id="regioncutsSPN" HBox.hgrow="ALWAYS" />
                      </children>
                   </HBox>
+                  <HBox alignment="TOP_CENTER" layoutX="20.0" layoutY="75.0" spacing="10.0">
+                     <children>
+                        <Label text="K means Iterations" HBox.hgrow="ALWAYS" />
+                        <Spinner fx:id="kmeansSPN" HBox.hgrow="ALWAYS" />
+                     </children>
+                  </HBox>
                   <HBox spacing="10.0" VBox.vgrow="ALWAYS">
                      <children>
                         <Button fx:id="selectDefaultBTN" mnemonicParsing="false" onAction="#buttonClick" text="Select Default DB" HBox.hgrow="ALWAYS" />

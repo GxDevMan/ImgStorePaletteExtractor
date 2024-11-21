@@ -152,6 +152,7 @@ public class EntryUIController {
         dataStore.insertObject("dbLoc", savedConfiguration.get("default_db"));
         dataStore.insertObject("default_pagesize", Integer.parseInt(savedConfiguration.get("default_pagesize")));
         dataStore.insertObject("default_regionspalette", Integer.parseInt(savedConfiguration.get("default_regionspalette")));
+        dataStore.insertObject("default_kmeansiter", Integer.parseInt(savedConfiguration.get("default_kmeansiter")));
     }
 
     public String openDbFileChooser() {

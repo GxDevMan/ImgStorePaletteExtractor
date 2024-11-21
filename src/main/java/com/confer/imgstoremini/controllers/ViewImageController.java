@@ -5,13 +5,11 @@ import com.confer.imgstoremini.model.ImageObj;
 import com.confer.imgstoremini.model.ImageObjFactory;
 import com.confer.imgstoremini.model.ImageType;
 import com.confer.imgstoremini.util.*;
-import javafx.application.Platform;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
-import javafx.scene.control.*;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
@@ -21,20 +19,17 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.*;
 import javafx.scene.layout.AnchorPane;
-import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 
 import javax.imageio.ImageIO;
-import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
-import java.util.List;
 
 
-public class ViewImageController {
+public class ViewImageController implements ViewImageContract {
     private ImageObj imageObj;
     private Stage stage;
 
@@ -164,84 +159,16 @@ public class ViewImageController {
         } else if (event.getSource().equals(closeBTN)){
             stage.close();
         } else if (event.getSource().equals(extractPaletteBTN)){
-            showStrategySelectionDialog();
+            paletteMenuExtraction();
         }
     }
 
-    private void showStrategySelectionDialog() {
-        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
-        alert.setTitle("Select Palette Extraction Strategy");
-        alert.setHeaderText("Choose a palette extraction strategy and color count:");
-
-        Spinner<Integer> colorCountSpinner = new Spinner<>(1, 50, 10);
-        colorCountSpinner.setEditable(true);
-        colorCountSpinner.setMaxWidth(60);
-
-        VBox vbox = new VBox();
-        vbox.getChildren().addAll(new Label("Select Number of Colors:"), colorCountSpinner);
-
-        ButtonType HistogramButton = new ButtonType("Histogram");
-        ButtonType kMeansButton = new ButtonType("K-Means");
-        ButtonType regionBasedButton = new ButtonType("Region-Based");
-        ButtonType MeanShiftButton = new ButtonType("Mean Shift");
-        ButtonType cancelButton = new ButtonType("Cancel", ButtonBar.ButtonData.CANCEL_CLOSE);
-
-        alert.getButtonTypes().setAll(HistogramButton,kMeansButton, regionBasedButton, MeanShiftButton, cancelButton);
-        alert.getDialogPane().setContent(vbox);
-
-        Stage stage = (Stage) alert.getDialogPane().getScene().getWindow();
-        DataStore dataStore = DataStore.getInstance();
-        Image icon = (Image) dataStore.getObject("image_icon");
-        stage.getIcons().add(icon);
-
-        DialogPane dialogPane = alert.getDialogPane();
-        dialogPane.getStylesheets().add(ImageStoreMiniApplication.class.getResource("styles/dark-theme.css").toExternalForm());
-
-        alert.showAndWait().ifPresent(response -> {
-            int colorCount = colorCountSpinner.getValue();
-
-            if (response == kMeansButton) {
-                computePalette(new KMeansPaletteStrategy(), colorCount);
-            } else if (response == regionBasedButton) {
-                computePalette(new RegionBasedPaletteStrategy(), colorCount);
-            } else if(response == HistogramButton){
-                computePalette(new HistogramPaletteStrategy(), colorCount);
-            } else if(response == MeanShiftButton){
-                computePalette(new EfficientMeanShiftPaletteStrategy(), colorCount);
-            } else {
-            }
-        });
+    private void paletteMenuExtraction(){
+        ViewImageHelper viewImageHelper = new ViewImageHelper(this);
+        viewImageHelper.showStrategySelectionDialog(imageDisp);
     }
 
-    private void computePalette(PaletteExtractionStrategy strategy, int colorCount){
-        PaletteExtractor paletteExtractor = new PaletteExtractor();
-        ImageConversion imageConversion = new ImageConversion();
-        PaletteImageGenerator paletteImageGenerator = new PaletteImageGenerator();
-        new Thread(() -> {
-            paletteExtractor.setStrategy(strategy);
-            BufferedImage bfrImg = imageConversion.convertImageToBufferedImage(imageDisp.getImage());
-            List<Color> paletteList = paletteExtractor.extractPalette(bfrImg, colorCount);
-            BufferedImage extractedPaletteImg = paletteImageGenerator.generatePaletteImage(paletteList, 100);
-            Image image = null;
-
-            try {
-                image = imageConversion.convertBufferedImageToImage(extractedPaletteImg);
-
-                Image finalImage = image;
-                Platform.runLater(() -> {
-                    displayPalette(finalImage);
-                });
-
-            } catch (Exception e) {
-                Platform.runLater(() -> {
-                    ErrorDialog errorDialog = new ErrorDialog();
-                    errorDialog.errorDialog(e, "Palette Extraction Failed","There was a problem extracting the Palette of this image");
-                });
-            }
-        }).start();
-    }
-
-    private void displayPalette(Image paletteImage){
+    public void displayPalette(Image paletteImage){
         try {
             FXMLLoader fxmlLoader = new FXMLLoader(ImageStoreMiniApplication.class.getResource("PureViewUI.fxml"));
             Scene scene = new Scene(fxmlLoader.load(), 500, 200);

@@ -3,15 +3,23 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.util.*;
 import java.util.List;
+import java.util.concurrent.CancellationException;
+import java.util.function.Supplier;
 
 public class KMeansPaletteStrategy implements PaletteExtractionStrategy {
+    private int kmeansIterations;
     @Override
-    public List<Color> extractPalette(BufferedImage image, int colorCount) {
-        return applyKMeans(image, colorCount);
+    public List<Color> extractPalette(BufferedImage image, int colorCount, ProgressObserver observer, Supplier<Boolean> isCancelled) {
+        DataStore dataStore = DataStore.getInstance();
+        kmeansIterations = (int) dataStore.getObject("default_kmeansiter");
+        return applyKMeans(image, colorCount, observer, isCancelled);
     }
 
-    private List<Color> applyKMeans(BufferedImage image, int k) {
+    private List<Color> applyKMeans(BufferedImage image, int k, ProgressObserver observer, Supplier<Boolean> isCancelled) {
         List<Color> pixels = extractPixels(image);
+
+        observer.updateProgress(0);
+        observer.updateStatus("Initializing Centroids");
 
         // Step 1: Initialize centroids (randomly select `k` pixels)
         List<Color> centroids = new ArrayList<>();
@@ -20,15 +28,26 @@ public class KMeansPaletteStrategy implements PaletteExtractionStrategy {
             centroids.add(pixels.get(random.nextInt(pixels.size())));
         }
 
+        observer.updateProgress(10);
+
         // Step 2: K-Means iteration
         Map<Color, List<Color>> clusters;
         boolean centroidsChanged;
+        int iteration = 0;
+        int maxIterations = kmeansIterations; // Limit the number of iterations to avoid infinite loops
+
         do {
-            // Assign colors to the nearest centroid
+            if (isCancelled.get()){
+                observer.updateStatus("K-means Cancelled");
+                throw new CancellationException("Task Cancelled");
+            }
+            observer.updateStatus("Iteration " + (iteration + 1) + " in progress...");
             clusters = new HashMap<>();
             for (Color centroid : centroids) {
                 clusters.put(centroid, new ArrayList<>());
             }
+
+            // Assign colors to the nearest centroid
             for (Color pixel : pixels) {
                 Color closestCentroid = findClosestCentroid(pixel, centroids);
                 clusters.get(closestCentroid).add(pixel);
@@ -44,8 +63,18 @@ public class KMeansPaletteStrategy implements PaletteExtractionStrategy {
                     centroidsChanged = true;
                 }
             }
+
             centroids = newCentroids;
-        } while (centroidsChanged);
+
+            // Increment iteration and update progress
+            iteration++;
+            double progress = Math.min(0.1 + 0.9 * (double) iteration / maxIterations, 1.0);
+            observer.updateProgress(progress);
+
+        } while (centroidsChanged && iteration < maxIterations);
+
+        observer.updateStatus("Calculation Complete");
+        observer.updateProgress(1.0);
 
         return centroids;
     }
