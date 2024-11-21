@@ -1,4 +1,5 @@
 package com.confer.imgstoremini.controllers;
+
 import com.confer.imgstoremini.ConfigFileHandler;
 import com.confer.imgstoremini.ImageStoreMiniApplication;
 import com.confer.imgstoremini.util.DataStore;
@@ -9,12 +10,15 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
+import javafx.scene.control.DialogPane;
 import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.stage.FileChooser;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
+
 import java.io.File;
 import java.util.Map;
 import java.util.Optional;
@@ -39,9 +43,9 @@ public class EntryUIController {
     @FXML
     protected void buttonClick(ActionEvent event) {
         if (event.getSource().equals(createNew)) {
-         createNewDBandGoTo(event);
+            createNewDBandGoTo(event);
         } else if (event.getSource().equals(loadDB)) {
-          goToSelectedDB(event);
+            goToSelectedDB(event);
         } else if (event.getSource().equals(loadDefaultBtn)) {
             loadDefault(event);
         } else if (event.getSource().equals(settingsBTN)) {
@@ -49,7 +53,7 @@ public class EntryUIController {
         }
     }
 
-    private void createNewDBandGoTo(ActionEvent event){
+    private void createNewDBandGoTo(ActionEvent event) {
         if (checkDefaultDb()) {
             outputArea.setText("Default DB already exists");
             return;
@@ -58,7 +62,7 @@ public class EntryUIController {
         util.shutdown();
     }
 
-    private void goToSelectedDB(ActionEvent event){
+    private void goToSelectedDB(ActionEvent event) {
         String filePath = openDbFileChooser();
         Optional<String> OptFilepath = Optional.ofNullable(filePath);
         if (OptFilepath.isPresent()) {
@@ -72,7 +76,7 @@ public class EntryUIController {
     private void goToSettingsConfigUI() {
         try {
             FXMLLoader fxmlLoader = new FXMLLoader(ImageStoreMiniApplication.class.getResource("SettingsConfigUI.fxml"));
-            Scene scene = new Scene(fxmlLoader.load(), 500, 170);
+            Scene scene = new Scene(fxmlLoader.load(), 550, 250);
 
             Stage stage = new Stage();
             stage.setTitle("Image Store Mini");
@@ -88,7 +92,19 @@ public class EntryUIController {
 
             stage.show();
         } catch (Exception e) {
-            e.printStackTrace();
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("Configuration Error");
+            alert.setHeaderText("There was a problem with the Config.json");
+            alert.setContentText(e.getMessage());
+
+            Stage stage = (Stage) alert.getDialogPane().getScene().getWindow();
+            DataStore dataStore = DataStore.getInstance();
+            Image icon = (Image) dataStore.getObject("image_icon");
+            stage.getIcons().add(icon);
+
+            DialogPane dialogPane2 = alert.getDialogPane();
+            dialogPane2.getStylesheets().add(ImageStoreMiniApplication.class.getResource("styles/dark-theme.css").toExternalForm());
+            alert.showAndWait();
         }
     }
 
@@ -112,6 +128,9 @@ public class EntryUIController {
             mainUIController.setMainUiController();
 
             Stage sourceWin = (Stage) ((Node) event.getSource()).getScene().getWindow();
+            sourceWin.setHeight(700);
+            sourceWin.setWidth(700);
+
             String stageTitle = sourceWin.getTitle();
             DataStore dataStore = DataStore.getInstance();
             String connectedDB = (String) dataStore.getObject("db_name");
@@ -126,12 +145,13 @@ public class EntryUIController {
 
     }
 
-    private void loadFinalDataStoreConfiguration(){
+    private void loadFinalDataStoreConfiguration() {
         DataStore dataStore = DataStore.getInstance();
         ConfigFileHandler configFileHandler = new ConfigFileHandler();
         Map<String, String> savedConfiguration = configFileHandler.getConfig();
         dataStore.insertObject("dbLoc", savedConfiguration.get("default_db"));
         dataStore.insertObject("default_pagesize", Integer.parseInt(savedConfiguration.get("default_pagesize")));
+        dataStore.insertObject("default_regionspalette", Integer.parseInt(savedConfiguration.get("default_regionspalette")));
     }
 
     public String openDbFileChooser() {
@@ -157,7 +177,7 @@ public class EntryUIController {
         return configFileHandler.checkDBSpecifiedInConfigFile();
     }
 
-    private String getConfigSetting(String key){
+    private String getConfigSetting(String key) {
         ConfigFileHandler configFileHandler = new ConfigFileHandler();
         Map<String, String> loadedConfiguration = configFileHandler.getConfig();
         return loadedConfiguration.get(key);

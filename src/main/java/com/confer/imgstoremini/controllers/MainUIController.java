@@ -118,7 +118,9 @@ public class MainUIController implements ImageContract {
 
         try {
             ThumbNail = conversion.convertBufferedImageToImage(bufferedImage);
-        } catch (IOException e) {
+        } catch (Exception e) {
+            ErrorDialog errorDialog = new ErrorDialog();
+            errorDialog.errorDialog(e, "Buffered Image to Image Conversion failed","Image Conversion Failed");
             return;
         }
         ImageView imageView = new ImageView(ThumbNail);
@@ -140,10 +142,13 @@ public class MainUIController implements ImageContract {
 
                 }).start();
             } catch (Exception e) {
-                Alert alert2 = new Alert(Alert.AlertType.CONFIRMATION);
+                ErrorDialog errorDialog = new ErrorDialog();
+                errorDialog.errorDialog(e,"Deletion Failed","There was a problem deleting this image", imageView,deleteThisImage);
+                Alert alert2 = new Alert(Alert.AlertType.ERROR);
                 alert2.setTitle("Deletion Failed");
                 alert2.setHeaderText("There was a problem deleting this image");
                 alert2.setContentText("Image Title: " + deleteThisImage.getImageTitle());
+                stage.getIcons().add(icon);
 
                 DialogPane dialogPane2 = alert2.getDialogPane();
                 dialogPane2.getStylesheets().add(ImageStoreMiniApplication.class.getResource("styles/dark-theme.css").toExternalForm());
@@ -162,7 +167,7 @@ public class MainUIController implements ImageContract {
             Scene scene = new Scene(fxmlLoader.load(), 500, 500);
 
             Stage stage = new Stage();
-            stage.setTitle("Image Store Mini");
+            stage.setTitle("Image Store");
             stage.setScene(scene);
             stage.initModality(Modality.WINDOW_MODAL);
 
@@ -187,7 +192,7 @@ public class MainUIController implements ImageContract {
             Scene scene = new Scene(fxmlLoader.load(), 500, 500);
 
             Stage stage = new Stage();
-            stage.setTitle("Image Store Mini");
+            stage.setTitle("Image Store");
             stage.setScene(scene);
             stage.initModality(Modality.WINDOW_MODAL);
 
@@ -240,7 +245,7 @@ public class MainUIController implements ImageContract {
     private void goToAddImage() {
         try {
             FXMLLoader fxmlLoader = new FXMLLoader(ImageStoreMiniApplication.class.getResource("AddImageUI.fxml"));
-            Scene scene = new Scene(fxmlLoader.load(), 500, 500);
+            Scene scene = new Scene(fxmlLoader.load(), 600, 500);
             AddImageContoller imgController = fxmlLoader.getController();
 
             Stage stage = new Stage();
@@ -343,6 +348,8 @@ public class MainUIController implements ImageContract {
             Scene viewScene = new Scene(viewParent);
 
             Stage sourceWin = (Stage) ((Node) event.getSource()).getScene().getWindow();
+            sourceWin.setHeight(150);
+            sourceWin.setWidth(400);
             sourceWin.setScene(viewScene);
 
             sourceWin.setTitle("Image Store Mini");

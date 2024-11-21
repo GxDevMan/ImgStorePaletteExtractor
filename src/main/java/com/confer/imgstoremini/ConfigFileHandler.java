@@ -32,6 +32,10 @@ public class ConfigFileHandler {
             if (rootNode.has("default_pagesize")) {
                 configData.put("default_pagesize", rootNode.get("default_pagesize").asText());
             }
+            if(rootNode.has("default_regionspalette")){
+                configData.put("default_regionspalette", rootNode.get("default_regionspalette").asText());
+            }
+
         } catch (Exception e) {
             File configFile2 = new File(filePath);
             createDefaultConfigFile(configFile2);
@@ -67,6 +71,7 @@ public class ConfigFileHandler {
         Map<String, String> defaultConfig = new HashMap<>();
         defaultConfig.put("default_db", "default_imageStore.db");
         defaultConfig.put("default_pagesize", "10");
+        defaultConfig.put("default_regionspalette","4");
         ObjectMapper mapper = new ObjectMapper();
         ObjectWriter writer = mapper.writerWithDefaultPrettyPrinter();
         try {

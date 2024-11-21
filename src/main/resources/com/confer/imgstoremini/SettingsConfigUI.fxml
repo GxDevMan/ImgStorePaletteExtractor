@@ -10,7 +10,7 @@
       <URL value="@styles/dark-theme.css" />
    </stylesheets>
    <children>
-      <ScrollPane pannable="true" fitToHeight="true" fitToWidth="true" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+      <ScrollPane fitToHeight="true" fitToWidth="true" pannable="true" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
          <content>
             <VBox alignment="TOP_CENTER" spacing="10.0">
                <children>
@@ -18,6 +18,12 @@
                      <children>
                         <Label text="Page Size:" HBox.hgrow="ALWAYS" />
                         <Spinner fx:id="pageSizeSPN" HBox.hgrow="ALWAYS" />
+                     </children>
+                  </HBox>
+                  <HBox alignment="TOP_CENTER" layoutX="20.0" layoutY="20.0" spacing="10.0">
+                     <children>
+                        <Label text="Region Cuts" HBox.hgrow="ALWAYS" />
+                        <Spinner fx:id="regioncutsSPN" HBox.hgrow="ALWAYS" />
                      </children>
                   </HBox>
                   <HBox spacing="10.0" VBox.vgrow="ALWAYS">

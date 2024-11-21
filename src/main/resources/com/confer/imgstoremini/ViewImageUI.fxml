@@ -24,6 +24,7 @@
          <HBox alignment="TOP_CENTER" spacing="10.0">
             <children>
                <Button fx:id="updateBTN" mnemonicParsing="false" onAction="#buttonClick" text="Update" />
+               <Button fx:id="extractPaletteBTN" mnemonicParsing="false" onAction="#buttonClick" text="Extract Palette" />
                <Button fx:id="copyImageBTN" mnemonicParsing="false" onAction="#buttonClick" text="Copy Image" />
                <Button fx:id="saveImageBTN" mnemonicParsing="false" onAction="#buttonClick" text="Save Image" />
                <Button fx:id="closeBTN" mnemonicParsing="false" onAction="#buttonClick" text="Close" />

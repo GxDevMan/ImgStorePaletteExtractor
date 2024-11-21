@@ -40,11 +40,19 @@ public class SettingsConfigUIController {
     @FXML
     private Spinner pageSizeSPN;
 
+    @FXML
+    private Spinner regioncutsSPN;
+
     public void initialize() {
         SpinnerValueFactory<Integer> valueFactory =
-                new SpinnerValueFactory.IntegerSpinnerValueFactory(1, Integer.MAX_VALUE, 50);
+                new SpinnerValueFactory.IntegerSpinnerValueFactory(1, 50, 1);
 
         pageSizeSPN.setValueFactory(valueFactory);
+
+        SpinnerValueFactory<Integer> valueFactory2 =
+                new SpinnerValueFactory.IntegerSpinnerValueFactory(1, 10, 1);
+
+        regioncutsSPN.setValueFactory(valueFactory2);
     }
 
     public void setConfigurationSetting(Stage stage){
@@ -54,9 +62,11 @@ public class SettingsConfigUIController {
 
         String defaultDb = configData.get("default_db");
         int defaultPageSize = Integer.parseInt(configData.get("default_pagesize"));
+        int defaultRegionPalette = Integer.parseInt(configData.get("default_regionspalette"));
 
         selectedDefaultTxtField.setText(defaultDb);
         pageSizeSPN.getValueFactory().setValue(defaultPageSize);
+        regioncutsSPN.getValueFactory().setValue(defaultRegionPalette);
     }
 
     @FXML
@@ -99,6 +109,7 @@ public class SettingsConfigUIController {
         Map<String, String> newConfiguration = new HashMap<>();
         newConfiguration.put("default_pagesize", pageSizeSPN.getValue().toString());
         newConfiguration.put("default_db",selectedDefaultTxtField.getText());
+        newConfiguration.put("default_regionspalette",regioncutsSPN.getValue().toString());
         configFileHandler.createCustomConfigFile(newConfiguration);
     }
 }

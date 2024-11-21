@@ -19,7 +19,7 @@ public class ImageStoreMiniApplication extends Application {
 
         FXMLLoader fxmlLoader = new FXMLLoader(ImageStoreMiniApplication.class.getResource("EntryUI.fxml"));
         Scene scene = new Scene(fxmlLoader.load(), 400, 100);
-        stage.setTitle("Image Store Mini");
+        stage.setTitle("Image Store");
         stage.setScene(scene);
         stage.show();
     }
