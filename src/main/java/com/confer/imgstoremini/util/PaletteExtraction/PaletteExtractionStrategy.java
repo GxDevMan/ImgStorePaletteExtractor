@@ -1,4 +1,6 @@
-package com.confer.imgstoremini.util;
+package com.confer.imgstoremini.util.PaletteExtraction;
+import com.confer.imgstoremini.util.ProgressObserver;
+
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.util.List;

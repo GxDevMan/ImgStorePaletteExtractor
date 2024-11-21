@@ -1,6 +1,7 @@
 package com.confer.imgstoremini.controllers;
 
 import com.confer.imgstoremini.ConfigFileHandler;
+import com.confer.imgstoremini.util.DataStore;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
@@ -19,6 +20,7 @@ public class SettingsConfigUIController {
 
     Stage stage;
     private Map<String, String> configData;
+    private boolean isSet;
 
     @FXML
     private Button selectDefaultBTN;
@@ -64,15 +66,33 @@ public class SettingsConfigUIController {
         addValidation(kmeansSPN, 1, Integer.MAX_VALUE);
     }
 
-    public void setConfigurationSetting(Stage stage){
-        ConfigFileHandler configFileHandler = new ConfigFileHandler();
+    public void setConfigurationSetting(Stage stage, boolean isSet) {
+        this.isSet = isSet;
         this.stage = stage;
-        this.configData = configFileHandler.getConfig();
 
-        String defaultDb = configData.get("default_db");
-        int defaultPageSize = Integer.parseInt(configData.get("default_pagesize"));
-        int defaultRegionPalette = Integer.parseInt(configData.get("default_regionspalette"));
-        int defaultKmeanIter = Integer.parseInt(configData.get("default_kmeansiter"));
+        String defaultDb;
+        int defaultPageSize;
+        int defaultRegionPalette;
+        int defaultKmeanIter;
+
+        if (!this.isSet) {
+            ConfigFileHandler configFileHandler = new ConfigFileHandler();
+            this.configData = configFileHandler.getConfig();
+            defaultDb = configData.get("default_db");
+            defaultPageSize = Integer.parseInt(configData.get("default_pagesize"));
+            defaultRegionPalette = Integer.parseInt(configData.get("default_regionspalette"));
+            defaultKmeanIter = Integer.parseInt(configData.get("default_kmeansiter"));
+        } else {
+            DataStore dataStore = DataStore.getInstance();
+            defaultDb = (String) dataStore.getObject("db_name");
+            defaultPageSize = (int) dataStore.getObject("default_pagesize");
+            defaultRegionPalette = (int) dataStore.getObject("default_regionspalette");
+            defaultKmeanIter = (int) dataStore.getObject("default_kmeansiter");
+
+            dbNameTxtField.setDisable(true);
+            newdbBTN.setDisable(true);
+            selectDefaultBTN.setDisable(true);
+        }
 
         selectedDefaultTxtField.setText(defaultDb);
         pageSizeSPN.getValueFactory().setValue(defaultPageSize);
@@ -89,18 +109,18 @@ public class SettingsConfigUIController {
             stage.close();
         } else if (event.getSource().equals(cancelBTN)) {
             stage.close();
-        } else if (event.getSource().equals(newdbBTN)){
-           setNewDBName();
+        } else if (event.getSource().equals(newdbBTN)) {
+            setNewDBName();
         }
     }
 
-    private void setNewDBName(){
+    private void setNewDBName() {
         String newDBName = dbNameTxtField.getText();
         selectedDefaultTxtField.setText("");
         selectedDefaultTxtField.setText(String.format("%s.db", newDBName));
     }
 
-    private void changeDefaultDBLocation(){
+    private void changeDefaultDBLocation() {
         FileChooser fileChooser = new FileChooser();
         FileChooser.ExtensionFilter dbFilter = new FileChooser.ExtensionFilter("Set Default DB", String.format("*%s", ".db"));
         fileChooser.getExtensionFilters().add(dbFilter);
@@ -109,21 +129,30 @@ public class SettingsConfigUIController {
 
         File selectedFile = fileChooser.showOpenDialog(null);
 
-        if(selectedFile != null){
+        if (selectedFile != null) {
             String fileName = selectedFile.getAbsolutePath();
             selectedDefaultTxtField.setText(fileName);
         }
     }
 
-    private void saveConfiguration(){
-        ConfigFileHandler configFileHandler = new ConfigFileHandler();
-        Map<String, String> newConfiguration = new HashMap<>();
-        newConfiguration.put("default_pagesize", pageSizeSPN.getValue().toString());
-        newConfiguration.put("default_db",selectedDefaultTxtField.getText());
-        newConfiguration.put("default_regionspalette",regioncutsSPN.getValue().toString());
-        newConfiguration.put("default_kmeansiter", kmeansSPN.getValue().toString());
-        configFileHandler.createCustomConfigFile(newConfiguration);
+    private void saveConfiguration() {
+        if (!isSet) {
+            ConfigFileHandler configFileHandler = new ConfigFileHandler();
+            Map<String, String> newConfiguration = new HashMap<>();
+            newConfiguration.put("default_pagesize", pageSizeSPN.getValue().toString());
+            newConfiguration.put("default_db", selectedDefaultTxtField.getText());
+            newConfiguration.put("default_regionspalette", regioncutsSPN.getValue().toString());
+            newConfiguration.put("default_kmeansiter", kmeansSPN.getValue().toString());
+            configFileHandler.createCustomConfigFile(newConfiguration);
+        }
+        else{
+            DataStore dataStore = DataStore.getInstance();
+            dataStore.insertObject("default_pagesize",pageSizeSPN.getValue());
+            dataStore.insertObject("default_regionspalette", regioncutsSPN.getValue());
+            dataStore.insertObject("default_kmeansiter", kmeansSPN.getValue());
+        }
     }
+
     private void addValidation(Spinner<Integer> spinner, int min, int max) {
         TextField editor = spinner.getEditor();
         spinner.valueProperty().addListener((obs, oldValue, newValue) -> {

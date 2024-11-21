@@ -24,7 +24,6 @@ import javafx.stage.Stage;
 import javafx.scene.control.Alert;
 
 import java.awt.image.BufferedImage;
-import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
 
@@ -38,6 +37,9 @@ public class MainUIController implements ImageContract {
 
     @FXML
     private Button addImgBtn;
+
+    @FXML
+    private Button settingsBTN;
 
     @FXML
     private Button backBtn;
@@ -84,6 +86,8 @@ public class MainUIController implements ImageContract {
             imgSearchBox.setText("");
             regeximgSearchBox.setText("");
             refreshList();
+        } else if (event.getSource().equals(settingsBTN)){
+            checkSettings();
         }
     }
 
@@ -230,6 +234,30 @@ public class MainUIController implements ImageContract {
             });
 
         }).start();
+    }
+
+    private void checkSettings(){
+        try {
+            FXMLLoader fxmlLoader = new FXMLLoader(ImageStoreMiniApplication.class.getResource("SettingsConfigUI.fxml"));
+            Scene scene = new Scene(fxmlLoader.load(), 550, 250);
+
+            Stage stage = new Stage();
+            stage.setTitle("Image Store");
+            stage.setScene(scene);
+            stage.initModality(Modality.APPLICATION_MODAL);
+
+            DataStore dataStore = DataStore.getInstance();
+            Image icon = (Image) dataStore.getObject("image_icon");
+            stage.getIcons().add(icon);
+
+            SettingsConfigUIController controller = fxmlLoader.getController();
+            controller.setConfigurationSetting(stage, true);
+
+            stage.show();
+        } catch (Exception e) {
+            ErrorDialog errorDialog = new ErrorDialog();
+            errorDialog.errorDialog(e,"Configuration Error","There was a problem with the Config.json");
+        }
     }
 
     private void goToAddImage() {

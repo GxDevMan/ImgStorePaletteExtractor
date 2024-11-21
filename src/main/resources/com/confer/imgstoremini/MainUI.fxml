@@ -36,6 +36,7 @@
                      <children>
                         <Button fx:id="resetBTN" mnemonicParsing="false" onAction="#buttonClick" text="Reset" />
                         <Button fx:id="addImgBtn" mnemonicParsing="false" onAction="#buttonClick" text="Add Image" />
+                        <Button fx:id="settingsBTN" layoutX="157.0" layoutY="20.0" mnemonicParsing="false" onAction="#buttonClick" text="Settings" />
                         <Button fx:id="backBtn" mnemonicParsing="false" onAction="#buttonClick" text="Back" />
                      </children>
                   </HBox>

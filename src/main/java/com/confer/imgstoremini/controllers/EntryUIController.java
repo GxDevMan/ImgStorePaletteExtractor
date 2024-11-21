@@ -79,7 +79,7 @@ public class EntryUIController {
             Scene scene = new Scene(fxmlLoader.load(), 550, 250);
 
             Stage stage = new Stage();
-            stage.setTitle("Image Store Mini");
+            stage.setTitle("Image Store");
             stage.setScene(scene);
             stage.initModality(Modality.APPLICATION_MODAL);
 
@@ -88,23 +88,12 @@ public class EntryUIController {
             stage.getIcons().add(icon);
 
             SettingsConfigUIController controller = fxmlLoader.getController();
-            controller.setConfigurationSetting(stage);
+            controller.setConfigurationSetting(stage, false);
 
             stage.show();
         } catch (Exception e) {
-            Alert alert = new Alert(Alert.AlertType.ERROR);
-            alert.setTitle("Configuration Error");
-            alert.setHeaderText("There was a problem with the Config.json");
-            alert.setContentText(e.getMessage());
-
-            Stage stage = (Stage) alert.getDialogPane().getScene().getWindow();
-            DataStore dataStore = DataStore.getInstance();
-            Image icon = (Image) dataStore.getObject("image_icon");
-            stage.getIcons().add(icon);
-
-            DialogPane dialogPane2 = alert.getDialogPane();
-            dialogPane2.getStylesheets().add(ImageStoreMiniApplication.class.getResource("styles/dark-theme.css").toExternalForm());
-            alert.showAndWait();
+            ErrorDialog errorDialog = new ErrorDialog();
+            errorDialog.errorDialog(e,"Configuration Error","There was a problem with the Config.json");
         }
     }
 

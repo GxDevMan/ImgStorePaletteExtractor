@@ -2,24 +2,30 @@ package com.confer.imgstoremini.controllers;
 
 import com.confer.imgstoremini.ImageStoreMiniApplication;
 import com.confer.imgstoremini.util.*;
+import com.confer.imgstoremini.util.PaletteExtraction.*;
 import javafx.application.Platform;
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
-import java.awt.*;
+
+import java.awt.Color;
 import java.awt.image.BufferedImage;
 import java.util.List;
 
 public class ViewImageHelper {
 
     ViewImageContract contract;
-    public ViewImageHelper(ViewImageContract contract){
+
+    public ViewImageHelper(ViewImageContract contract) {
         this.contract = contract;
     }
 
@@ -41,7 +47,7 @@ public class ViewImageHelper {
         ButtonType MeanShiftButton = new ButtonType("Mean Shift");
         ButtonType cancelButton = new ButtonType("Cancel", ButtonBar.ButtonData.CANCEL_CLOSE);
 
-        alert.getButtonTypes().setAll(HistogramButton,kMeansButton, regionBasedButton, MeanShiftButton, cancelButton);
+        alert.getButtonTypes().setAll(kMeansButton, MeanShiftButton, regionBasedButton, HistogramButton, cancelButton);
         alert.getDialogPane().setContent(vbox);
 
         Stage stage = (Stage) alert.getDialogPane().getScene().getWindow();
@@ -54,14 +60,19 @@ public class ViewImageHelper {
 
         alert.showAndWait().ifPresent(response -> {
             int colorCount = colorCountSpinner.getValue();
-
+            OpenCLUtils openCLUtils = new OpenCLUtils();
             if (response == kMeansButton) {
-                setupUIProgress(new KMeansPaletteStrategy(), colorCount, "K-means", imageDisp);
+                try {
+                    openCLUtils.getDevice(openCLUtils.getPlatform());
+                    setupUIProgress(new KMeansJOCLPaletteStrategy(), colorCount, "K-means", imageDisp);
+                } catch (Exception e) {
+                    setupUIProgress(new KMeansPaletteStrategy(), colorCount, "K-means", imageDisp);
+                }
             } else if (response == regionBasedButton) {
                 setupUIProgress(new RegionBasedPaletteStrategy(), colorCount, "Region-Based", imageDisp);
-            } else if(response == HistogramButton){
+            } else if (response == HistogramButton) {
                 setupUIProgress(new HistogramPaletteStrategy(), colorCount, "Histogram", imageDisp);
-            } else if(response == MeanShiftButton){
+            } else if (response == MeanShiftButton) {
                 setupUIProgress(new EfficientMeanShiftPaletteStrategy(), colorCount, "Mean Shift", imageDisp);
             } else {
             }
@@ -70,14 +81,22 @@ public class ViewImageHelper {
 
     private void setupUIProgress(PaletteExtractionStrategy strategy, int colorCount, String strategyTitle, ImageView imagedisp) {
         Stage progressStage = new Stage();
+
         ProgressBar progressBar = new ProgressBar(0.0);
         Label statusLabel = new Label("Status: Waiting to start...");
+        Label colorCountLabel = new Label("Colors to extract: " + colorCount);
         Button startButton = new Button("Start");
         Button cancelButton = new Button("Cancel");
         Button closeButton = new Button("Close");
 
-        VBox vbox = new VBox(10, progressBar, statusLabel, startButton, cancelButton, closeButton);
-        Scene scene = new Scene(vbox, 400, 200);
+        HBox buttonBox = new HBox(10, startButton, cancelButton, closeButton);
+        buttonBox.setAlignment(Pos.CENTER);
+
+        VBox vbox = new VBox(15, colorCountLabel, progressBar, statusLabel, buttonBox);
+        vbox.setAlignment(Pos.CENTER);
+        vbox.setPadding(new Insets(20));
+
+        Scene scene = new Scene(vbox, 400, 220);
         progressStage.setScene(scene);
         progressStage.setTitle("Palette Extraction: " + strategyTitle);
         progressStage.initModality(Modality.WINDOW_MODAL);
@@ -89,7 +108,6 @@ public class ViewImageHelper {
         progressStage.getIcons().add(icon);
 
         progressStage.show();
-
         startButton.setOnAction(event -> {
             computePalette(strategy, colorCount, progressBar, statusLabel, progressStage, cancelButton, closeButton, imagedisp);
         });

@@ -1,4 +1,7 @@
-package com.confer.imgstoremini.util;
+package com.confer.imgstoremini.util.PaletteExtraction;
+import com.confer.imgstoremini.util.DataStore;
+import com.confer.imgstoremini.util.ProgressObserver;
+
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.util.*;
@@ -71,9 +74,9 @@ public class KMeansPaletteStrategy implements PaletteExtractionStrategy {
             double progress = Math.min(0.1 + 0.9 * (double) iteration / maxIterations, 1.0);
             observer.updateProgress(progress);
 
-        } while (centroidsChanged && iteration < maxIterations);
+        } while (centroidsChanged && (iteration < maxIterations));
 
-        observer.updateStatus("Calculation Complete");
+        observer.updateStatus("K-means Complete");
         observer.updateProgress(1.0);
 
         return centroids;

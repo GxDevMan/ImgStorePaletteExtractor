@@ -1,4 +1,7 @@
-package com.confer.imgstoremini.util;
+package com.confer.imgstoremini.util.PaletteExtraction;
+import com.confer.imgstoremini.util.DataStore;
+import com.confer.imgstoremini.util.ProgressObserver;
+
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.util.*;
@@ -53,7 +56,7 @@ public class RegionBasedPaletteStrategy implements PaletteExtractionStrategy {
         }
 
         observer.updateProgress(1.0);
-        observer.updateStatus("Region-based palette extraction complete.");
+        observer.updateStatus("Region-based complete.");
 
         return palette.stream()
                 .limit(colorCount)

@@ -19,6 +19,7 @@ module com.confer.imgstoremini {
     requires org.hibernate.orm.core;
     requires commons.math3;
     requires SearchCriteriaUtil;
+    requires jocl;
 
     opens com.confer.imgstoremini.model;
     opens com.confer.imgstoremini to javafx.fxml;
@@ -28,4 +29,6 @@ module com.confer.imgstoremini {
     exports com.confer.imgstoremini.model;
     exports com.confer.imgstoremini.util;
     opens com.confer.imgstoremini.util to javafx.fxml;
+    exports com.confer.imgstoremini.util.PaletteExtraction;
+    opens com.confer.imgstoremini.util.PaletteExtraction to javafx.fxml;
 }

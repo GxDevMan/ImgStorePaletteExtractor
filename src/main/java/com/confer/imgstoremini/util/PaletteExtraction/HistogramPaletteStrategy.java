@@ -1,4 +1,6 @@
-package com.confer.imgstoremini.util;
+package com.confer.imgstoremini.util.PaletteExtraction;
+import com.confer.imgstoremini.util.ProgressObserver;
+
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.util.*;
@@ -40,7 +42,7 @@ public class HistogramPaletteStrategy implements PaletteExtractionStrategy {
         }
 
         observer.updateProgress(1.0);
-        observer.updateStatus("Histogram Complete. Extracting Dominant Colors...");
+        observer.updateStatus("Histogram Complete");
 
         return colorFrequency.entrySet().stream()
                 .sorted((e1, e2) -> e2.getValue().compareTo(e1.getValue()))

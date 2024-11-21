@@ -1,4 +1,4 @@
-package com.confer.imgstoremini.util;
+package com.confer.imgstoremini.util.PaletteExtraction;
 import java.awt.Color;
 import java.awt.image.BufferedImage;
 import java.util.*;
@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.concurrent.CancellationException;
 import java.util.function.Supplier;
 
+import com.confer.imgstoremini.util.ProgressObserver;
 import org.apache.commons.math3.ml.clustering.CentroidCluster;
 import org.apache.commons.math3.ml.clustering.KMeansPlusPlusClusterer;
 import org.apache.commons.math3.ml.clustering.DoublePoint;
@@ -31,7 +32,7 @@ public class EfficientMeanShiftPaletteStrategy implements PaletteExtractionStrat
         List<Color> colors = getAllColors(image, observer, isCancelled);
         List<Color> dominantColors = meanShiftClustering(colors, topColorsCount, observer, isCancelled);
 
-        observer.updateStatus("Palette extraction complete!");
+        observer.updateStatus("Mean Shift Complete");
         observer.updateProgress(1);
         return dominantColors;
     }
