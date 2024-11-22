@@ -34,6 +34,7 @@
                   </HBox>
                   <HBox alignment="TOP_CENTER" spacing="10.0">
                      <children>
+                        <Button fx:id="goToPaletteExtractorBTN" layoutX="58.0" layoutY="20.0" mnemonicParsing="false" onAction="#buttonClick" text="Palette Extractor" />
                         <Button fx:id="resetBTN" mnemonicParsing="false" onAction="#buttonClick" text="Reset" />
                         <Button fx:id="addImgBtn" mnemonicParsing="false" onAction="#buttonClick" text="Add Image" />
                         <Button fx:id="settingsBTN" layoutX="157.0" layoutY="20.0" mnemonicParsing="false" onAction="#buttonClick" text="Settings" />

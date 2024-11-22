@@ -31,4 +31,6 @@ module com.confer.imgstoremini {
     opens com.confer.imgstoremini.util to javafx.fxml;
     exports com.confer.imgstoremini.util.PaletteExtraction;
     opens com.confer.imgstoremini.util.PaletteExtraction to javafx.fxml;
+    exports com.confer.imgstoremini.util.Resizing;
+    opens com.confer.imgstoremini.util.Resizing;
 }

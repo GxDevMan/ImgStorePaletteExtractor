@@ -183,7 +183,7 @@ public class ViewImageController implements ViewImageContract {
             stage.getIcons().add(icon);
 
             PureViewUIController controller = fxmlLoader.getController();
-            controller.setPureViewUI(paletteImage);
+            controller.setPureViewUI(paletteImage, stage);
 
             stage.show();
         } catch (Exception e) {

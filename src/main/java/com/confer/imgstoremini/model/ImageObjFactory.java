@@ -2,6 +2,9 @@ package com.confer.imgstoremini.model;
 
 import com.confer.imgstoremini.exceptions.InvalidImgObjException;
 import com.confer.imgstoremini.util.ImageConversion;
+import com.confer.imgstoremini.util.Resizing.JpegResizeStrategy;
+import com.confer.imgstoremini.util.Resizing.PngResizeStrategy;
+import com.confer.imgstoremini.util.Resizing.ResizeImgContext;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.scene.image.Image;
 

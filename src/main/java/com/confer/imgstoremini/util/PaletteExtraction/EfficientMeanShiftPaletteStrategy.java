@@ -16,12 +16,14 @@ public class EfficientMeanShiftPaletteStrategy implements PaletteExtractionStrat
     private Supplier<Boolean> isCancelled;
     private ProgressObserver observer;
     private ColorSpaceConversion colorSpaceConversion;
+    private int countedIterations;
 
     @Override
     public List<Color> extractPalette(BufferedImage image, int colorCount, ProgressObserver observer, Supplier<Boolean> isCancelled) {
         DataStore dataStore = DataStore.getInstance();
         maxIterations = (int) dataStore.getObject("default_meanshiftiter");
         convergenceThreshold = (double) dataStore.getObject("default_convergence_threshold");
+        countedIterations = 0;
 
         this.isCancelled = isCancelled;
         this.observer = observer;
@@ -36,7 +38,7 @@ public class EfficientMeanShiftPaletteStrategy implements PaletteExtractionStrat
         List<Color> colors = getAllColors(image, observer, isCancelled);
         List<Color> dominantColors = meanShiftClustering(colors, topColorsCount, observer, isCancelled);
 
-        observer.updateStatus(String.format("(CPU) Mean Shift Complete, Iterations:%d",maxIterations));
+        observer.updateStatus(String.format("(CPU) Mean Shift Complete, Iterations:%d",countedIterations));
         observer.updateProgress(1);
         return dominantColors;
     }
@@ -92,8 +94,9 @@ public class EfficientMeanShiftPaletteStrategy implements PaletteExtractionStrat
 
         while ((iterations < maxIterations) && !converged) {
             iterations++;
+            countedIterations++;
 
-            observer.updateStatus(String.format("(CPU) Iteration %d of %d", iterations, maxIterations));
+            observer.updateStatus(String.format("(CPU) Iteration %d / %d", countedIterations, maxIterations));
 
             // Assign each point to the nearest centroid
             List<int[]> assignments = new ArrayList<>();
@@ -198,7 +201,6 @@ public class EfficientMeanShiftPaletteStrategy implements PaletteExtractionStrat
     private void checkInterrupt(){
         if(isCancelled.get()){
             observer.updateStatus("(CPU) Mean Shift Cancelled");
-            observer.updateProgress(0);
             throw new CancellationException("Mean Shift Computation Cancelled");
         }
     }

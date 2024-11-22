@@ -1,4 +1,4 @@
-package com.confer.imgstoremini.model;
+package com.confer.imgstoremini.util.Resizing;
 
 import java.awt.image.BufferedImage;
 

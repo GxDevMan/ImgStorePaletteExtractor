@@ -18,7 +18,7 @@ public class ImageStoreMiniApplication extends Application {
         dataStore.insertObject("image_icon", icon);
 
         FXMLLoader fxmlLoader = new FXMLLoader(ImageStoreMiniApplication.class.getResource("EntryUI.fxml"));
-        Scene scene = new Scene(fxmlLoader.load(), 400, 100);
+        Scene scene = new Scene(fxmlLoader.load(), 400, 200);
         stage.setTitle("Image Store");
         stage.setScene(scene);
         stage.show();

@@ -12,57 +12,82 @@
    <children>
       <ScrollPane fitToHeight="true" fitToWidth="true" pannable="true" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
          <content>
-            <VBox alignment="TOP_CENTER" spacing="10.0">
+            <VBox alignment="TOP_CENTER" spacing="15.0">
                <children>
-                  <HBox alignment="TOP_CENTER" spacing="10.0" VBox.vgrow="ALWAYS">
+                  <!-- Page Size Section -->
+                  <HBox alignment="CENTER_LEFT" spacing="10.0" VBox.vgrow="ALWAYS">
                      <children>
                         <Label text="Page Size:" HBox.hgrow="ALWAYS" />
                         <Spinner fx:id="pageSizeSPN" HBox.hgrow="ALWAYS" />
                      </children>
                   </HBox>
-                  <HBox alignment="TOP_CENTER" layoutX="20.0" layoutY="20.0" spacing="10.0">
+
+                  <!-- Region Cuts Section -->
+                  <HBox alignment="CENTER_LEFT" spacing="10.0" VBox.vgrow="ALWAYS">
                      <children>
-                        <Label text="Region Cuts" HBox.hgrow="ALWAYS" />
+                        <Label text="Region Cuts:" HBox.hgrow="ALWAYS" />
                         <Spinner fx:id="regioncutsSPN" HBox.hgrow="ALWAYS" />
                      </children>
                   </HBox>
-                  <HBox alignment="TOP_CENTER" layoutX="20.0" layoutY="75.0" spacing="10.0">
+
+                  <!-- K Means Iterations Section -->
+                  <HBox alignment="CENTER_LEFT" spacing="10.0" VBox.vgrow="ALWAYS">
                      <children>
-                        <Label text="K means Iterations" HBox.hgrow="ALWAYS" />
+                        <Label text="K Means Iterations:" HBox.hgrow="ALWAYS" />
                         <Spinner fx:id="kmeansSPN" HBox.hgrow="ALWAYS" />
                      </children>
                   </HBox>
-                  <HBox alignment="TOP_CENTER" layoutX="20.0" layoutY="130.0" spacing="10.0">
+
+                  <!-- Mean Shift Iterations Section -->
+                  <HBox alignment="CENTER_LEFT" spacing="10.0" VBox.vgrow="ALWAYS">
                      <children>
-                        <Label text="Mean Shift Iterations" HBox.hgrow="ALWAYS" />
+                        <Label text="Mean Shift Iterations:" HBox.hgrow="ALWAYS" />
                         <Spinner fx:id="meanshiftSPN" HBox.hgrow="ALWAYS" />
                      </children>
                   </HBox>
-                  <HBox alignment="TOP_CENTER" layoutX="20.0" layoutY="185.0" spacing="10.0">
+
+                  <!-- Spectral Clustering Iterations Section -->
+                  <HBox alignment="CENTER_LEFT" spacing="10.0" VBox.vgrow="ALWAYS">
                      <children>
-                        <Label text="Mean Shift Convergence" HBox.hgrow="ALWAYS" />
+                        <Label text="Spectral Clustering Iterations:" HBox.hgrow="ALWAYS" />
+                        <Spinner fx:id="spectralSPN" HBox.hgrow="ALWAYS" />
+                     </children>
+                  </HBox>
+
+                  <!-- Mean Shift Convergence Section -->
+                  <HBox alignment="CENTER_LEFT" spacing="10.0" VBox.vgrow="ALWAYS">
+                     <children>
+                        <Label text="Mean Shift Convergence:" HBox.hgrow="ALWAYS" />
                         <Spinner fx:id="meanShiftConvergenceSPN" HBox.hgrow="ALWAYS" />
                      </children>
                   </HBox>
-                  <HBox alignment="TOP_CENTER" layoutX="20.0" layoutY="240.0" spacing="10.0">
+
+                  <!-- Preferred Processor Section -->
+                  <HBox alignment="CENTER_LEFT" spacing="10.0" VBox.vgrow="ALWAYS">
                      <children>
-                        <Label text="Preferred Processor" HBox.hgrow="ALWAYS" />
+                        <Label text="Preferred Processor:" HBox.hgrow="ALWAYS" />
                         <ChoiceBox fx:id="processorChoiceBox" prefWidth="150.0" />
                      </children>
                   </HBox>
-                  <HBox spacing="10.0" VBox.vgrow="ALWAYS">
+
+                  <!-- Select Default DB Section -->
+                  <HBox alignment="CENTER_LEFT" spacing="10.0" VBox.vgrow="ALWAYS">
                      <children>
                         <Button fx:id="selectDefaultBTN" mnemonicParsing="false" onAction="#buttonClick" text="Select Default DB" HBox.hgrow="ALWAYS" />
                         <TextField fx:id="selectedDefaultTxtField" disable="true" prefHeight="25.0" prefWidth="356.0" HBox.hgrow="ALWAYS" />
                      </children>
                   </HBox>
-                  <HBox spacing="10.0" VBox.vgrow="ALWAYS">
+
+                  <!-- New DB Section -->
+                  <HBox alignment="CENTER_LEFT" spacing="10.0" VBox.vgrow="ALWAYS">
                      <children>
                         <Button fx:id="newdbBTN" mnemonicParsing="false" onAction="#buttonClick" text="New DB" HBox.hgrow="ALWAYS" />
                         <TextField fx:id="dbNameTxtField" prefHeight="25.0" prefWidth="412.0" HBox.hgrow="ALWAYS" />
                      </children>
                   </HBox>
-                  <HBox alignment="TOP_CENTER" spacing="10.0" VBox.vgrow="ALWAYS">
+
+                  <!-- Save/Cancel Buttons Section -->
+                  <HBox alignment="CENTER" spacing="10.0" VBox.vgrow="ALWAYS">
                      <children>
                         <Button fx:id="saveBTN" mnemonicParsing="false" onAction="#buttonClick" text="Save" HBox.hgrow="ALWAYS" />
                         <Button fx:id="cancelBTN" mnemonicParsing="false" onAction="#buttonClick" text="Cancel" HBox.hgrow="ALWAYS" />

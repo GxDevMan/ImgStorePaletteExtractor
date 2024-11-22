@@ -9,11 +9,8 @@ import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
-
 import java.io.File;
-import java.util.Arrays;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 public class SettingsConfigUIController {
@@ -53,7 +50,12 @@ public class SettingsConfigUIController {
     private Spinner meanshiftSPN;
 
     @FXML
+    private Spinner spectralSPN;
+
+    @FXML
     private Spinner meanShiftConvergenceSPN;
+
+
 
     @FXML
     private ChoiceBox<String> processorChoiceBox;
@@ -84,6 +86,11 @@ public class SettingsConfigUIController {
         meanShiftConvergenceSPN.setEditable(true);
         addDoubleValidation(meanShiftConvergenceSPN, 0.1,Double.MAX_VALUE);
 
+        SpinnerValueFactory<Integer> valueFactory6 = new SpinnerValueFactory.IntegerSpinnerValueFactory(1, Integer.MAX_VALUE, 1);
+        spectralSPN.setValueFactory(valueFactory6);
+        spectralSPN.setEditable(true);
+        addIntegerValidation(spectralSPN, 1, Integer.MAX_VALUE);
+
         ObservableList<String> processorChoices = FXCollections.observableArrayList("CPU", "GPU");
         processorChoiceBox.setItems(processorChoices);
         processorChoiceBox.setValue("CPU");
@@ -101,6 +108,7 @@ public class SettingsConfigUIController {
         int defaultRegionPalette;
         int defaultKmeanIter;
         int default_meanshiftIter;
+        int default_spectraliter;
         double default_convergence_threshold;
         String preferred_processor;
 
@@ -113,6 +121,7 @@ public class SettingsConfigUIController {
             defaultKmeanIter = Integer.parseInt(configData.get("default_kmeansiter"));
             default_meanshiftIter = Integer.parseInt(configData.get("default_meanshiftiter"));
             default_convergence_threshold = Double.parseDouble(configData.get("default_convergence_threshold"));
+            default_spectraliter = Integer.parseInt(configData.get("default_spectraliter"));
             preferred_processor = configData.get("preferred_processor");
         } else {
             DataStore dataStore = DataStore.getInstance();
@@ -123,6 +132,7 @@ public class SettingsConfigUIController {
             default_meanshiftIter = (int) dataStore.getObject("default_meanshiftiter");
             default_convergence_threshold = (double) dataStore.getObject("default_convergence_threshold");
             preferred_processor = (String) dataStore.getObject("preferred_processor");
+            default_spectraliter = (int) dataStore.getObject("default_spectraliter");
 
             dbNameTxtField.setDisable(true);
             newdbBTN.setDisable(true);
@@ -135,6 +145,7 @@ public class SettingsConfigUIController {
         regioncutsSPN.getValueFactory().setValue(defaultRegionPalette);
         kmeansSPN.getValueFactory().setValue(defaultKmeanIter);
         meanshiftSPN.getValueFactory().setValue(default_meanshiftIter);
+        spectralSPN.getValueFactory().setValue(default_spectraliter);
         meanShiftConvergenceSPN.getValueFactory().setValue(default_convergence_threshold);
         processorChoiceBox.setValue(preferred_processor);
     }
@@ -184,6 +195,7 @@ public class SettingsConfigUIController {
             newConfiguration.put("default_kmeansiter", kmeansSPN.getValue().toString());
             newConfiguration.put("default_meanshiftiter", meanshiftSPN.getValue().toString());
             newConfiguration.put("default_convergence_threshold", meanShiftConvergenceSPN.getValue().toString());
+            newConfiguration.put("default_spectraliter", spectralSPN.getValue().toString());
             newConfiguration.put("preferred_processor", processorChoiceBox.getValue());
             configFileHandler.createCustomConfigFile(newConfiguration);
         }
@@ -195,6 +207,7 @@ public class SettingsConfigUIController {
             dataStore.insertObject("default_meanshiftiter", meanshiftSPN.getValue());
             dataStore.insertObject("default_convergence_threshold", meanShiftConvergenceSPN.getValue());
             dataStore.insertObject("preferred_processor", processorChoiceBox.getValue());
+            dataStore.insertObject("default_spectraliter",spectralSPN.getValue());
         }
     }
 

@@ -41,13 +41,16 @@ public class ViewImageHelper {
         VBox vbox = new VBox();
         vbox.getChildren().addAll(new Label("Select Number of Colors:"), colorCountSpinner);
 
-        ButtonType HistogramButton = new ButtonType("Histogram");
+
         ButtonType kMeansButton = new ButtonType("K-Means");
-        ButtonType regionBasedButton = new ButtonType("Region-Based");
         ButtonType MeanShiftButton = new ButtonType("Mean Shift");
+        ButtonType SpectralClusteringButton = new ButtonType("Spectral Clustering");
+        ButtonType regionBasedButton = new ButtonType("Region-Based");
+
+        ButtonType HistogramButton = new ButtonType("Histogram");
         ButtonType cancelButton = new ButtonType("Cancel", ButtonBar.ButtonData.CANCEL_CLOSE);
 
-        alert.getButtonTypes().setAll(kMeansButton, MeanShiftButton, regionBasedButton, HistogramButton, cancelButton);
+        alert.getButtonTypes().setAll(kMeansButton, MeanShiftButton, SpectralClusteringButton, regionBasedButton, HistogramButton, cancelButton);
         alert.getDialogPane().setContent(vbox);
 
         Stage stage = (Stage) alert.getDialogPane().getScene().getWindow();
@@ -62,23 +65,25 @@ public class ViewImageHelper {
         alert.showAndWait().ifPresent(response -> {
             int colorCount = colorCountSpinner.getValue();
             if (response == kMeansButton) {
-                kmeansSelected(preferredProcessor,colorCount,imageDisp);
+                kmeansSelected(preferredProcessor, colorCount, imageDisp);
             } else if (response == MeanShiftButton) {
-                meanshiftSelected(preferredProcessor,colorCount,imageDisp);
+                setupUIProgress(new EfficientMeanShiftPaletteStrategy(), colorCount, "Mean Shift", imageDisp);
             } else if (response == regionBasedButton) {
                 setupUIProgress(new RegionBasedPaletteStrategy(), colorCount, "Region-Based", imageDisp);
             } else if (response == HistogramButton) {
                 setupUIProgress(new HistogramPaletteStrategy(), colorCount, "Histogram", imageDisp);
+            } else if (response == SpectralClusteringButton) {
+                spectralClusteringSelected(colorCount,imageDisp);
             } else {
             }
         });
     }
 
-    private void kmeansSelected(String preferredProcessor, int colorCount, ImageView imageDisp){
+    private void kmeansSelected(String preferredProcessor, int colorCount, ImageView imageDisp) {
         OpenCLUtils openCLUtils = new OpenCLUtils();
         String strategyTitle = "K-means";
 
-        if(preferredProcessor.equals("GPU")){
+        if (preferredProcessor.equals("GPU")) {
             try {
                 openCLUtils.getDevice(openCLUtils.getPlatform());
                 setupUIProgress(new KMeansJOCLPaletteStrategy(), colorCount, strategyTitle, imageDisp);
@@ -90,19 +95,15 @@ public class ViewImageHelper {
         }
     }
 
-    private void meanshiftSelected(String preferredProcessor, int colorCount, ImageView imageDisp){
-        OpenCLUtils openCLUtils = new OpenCLUtils();
-        String strategyTitle = "Mean Shift";
-
-        if(preferredProcessor.equals("GPU")){
-            try {
-                openCLUtils.getDevice(openCLUtils.getPlatform());
-                setupUIProgress(new EfficientMeanShiftJOCLPaletteStrategy(), colorCount, strategyTitle, imageDisp);
-            } catch (Exception e) {
-                setupUIProgress(new EfficientMeanShiftPaletteStrategy(), colorCount, strategyTitle, imageDisp);
-            }
-        } else {
-            setupUIProgress(new EfficientMeanShiftPaletteStrategy(), colorCount, strategyTitle, imageDisp);
+    private void spectralClusteringSelected(int colorCount, ImageView imageDisp){
+        try{
+            OpenCLUtils openCLUtils = new OpenCLUtils();
+            openCLUtils.getDevice(openCLUtils.getPlatform());
+            setupUIProgress(new SpectralClusteringJOCLPaletteStrategy(),colorCount,"Spectral Clustering", imageDisp);
+        } catch (Exception e){
+            e.printStackTrace();
+            ErrorDialog errorDialog = new ErrorDialog();
+            errorDialog.errorDialog(e,"Spectral Clustering Error","Requires GPU");
         }
     }
 
@@ -180,6 +181,7 @@ public class ViewImageHelper {
                     contract.displayPalette(finalImage);
                 });
             } catch (Exception e) {
+//                e.printStackTrace();
 //                Platform.runLater(() -> {
 //                    ErrorDialog errorDialog = new ErrorDialog();
 //                    errorDialog.errorDialog(e, "Palette Extraction Failed", "There was a problem extracting the palette.");

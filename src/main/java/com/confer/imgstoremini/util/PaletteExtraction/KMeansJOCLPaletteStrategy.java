@@ -2,10 +2,8 @@ package com.confer.imgstoremini.util.PaletteExtraction;
 import com.confer.imgstoremini.util.DataStore;
 import com.confer.imgstoremini.util.ProgressObserver;
 import org.jocl.*;
-
 import java.awt.Color;
 import java.awt.image.BufferedImage;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -75,7 +73,7 @@ public class KMeansJOCLPaletteStrategy implements PaletteExtractionStrategy {
         }
     }
 
-    private List<Color> applyKMeansJOCL(List<float[]> pixels, int k, ProgressObserver observer, Supplier<Boolean> isCancelled) throws IOException {
+    private List<Color> applyKMeansJOCL(List<float[]> pixels, int k, ProgressObserver observer, Supplier<Boolean> isCancelled) {
         int numPoints = pixels.size();
         int numDimensions = 3; // RGB
 
@@ -132,36 +130,36 @@ public class KMeansJOCLPaletteStrategy implements PaletteExtractionStrategy {
         // Main loop
         int[] assignments = new int[numPoints];
         Pointer assignmentsPointer = Pointer.to(assignments);
+        try {
+            for (int iteration = 0; iteration < maxIterations; iteration++) {
+                if (isCancelled.get()) {
+                    observer.updateStatus("(GPU) K-Means Cancelled");
+                    throw new CancellationException("Task Cancelled");
+                }
 
-        for (int iteration = 0; iteration < maxIterations; iteration++) {
-            if (isCancelled.get()) {
-                observer.updateStatus("(GPU) K-Means Cancelled");
-                throw new CancellationException("Task Cancelled");
+                int dispIteration = iteration + 1;
+                observer.updateStatus(String.format("(GPU) Iteration %d / %d", dispIteration, maxIterations));
+
+                // Cluster assignment
+                clEnqueueNDRangeKernel(queue, assignKernel, 1, null, new long[]{numPoints}, null, 0, null, null);
+                clEnqueueReadBuffer(queue, assignmentsBuffer, CL.CL_TRUE, 0, Sizeof.cl_int * numPoints, assignmentsPointer, 0, null, null);
+
+                // Centroid update
+                clEnqueueNDRangeKernel(queue, updateKernel, 1, null, new long[]{k}, null, 0, null, null);
+
+                observer.updateProgress((double) iteration / maxIterations);
             }
-
-            int dispIteration = iteration + 1;
-            observer.updateStatus(String.format("(GPU) Iteration %d / %d", dispIteration,maxIterations));
-
-            // Cluster assignment
-            clEnqueueNDRangeKernel(queue, assignKernel, 1, null, new long[]{numPoints}, null, 0, null, null);
-            clEnqueueReadBuffer(queue, assignmentsBuffer, CL.CL_TRUE, 0, Sizeof.cl_int * numPoints, assignmentsPointer, 0, null, null);
-
-            // Centroid update
-            clEnqueueNDRangeKernel(queue, updateKernel, 1, null, new long[]{k}, null, 0, null, null);
-
-            observer.updateProgress((double) iteration / maxIterations);
+        } finally {
+            clReleaseKernel(assignKernel);
+            clReleaseKernel(updateKernel);
+            clReleaseProgram(program);
+            clReleaseMemObject(pointsBuffer);
+            clReleaseMemObject(centroidsBuffer);
+            clReleaseMemObject(assignmentsBuffer);
+            clReleaseMemObject(countsBuffer);
+            clReleaseCommandQueue(queue);
+            clReleaseContext(context);
         }
-
-        // Release resources
-        clReleaseKernel(assignKernel);
-        clReleaseKernel(updateKernel);
-        clReleaseProgram(program);
-        clReleaseMemObject(pointsBuffer);
-        clReleaseMemObject(centroidsBuffer);
-        clReleaseMemObject(assignmentsBuffer);
-        clReleaseMemObject(countsBuffer);
-        clReleaseCommandQueue(queue);
-        clReleaseContext(context);
 
         // Convert centroids to Java Color objects
         List<Color> centroids = new ArrayList<>();
@@ -172,7 +170,7 @@ public class KMeansJOCLPaletteStrategy implements PaletteExtractionStrategy {
                     Math.round(centroidArray[i * 3 + 2])));
         }
 
-        observer.updateStatus(String.format("(GPU) K-Means Complete, Iterations:%d",maxIterations));
+        observer.updateStatus(String.format("(GPU) K-Means Complete, Iterations:%d", maxIterations));
         return centroids;
     }
 

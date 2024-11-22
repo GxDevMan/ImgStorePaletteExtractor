@@ -5,6 +5,9 @@ import com.confer.imgstoremini.model.*;
 import com.confer.imgstoremini.util.DataStore;
 import com.confer.imgstoremini.util.DbHandler;
 import com.confer.imgstoremini.util.ImageConversion;
+import com.confer.imgstoremini.util.Resizing.JpegResizeStrategy;
+import com.confer.imgstoremini.util.Resizing.PngResizeStrategy;
+import com.confer.imgstoremini.util.Resizing.ResizeImgContext;
 import com.confer.imgstoremini.util.hibernateUtil;
 import javafx.application.Platform;
 import javafx.embed.swing.SwingFXUtils;
@@ -48,6 +51,9 @@ public class MainUIController implements ImageContract {
     private Button resetBTN;
 
     @FXML
+    private Button goToPaletteExtractorBTN;
+
+    @FXML
     private TextField imgSearchBox;
 
     @FXML
@@ -88,6 +94,8 @@ public class MainUIController implements ImageContract {
             refreshList();
         } else if (event.getSource().equals(settingsBTN)){
             checkSettings();
+        } else if (event.getSource().equals(goToPaletteExtractorBTN)){
+            goToPaletteExtractor();
         }
     }
 
@@ -198,7 +206,7 @@ public class MainUIController implements ImageContract {
             ImageObj imageObjPure = handleImages.getImage(imageThumbObjDTO);
             ImageConversion conversionImg = new ImageConversion();
             Image imageFull = conversionImg.byteArraytoImage(imageObjPure.getFullImageByte());
-            controller.setPureViewUI(imageFull);
+            controller.setPureViewUI(imageFull, stage);
 
             stage.show();
         } catch (Exception e) {
@@ -257,6 +265,27 @@ public class MainUIController implements ImageContract {
         } catch (Exception e) {
             ErrorDialog errorDialog = new ErrorDialog();
             errorDialog.errorDialog(e,"Configuration Error","There was a problem with the Config.json");
+        }
+    }
+
+    private void goToPaletteExtractor() {
+        try {
+            FXMLLoader fxmlLoader = new FXMLLoader(ImageStoreMiniApplication.class.getResource("PaletteUI.fxml"));
+            Scene scene = new Scene(fxmlLoader.load(), 500, 500);
+
+            Stage stage = new Stage();
+            stage.setTitle("Image Store - Palette Extractor");
+            stage.setScene(scene);
+            stage.initModality(Modality.WINDOW_MODAL);
+
+            DataStore dataStore = DataStore.getInstance();
+            Image icon = (Image) dataStore.getObject("image_icon");
+            stage.getIcons().add(icon);
+
+            stage.show();
+        } catch (Exception e) {
+            ErrorDialog errorDialog = new ErrorDialog();
+            errorDialog.errorDialog(e,"FXML Error","There was a problem loading Palette UI");
         }
     }
 

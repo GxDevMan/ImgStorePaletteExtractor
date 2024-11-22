@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import java.net.*?>
 <?import javafx.geometry.*?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<?import java.net.URL?>
 <VBox alignment="CENTER" spacing="20.0" xmlns="http://javafx.com/javafx/17.0.2-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.confer.imgstoremini.controllers.EntryUIController">
     <stylesheets>
         <URL value="@styles/dark-theme.css" />
@@ -22,7 +22,12 @@
                     <Insets />
                 </HBox.margin>
             </Button>
-            <Button fx:id="settingsBTN" onAction="#buttonClick" mnemonicParsing="false" text="Settings" />
+            <Button fx:id="settingsBTN" mnemonicParsing="false" onAction="#buttonClick" text="Settings" />
         </children>
     </HBox>
+   <HBox>
+      <children>
+         <Button fx:id="goToPaletteExtractorBTN" mnemonicParsing="false" onAction="#buttonClick" text="Palette Extractor" />
+      </children>
+   </HBox>
 </VBox>

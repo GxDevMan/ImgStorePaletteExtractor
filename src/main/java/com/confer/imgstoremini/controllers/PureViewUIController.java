@@ -1,5 +1,6 @@
 package com.confer.imgstoremini.controllers;
 
+import com.confer.imgstoremini.model.ImageType;
 import com.confer.imgstoremini.util.ImageConversion;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.fxml.FXML;
@@ -10,11 +11,17 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.*;
 import javafx.scene.layout.AnchorPane;
+import javafx.stage.FileChooser;
+import javafx.stage.Stage;
 
+import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
 
 
 public class PureViewUIController {
+    private Stage stage;
 
     @FXML
     private ScrollPane scrollPane;
@@ -44,8 +51,10 @@ public class PureViewUIController {
         scrollPane.prefHeightProperty().bind(rootPane.heightProperty());
     }
 
-    public void setPureViewUI(Image image){
+    public void setPureViewUI(Image image, Stage stage){
         dispImageView.setImage(image);
+        this.stage = stage;
+
 
         double imageWidth = dispImageView.getImage().getWidth();
         double imageHeight = dispImageView.getImage().getHeight();
@@ -61,10 +70,15 @@ public class PureViewUIController {
 
         ContextMenu contextMenu = new ContextMenu();
         MenuItem copyImageItem = new MenuItem("Copy Image");
+        MenuItem saveImageItem = new MenuItem("Save Image");
         copyImageItem.setOnAction(e -> {
             copyImageToClipBoard(dispImageView.getImage());
         });
-        contextMenu.getItems().addAll(copyImageItem);
+        saveImageItem.setOnAction(e -> {
+            saveImageToFile(dispImageView.getImage());
+        });
+
+        contextMenu.getItems().addAll(copyImageItem, saveImageItem);
 
         dispImageView.setOnMouseClicked(event -> {
             if (event.getButton() == MouseButton.SECONDARY) {
@@ -162,6 +176,41 @@ public class PureViewUIController {
             ClipboardContent clipboardContent = new ClipboardContent();
             clipboardContent.putImage(SwingFXUtils.toFXImage(compatibleImage, null));
             Clipboard.getSystemClipboard().setContent(clipboardContent);
+        }
+    }
+
+    public void saveImageToFile(Image image) {
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.getExtensionFilters().add(
+                new FileChooser.ExtensionFilter("Image Files", "*.png", "*.jpg", "*.jpeg")
+        );
+        fileChooser.setInitialFileName("");
+        File file = fileChooser.showSaveDialog(stage);
+
+        if (file != null) {
+            BufferedImage bufferedImage = SwingFXUtils.fromFXImage(image, null);
+            ImageType imageType = ImageType.fromExtension(".png");
+            try {
+                switch (imageType) {
+                    case PNG:
+                        ImageIO.write(bufferedImage, "PNG", file);
+                        break;
+                    case JPEG:
+                    case JPG:
+                        BufferedImage jpegImage = new BufferedImage(
+                                bufferedImage.getWidth(),
+                                bufferedImage.getHeight(),
+                                BufferedImage.TYPE_INT_RGB
+                        );
+                        jpegImage.createGraphics().drawImage(bufferedImage, 0, 0, null);
+                        ImageIO.write(jpegImage, "JPEG", file);
+                        break;
+                    default:
+                        break;
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
     }
 

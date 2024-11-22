@@ -33,6 +33,7 @@ public class ConfigFileHandler {
             boolean default_meanshiftiter = rootNode.has("default_meanshiftiter");
             boolean default_convergence_threshold = rootNode.has("default_convergence_threshold");
             boolean preferred_processor = rootNode.has("preferred_processor");
+            boolean default_spectraliter = rootNode.has("default_spectraliter");
 
             boolean fieldsCheck = default_db &&
                     default_pagesize &&
@@ -40,7 +41,8 @@ public class ConfigFileHandler {
                     default_kmeansiter &&
                     default_meanshiftiter &&
                     default_convergence_threshold &&
-                    preferred_processor;
+                    preferred_processor &&
+                    default_spectraliter;
 
             if (!fieldsCheck) {
                 createDefaultConfigFile(configFile);
@@ -51,6 +53,7 @@ public class ConfigFileHandler {
             configData.put("default_regionspalette", rootNode.get("default_regionspalette").asText());
             configData.put("default_kmeansiter", rootNode.get("default_kmeansiter").asText());
             configData.put("default_meanshiftiter", rootNode.get("default_meanshiftiter").asText());
+            configData.put("default_spectraliter", rootNode.get("default_spectraliter").asText());
             configData.put("default_convergence_threshold", rootNode.get("default_convergence_threshold").asText());
             configData.put("preferred_processor", rootNode.get("preferred_processor").asText());
 
@@ -94,6 +97,7 @@ public class ConfigFileHandler {
         defaultConfig.put("default_meanshiftiter","10");
         defaultConfig.put("default_convergence_threshold","0.1");
         defaultConfig.put("preferred_processor", "CPU");
+        defaultConfig.put("default_spectraliter", "10");
         ObjectMapper mapper = new ObjectMapper();
         ObjectWriter writer = mapper.writerWithDefaultPrettyPrinter();
         try {

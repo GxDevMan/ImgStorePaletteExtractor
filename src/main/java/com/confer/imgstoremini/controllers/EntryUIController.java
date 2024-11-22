@@ -36,7 +36,12 @@ public class EntryUIController {
     private Button loadDefaultBtn;
 
     @FXML
+    private Button goToPaletteExtractorBTN;
+
+    @FXML
     private TextField outputArea;
+
+
 
     @FXML
     protected void buttonClick(ActionEvent event) {
@@ -48,6 +53,8 @@ public class EntryUIController {
             loadDefault(event);
         } else if (event.getSource().equals(settingsBTN)) {
             goToSettingsConfigUI();
+        } else if (event.getSource().equals(goToPaletteExtractorBTN)){
+            goToPaletteExtractor();
         }
     }
 
@@ -92,6 +99,28 @@ public class EntryUIController {
         } catch (Exception e) {
             ErrorDialog errorDialog = new ErrorDialog();
             errorDialog.errorDialog(e,"Configuration Error","There was a problem with the Config.json");
+        }
+    }
+
+    private void goToPaletteExtractor() {
+        loadFinalDataStoreConfiguration();
+        try {
+            FXMLLoader fxmlLoader = new FXMLLoader(ImageStoreMiniApplication.class.getResource("PaletteUI.fxml"));
+            Scene scene = new Scene(fxmlLoader.load(), 500, 500);
+
+            Stage stage = new Stage();
+            stage.setTitle("Image Store - Palette Extractor");
+            stage.setScene(scene);
+            stage.initModality(Modality.WINDOW_MODAL);
+
+            DataStore dataStore = DataStore.getInstance();
+            Image icon = (Image) dataStore.getObject("image_icon");
+            stage.getIcons().add(icon);
+
+            stage.show();
+        } catch (Exception e) {
+            ErrorDialog errorDialog = new ErrorDialog();
+            errorDialog.errorDialog(e,"FXML Error","There was a problem loading Palette UI");
         }
     }
 
@@ -143,6 +172,7 @@ public class EntryUIController {
         dataStore.insertObject("default_meanshiftiter", Integer.parseInt(savedConfiguration.get("default_meanshiftiter")));
         dataStore.insertObject("default_convergence_threshold",Double.parseDouble(savedConfiguration.get("default_convergence_threshold")));
         dataStore.insertObject("preferred_processor", savedConfiguration.get("preferred_processor"));
+        dataStore.insertObject("default_spectraliter", Integer.parseInt(savedConfiguration.get("default_spectraliter")));
     }
 
     public String openDbFileChooser() {

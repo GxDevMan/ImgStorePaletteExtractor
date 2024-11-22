@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.net.*?>
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.image.*?>
+<?import javafx.scene.layout.*?>
+
+<AnchorPane fx:id="rootPane" xmlns="http://javafx.com/javafx/17.0.2-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.confer.imgstoremini.controllers.PaletteUIController">
+   <stylesheets>
+      <URL value="@styles/dark-theme.css" />
+   </stylesheets>
+   <children>
+      <VBox alignment="TOP_CENTER" spacing="10.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+         <HBox alignment="TOP_CENTER">
+            <children>
+               <Button fx:id="pasteBTN" mnemonicParsing="false" onAction="#buttonClick" text="Paste Image" />
+               <Button fx:id="selectImage" mnemonicParsing="false" onAction="#buttonClick" text="Select Image" />
+               <Button fx:id="settingBTN" layoutX="287.0" layoutY="20.0" mnemonicParsing="false" onAction="#buttonClick" text="Settings" />
+            </children>
+         </HBox>
+         <HBox>
+            <children>
+               <Button fx:id="extractPaletteBTN" mnemonicParsing="false" onAction="#buttonClick" text="Extract Palette" />
+            </children>
+         </HBox>
+         <ScrollPane fx:id="imageScrollPane" fitToHeight="true" fitToWidth="true" prefHeight="250.0" prefWidth="546.0" VBox.vgrow="ALWAYS">
+            <content>
+               <ImageView fx:id="imageDisp" pickOnBounds="true" preserveRatio="true" />
+            </content>
+         </ScrollPane>
+         <padding>
+            <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
+         </padding>
+      </VBox>
+   </children>
+   <padding>
+      <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
+   </padding>
+</AnchorPane>
