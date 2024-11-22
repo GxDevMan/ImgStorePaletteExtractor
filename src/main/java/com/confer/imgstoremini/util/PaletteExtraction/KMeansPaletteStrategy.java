@@ -1,4 +1,5 @@
 package com.confer.imgstoremini.util.PaletteExtraction;
+
 import com.confer.imgstoremini.util.DataStore;
 import com.confer.imgstoremini.util.ProgressObserver;
 
@@ -11,6 +12,7 @@ import java.util.function.Supplier;
 
 public class KMeansPaletteStrategy implements PaletteExtractionStrategy {
     private int kmeansIterations;
+
     @Override
     public List<Color> extractPalette(BufferedImage image, int colorCount, ProgressObserver observer, Supplier<Boolean> isCancelled) {
         DataStore dataStore = DataStore.getInstance();
@@ -22,7 +24,7 @@ public class KMeansPaletteStrategy implements PaletteExtractionStrategy {
         List<Color> pixels = extractPixels(image);
 
         observer.updateProgress(0);
-        observer.updateStatus("Initializing Centroids");
+        observer.updateStatus("(CPU) Initializing Centroids");
 
         // Step 1: Initialize centroids (randomly select `k` pixels)
         List<Color> centroids = new ArrayList<>();
@@ -40,11 +42,13 @@ public class KMeansPaletteStrategy implements PaletteExtractionStrategy {
         int maxIterations = kmeansIterations; // Limit the number of iterations to avoid infinite loops
 
         do {
-            if (isCancelled.get()){
-                observer.updateStatus("K-means Cancelled");
+            if (isCancelled.get()) {
+                observer.updateStatus("(CPU) K-means Cancelled");
                 throw new CancellationException("Task Cancelled");
             }
-            observer.updateStatus("Iteration " + (iteration + 1) + " in progress...");
+            int displayIteration = iteration + 1;
+
+            observer.updateStatus(String.format("(CPU) Iteration %d / %d", displayIteration, maxIterations));
             clusters = new HashMap<>();
             for (Color centroid : centroids) {
                 clusters.put(centroid, new ArrayList<>());
@@ -76,7 +80,7 @@ public class KMeansPaletteStrategy implements PaletteExtractionStrategy {
 
         } while (centroidsChanged && (iteration < maxIterations));
 
-        observer.updateStatus("K-means Complete");
+        observer.updateStatus(String.format("(CPU) K-Means Complete, Iterations:%d", maxIterations));
         observer.updateProgress(1.0);
 
         return centroids;

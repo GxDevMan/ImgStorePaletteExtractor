@@ -57,29 +57,56 @@ public class ViewImageHelper {
 
         DialogPane dialogPane = alert.getDialogPane();
         dialogPane.getStylesheets().add(ImageStoreMiniApplication.class.getResource("styles/dark-theme.css").toExternalForm());
+        String preferredProcessor = (String) dataStore.getObject("preferred_processor");
 
         alert.showAndWait().ifPresent(response -> {
             int colorCount = colorCountSpinner.getValue();
-            OpenCLUtils openCLUtils = new OpenCLUtils();
             if (response == kMeansButton) {
-                try {
-                    openCLUtils.getDevice(openCLUtils.getPlatform());
-                    setupUIProgress(new KMeansJOCLPaletteStrategy(), colorCount, "K-means", imageDisp);
-                } catch (Exception e) {
-                    setupUIProgress(new KMeansPaletteStrategy(), colorCount, "K-means", imageDisp);
-                }
+                kmeansSelected(preferredProcessor,colorCount,imageDisp);
+            } else if (response == MeanShiftButton) {
+                meanshiftSelected(preferredProcessor,colorCount,imageDisp);
             } else if (response == regionBasedButton) {
                 setupUIProgress(new RegionBasedPaletteStrategy(), colorCount, "Region-Based", imageDisp);
             } else if (response == HistogramButton) {
                 setupUIProgress(new HistogramPaletteStrategy(), colorCount, "Histogram", imageDisp);
-            } else if (response == MeanShiftButton) {
-                setupUIProgress(new EfficientMeanShiftPaletteStrategy(), colorCount, "Mean Shift", imageDisp);
             } else {
             }
         });
     }
 
-    private void setupUIProgress(PaletteExtractionStrategy strategy, int colorCount, String strategyTitle, ImageView imagedisp) {
+    private void kmeansSelected(String preferredProcessor, int colorCount, ImageView imageDisp){
+        OpenCLUtils openCLUtils = new OpenCLUtils();
+        String strategyTitle = "K-means";
+
+        if(preferredProcessor.equals("GPU")){
+            try {
+                openCLUtils.getDevice(openCLUtils.getPlatform());
+                setupUIProgress(new KMeansJOCLPaletteStrategy(), colorCount, strategyTitle, imageDisp);
+            } catch (Exception e) {
+                setupUIProgress(new KMeansPaletteStrategy(), colorCount, strategyTitle, imageDisp);
+            }
+        } else {
+            setupUIProgress(new KMeansPaletteStrategy(), colorCount, strategyTitle, imageDisp);
+        }
+    }
+
+    private void meanshiftSelected(String preferredProcessor, int colorCount, ImageView imageDisp){
+        OpenCLUtils openCLUtils = new OpenCLUtils();
+        String strategyTitle = "Mean Shift";
+
+        if(preferredProcessor.equals("GPU")){
+            try {
+                openCLUtils.getDevice(openCLUtils.getPlatform());
+                setupUIProgress(new EfficientMeanShiftJOCLPaletteStrategy(), colorCount, strategyTitle, imageDisp);
+            } catch (Exception e) {
+                setupUIProgress(new EfficientMeanShiftPaletteStrategy(), colorCount, strategyTitle, imageDisp);
+            }
+        } else {
+            setupUIProgress(new EfficientMeanShiftPaletteStrategy(), colorCount, strategyTitle, imageDisp);
+        }
+    }
+
+    private void setupUIProgress(PaletteExtractionStrategy strategy, int colorCount, String strategyTitle, ImageView imageDisp) {
         Stage progressStage = new Stage();
 
         ProgressBar progressBar = new ProgressBar(0.0);
@@ -109,7 +136,7 @@ public class ViewImageHelper {
 
         progressStage.show();
         startButton.setOnAction(event -> {
-            computePalette(strategy, colorCount, progressBar, statusLabel, progressStage, cancelButton, closeButton, imagedisp);
+            computePalette(strategy, colorCount, progressBar, statusLabel, progressStage, cancelButton, closeButton, imageDisp);
         });
 
         closeButton.setOnAction(event -> {

@@ -18,8 +18,8 @@ module com.confer.imgstoremini {
     requires java.sql;
     requires org.hibernate.orm.core;
     requires commons.math3;
-    requires SearchCriteriaUtil;
     requires jocl;
+    requires SearchCriteriaUtil;
 
     opens com.confer.imgstoremini.model;
     opens com.confer.imgstoremini to javafx.fxml;

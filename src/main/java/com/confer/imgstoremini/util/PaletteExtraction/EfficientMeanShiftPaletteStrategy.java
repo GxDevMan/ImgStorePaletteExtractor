@@ -6,39 +6,43 @@ import java.util.List;
 import java.util.concurrent.CancellationException;
 import java.util.function.Supplier;
 
+import com.confer.imgstoremini.util.DataStore;
 import com.confer.imgstoremini.util.ProgressObserver;
-import org.apache.commons.math3.ml.clustering.CentroidCluster;
-import org.apache.commons.math3.ml.clustering.KMeansPlusPlusClusterer;
-import org.apache.commons.math3.ml.clustering.DoublePoint;
 
 public class EfficientMeanShiftPaletteStrategy implements PaletteExtractionStrategy {
-    private static final int MAX_ITERATIONS = 100;
-    private static final double CONVERGENCE_THRESHOLD = 0.1;
+    private int maxIterations;
+    private double convergenceThreshold;
 
     private Supplier<Boolean> isCancelled;
     private ProgressObserver observer;
+    private ColorSpaceConversion colorSpaceConversion;
 
     @Override
     public List<Color> extractPalette(BufferedImage image, int colorCount, ProgressObserver observer, Supplier<Boolean> isCancelled) {
+        DataStore dataStore = DataStore.getInstance();
+        maxIterations = (int) dataStore.getObject("default_meanshiftiter");
+        convergenceThreshold = (double) dataStore.getObject("default_convergence_threshold");
+
         this.isCancelled = isCancelled;
         this.observer = observer;
+        this.colorSpaceConversion = new ColorSpaceConversion();
         return generateColorPalette(image, colorCount, observer, isCancelled);
     }
 
     private List<Color> generateColorPalette(BufferedImage image, int topColorsCount, ProgressObserver observer, Supplier<Boolean> isCancelled) {
-        observer.updateStatus("Initializing palette extraction...");
+        observer.updateStatus("(CPU) Initializing palette extraction...");
         observer.updateProgress(0);
 
         List<Color> colors = getAllColors(image, observer, isCancelled);
         List<Color> dominantColors = meanShiftClustering(colors, topColorsCount, observer, isCancelled);
 
-        observer.updateStatus("Mean Shift Complete");
+        observer.updateStatus(String.format("(CPU) Mean Shift Complete, Iterations:%d",maxIterations));
         observer.updateProgress(1);
         return dominantColors;
     }
 
     private List<Color> getAllColors(BufferedImage image, ProgressObserver observer, Supplier<Boolean> isCancelled) {
-        observer.updateStatus("Extracting all colors from the image...");
+        observer.updateStatus("(CPU) Extracting all colors from the image...");
         List<Color> colors = new ArrayList<>();
         int totalPixels = image.getWidth() * image.getHeight();
         int processedPixels = 0;
@@ -60,14 +64,14 @@ public class EfficientMeanShiftPaletteStrategy implements PaletteExtractionStrat
     }
 
     private List<Color> meanShiftClustering(List<Color> colors, int topColorsCount, ProgressObserver observer, Supplier<Boolean> isCancelled) {
-        observer.updateStatus("Converting colors to LAB color space...");
+        observer.updateStatus("(CPU) Converting colors to LAB color space...");
         List<double[]> colorPoints = new ArrayList<>();
         int totalColors = colors.size();
         int processedColors = 0;
 
         for (Color color : colors) {
             checkInterrupt();
-            float[] lab = rgbToLab(color);
+            float[] lab = colorSpaceConversion.rgbToLab(color);
             colorPoints.add(new double[]{lab[0], lab[1], lab[2]});
 
             // Update progress for every 10% of colors converted
@@ -77,120 +81,126 @@ public class EfficientMeanShiftPaletteStrategy implements PaletteExtractionStrat
             }
         }
 
-        observer.updateStatus("Performing KMeans++ clustering...");
-        KMeansPlusPlusClusterer<DoublePoint> clusterer = new KMeansPlusPlusClusterer<>(topColorsCount);
-        List<DoublePoint> points = new ArrayList<>();
-        for (double[] point : colorPoints) {
-            checkInterrupt();
-            points.add(new DoublePoint(point));
+        observer.updateStatus("(CPU) Performing Mean Shift clustering...");
+
+        List<double[]> centroids = new ArrayList<>();
+        // Initialize centroids randomly (or use some initial heuristic)
+        initializeCentroids(colorPoints, centroids, topColorsCount);
+
+        int iterations = 0;
+        boolean converged = false;
+
+        while ((iterations < maxIterations) && !converged) {
+            iterations++;
+
+            observer.updateStatus(String.format("(CPU) Iteration %d of %d", iterations, maxIterations));
+
+            // Assign each point to the nearest centroid
+            List<int[]> assignments = new ArrayList<>();
+            for (double[] point : colorPoints) {
+                int[] assignment = new int[2]; // [centroidIndex, distance]
+                assignment[0] = assignToClosestCentroid(point, centroids);
+                assignments.add(assignment);
+            }
+
+            // Update centroids
+            List<double[]> newCentroids = new ArrayList<>();
+            for (int i = 0; i < centroids.size(); i++) {
+                newCentroids.add(updateCentroid(i, colorPoints, assignments));
+            }
+
+            // Check convergence
+            converged = checkConvergence(centroids, newCentroids);
+
+            // Update centroids with new values
+            centroids = newCentroids;
+
+            observer.updateProgress(0.3 + 0.1 * iterations / maxIterations); // Update progress (30%-40%)
         }
 
-        observer.updateStatus("Clustering centroids...");
-        List<CentroidCluster<DoublePoint>> clusters = clusterer.cluster(points);
+        observer.updateStatus(converged ? "(CPU) Mean Shift Converged" : "(CPU) Max Iterations Reached");
 
-        observer.updateStatus("Extracting dominant colors...");
+        // Convert centroids back to RGB and return
         List<Color> dominantColors = new ArrayList<>();
-        for (CentroidCluster<DoublePoint> cluster : clusters) {
-            checkInterrupt();
-            double[] centroid = cluster.getCenter().getPoint();
-            dominantColors.add(labToRgb((float) centroid[0], (float) centroid[1], (float) centroid[2]));
+        for (double[] centroid : centroids) {
+            dominantColors.add(colorSpaceConversion.labToRgb((float) centroid[0], (float) centroid[1], (float) centroid[2]));
         }
 
         observer.updateProgress(0.9); // Almost complete
         return dominantColors;
     }
 
-
-    private float[] rgbToLab(Color color) {
-        // Convert RGB to LAB using standard conversion
-        float[] rgb = new float[]{color.getRed() / 255f, color.getGreen() / 255f, color.getBlue() / 255f};
-        return rgbToLab(rgb);
+    private void initializeCentroids(List<double[]> colorPoints, List<double[]> centroids, int topColorsCount) {
+        // Initialize centroids (e.g., pick random points or use KMeans++ heuristic)
+        for (int i = 0; i < topColorsCount; i++) {
+            int randomIndex = (int) (Math.random() * colorPoints.size());
+            centroids.add(colorPoints.get(randomIndex));
+        }
     }
 
-    private float[] rgbToLab(float[] rgb) {
-        // Convert RGB to XYZ color space first
-        float[] xyz = rgbToXyz(rgb);
+    private int assignToClosestCentroid(double[] point, List<double[]> centroids) {
+        double minDist = Double.MAX_VALUE;
+        int closestCentroid = -1;
 
-        // Convert XYZ to LAB color space
-        float x = xyz[0] / 95.047f;
-        float y = xyz[1] / 100.000f;
-        float z = xyz[2] / 108.883f;
+        for (int i = 0; i < centroids.size(); i++) {
+            double dist = calculateDistance(point, centroids.get(i));
+            if (dist < minDist) {
+                minDist = dist;
+                closestCentroid = i;
+            }
+        }
 
-        x = (x > 0.008856) ? (float) Math.pow(x, 1 / 3.0) : (x * 903.3f + 16.0f) / 116.0f;
-        y = (y > 0.008856) ? (float) Math.pow(y, 1 / 3.0) : (y * 903.3f + 16.0f) / 116.0f;
-        z = (z > 0.008856) ? (float) Math.pow(z, 1 / 3.0) : (z * 903.3f + 16.0f) / 116.0f;
-
-        float l = (116.0f * y) - 16.0f;
-        float a = (x - y) * 500.0f;
-        float b = (y - z) * 200.0f;
-
-        return new float[]{l, a, b};
+        return closestCentroid;
     }
 
-    private float[] rgbToXyz(float[] rgb) {
-        // Convert RGB to XYZ color space using standard conversion
-        float r = (rgb[0] > 0.04045) ? (float) Math.pow((rgb[0] + 0.055) / 1.055, 2.4) : rgb[0] / 12.92f;
-        float g = (rgb[1] > 0.04045) ? (float) Math.pow((rgb[1] + 0.055) / 1.055, 2.4) : rgb[1] / 12.92f;
-        float b = (rgb[2] > 0.04045) ? (float) Math.pow((rgb[2] + 0.055) / 1.055, 2.4) : rgb[2] / 12.92f;
-
-        r = r * 100.0f;
-        g = g * 100.0f;
-        b = b * 100.0f;
-
-        float x = (r * 0.4124564f) + (g * 0.3575761f) + (b * 0.1804375f);
-        float y = (r * 0.2126729f) + (g * 0.7151522f) + (b * 0.0721750f);
-        float z = (r * 0.0193339f) + (g * 0.1191920f) + (b * 0.9503041f);
-
-        return new float[]{x, y, z};
+    private double calculateDistance(double[] point1, double[] point2) {
+        // Euclidean distance
+        double sum = 0.0;
+        for (int i = 0; i < 3; i++) {
+            sum += Math.pow(point1[i] - point2[i], 2);
+        }
+        return Math.sqrt(sum);
     }
 
-    private Color labToRgb(float l, float a, float b) {
-        // Convert LAB back to RGB
-        float[] xyz = labToXyz(l, a, b);
-        return xyzToRgb(xyz);
+    private double[] updateCentroid(int centroidIndex, List<double[]> colorPoints, List<int[]> assignments) {
+        double[] sum = new double[3];
+        int count = 0;
+
+        for (int i = 0; i < colorPoints.size(); i++) {
+            if (assignments.get(i)[0] == centroidIndex) {
+                for (int j = 0; j < 3; j++) {
+                    sum[j] += colorPoints.get(i)[j];
+                }
+                count++;
+            }
+        }
+
+        if (count == 0) return colorPoints.get(centroidIndex); // No points assigned, return the original centroid
+
+        for (int j = 0; j < 3; j++) {
+            sum[j] /= count;
+        }
+
+        return sum;
     }
 
-    private float[] labToXyz(float l, float a, float b) {
-        float y = (l + 16.0f) / 116.0f;
-        float x = a / 500.0f + y;
-        float z = y - b / 200.0f;
+    private boolean checkConvergence(List<double[]> oldCentroids, List<double[]> newCentroids) {
+        double maxDistance = 0.0;
 
-        x = (x > 0.206893034) ? (float) Math.pow(x, 3) : (x - 16.0f / 116.0f) / 7.787f;
-        y = (y > 0.206893034) ? (float) Math.pow(y, 3) : (y - 16.0f / 116.0f) / 7.787f;
-        z = (z > 0.206893034) ? (float) Math.pow(z, 3) : (z - 16.0f / 116.0f) / 7.787f;
+        for (int i = 0; i < oldCentroids.size(); i++) {
+            double dist = calculateDistance(oldCentroids.get(i), newCentroids.get(i));
+            maxDistance = Math.max(maxDistance, dist);
+        }
 
-        x = x * 95.047f;
-        y = y * 100.000f;
-        z = z * 108.883f;
-
-        return new float[]{x, y, z};
-    }
-
-    private Color xyzToRgb(float[] xyz) {
-        float x = xyz[0] / 100.0f;
-        float y = xyz[1] / 100.0f;
-        float z = xyz[2] / 100.0f;
-
-        float r = (x * 3.2406f) + (y * -1.5372f) + (z * -0.4986f);
-        float g = (x * -0.9689f) + (y * 1.8758f) + (z * 0.0415f);
-        float b = (x * 0.0556f) + (y * -0.2040f) + (z * 1.0570f);
-
-        r = (r > 0.0031308) ? (1.055f * (float) Math.pow(r, 1.0f / 2.4f)) - 0.055f : 12.92f * r;
-        g = (g > 0.0031308) ? (1.055f * (float) Math.pow(g, 1.0f / 2.4f)) - 0.055f : 12.92f * g;
-        b = (b > 0.0031308) ? (1.055f * (float) Math.pow(b, 1.0f / 2.4f)) - 0.055f : 12.92f * b;
-
-        return new Color(Math.min(255, Math.max(0, (int) (r * 255))),
-                Math.min(255, Math.max(0, (int) (g * 255))),
-                Math.min(255, Math.max(0, (int) (b * 255))));
+        return maxDistance < convergenceThreshold;
     }
 
     private void checkInterrupt(){
         if(isCancelled.get()){
-            observer.updateStatus("Mean Shift Cancelled");
+            observer.updateStatus("(CPU) Mean Shift Cancelled");
             observer.updateProgress(0);
             throw new CancellationException("Mean Shift Computation Cancelled");
         }
     }
-
 }
 

@@ -30,10 +30,19 @@ public class ConfigFileHandler {
             boolean default_pagesize = rootNode.has("default_pagesize");
             boolean default_regionspalette = rootNode.has("default_regionspalette");
             boolean default_kmeansiter = rootNode.has("default_kmeansiter");
+            boolean default_meanshiftiter = rootNode.has("default_meanshiftiter");
+            boolean default_convergence_threshold = rootNode.has("default_convergence_threshold");
+            boolean preferred_processor = rootNode.has("preferred_processor");
 
-            boolean fieldsCheck = default_db && default_pagesize && default_regionspalette && default_kmeansiter;
+            boolean fieldsCheck = default_db &&
+                    default_pagesize &&
+                    default_regionspalette &&
+                    default_kmeansiter &&
+                    default_meanshiftiter &&
+                    default_convergence_threshold &&
+                    preferred_processor;
 
-            if(!fieldsCheck) {
+            if (!fieldsCheck) {
                 createDefaultConfigFile(configFile);
                 return getConfig();
             }
@@ -41,6 +50,9 @@ public class ConfigFileHandler {
             configData.put("default_pagesize", rootNode.get("default_pagesize").asText());
             configData.put("default_regionspalette", rootNode.get("default_regionspalette").asText());
             configData.put("default_kmeansiter", rootNode.get("default_kmeansiter").asText());
+            configData.put("default_meanshiftiter", rootNode.get("default_meanshiftiter").asText());
+            configData.put("default_convergence_threshold", rootNode.get("default_convergence_threshold").asText());
+            configData.put("preferred_processor", rootNode.get("preferred_processor").asText());
 
         } catch (Exception e) {
             File configFile2 = new File(filePath);
@@ -64,7 +76,7 @@ public class ConfigFileHandler {
             String dbPath = loadedConfig.get("default_db");
             File dbfile = new File(dbPath);
             return dbfile.exists();
-        } catch (Exception e){
+        } catch (Exception e) {
             String currentDir = System.getProperty("user.dir");
             String filePath = currentDir + File.separator + "config.json";
             File configFile = new File(filePath);
@@ -77,8 +89,11 @@ public class ConfigFileHandler {
         Map<String, String> defaultConfig = new HashMap<>();
         defaultConfig.put("default_db", "default_imageStore.db");
         defaultConfig.put("default_pagesize", "10");
-        defaultConfig.put("default_regionspalette","4");
-        defaultConfig.put("default_kmeansiter","20");
+        defaultConfig.put("default_regionspalette", "4");
+        defaultConfig.put("default_kmeansiter", "20");
+        defaultConfig.put("default_meanshiftiter","10");
+        defaultConfig.put("default_convergence_threshold","0.1");
+        defaultConfig.put("preferred_processor", "CPU");
         ObjectMapper mapper = new ObjectMapper();
         ObjectWriter writer = mapper.writerWithDefaultPrettyPrinter();
         try {

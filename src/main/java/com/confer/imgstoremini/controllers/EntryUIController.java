@@ -10,9 +10,7 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
-import javafx.scene.control.DialogPane;
 import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.stage.FileChooser;
@@ -142,6 +140,9 @@ public class EntryUIController {
         dataStore.insertObject("default_pagesize", Integer.parseInt(savedConfiguration.get("default_pagesize")));
         dataStore.insertObject("default_regionspalette", Integer.parseInt(savedConfiguration.get("default_regionspalette")));
         dataStore.insertObject("default_kmeansiter", Integer.parseInt(savedConfiguration.get("default_kmeansiter")));
+        dataStore.insertObject("default_meanshiftiter", Integer.parseInt(savedConfiguration.get("default_meanshiftiter")));
+        dataStore.insertObject("default_convergence_threshold",Double.parseDouble(savedConfiguration.get("default_convergence_threshold")));
+        dataStore.insertObject("preferred_processor", savedConfiguration.get("preferred_processor"));
     }
 
     public String openDbFileChooser() {
