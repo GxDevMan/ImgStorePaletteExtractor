@@ -29,7 +29,7 @@ import java.io.File;
 import java.io.IOException;
 
 
-public class ViewImageController implements ViewImageContract {
+public class ViewImageController implements PaletteViewImageContract {
     private ImageObj imageObj;
     private Stage stage;
 
@@ -112,9 +112,8 @@ public class ViewImageController implements ViewImageContract {
         this.contract = contract;
         this.stage = stage;
 
-        TimeFormatter timeFormatter = new TimeFormatter();
-        String time = timeFormatter.formatNumTime(imageObj.getImageDate());
-        String date = timeFormatter.getFormattedDate(imageObj.getImageDate());
+        String time = TimeFormatter.formatNumTime(imageObj.getImageDate());
+        String date = TimeFormatter.getFormattedDate(imageObj.getImageDate());
 
         String formatThis = String.format(dateAddedLbl.getText(), date, time);
         dateAddedLbl.setText(formatThis);
@@ -187,8 +186,7 @@ public class ViewImageController implements ViewImageContract {
 
             stage.show();
         } catch (Exception e) {
-            ErrorDialog dialog = new ErrorDialog();
-            dialog.errorDialog(e, "Palette Viewing Failed", "There was a problem loading the extracted Palette Image");
+            ErrorDialog.showErrorDialog(e, "Palette Viewing Failed", "There was a problem loading the extracted Palette Image");
         }
     }
 
@@ -219,6 +217,7 @@ public class ViewImageController implements ViewImageContract {
             this.contract.updateImage(imageObj);
             stage.close();
         } catch (Exception e) {
+            ErrorDialog.showErrorDialog(e,"Fields Error","Required Fields are Missing");
             messageBox.setText("Error Updating, invalid information provided");
         }
     }
@@ -301,7 +300,7 @@ public class ViewImageController implements ViewImageContract {
                         break;
                 }
             } catch (IOException e) {
-                e.printStackTrace();
+                ErrorDialog.showErrorDialog(e,"Image Saving Error","There was a problem saving the image to Disk");
             }
         }
     }

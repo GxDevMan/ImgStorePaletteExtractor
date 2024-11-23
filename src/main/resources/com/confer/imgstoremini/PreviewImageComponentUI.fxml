@@ -11,17 +11,27 @@
       <URL value="@styles/dark-theme.css" />
    </stylesheets>
    <children>
-      <VBox alignment="TOP_CENTER" spacing="10.0">
+      <VBox alignment="CENTER" spacing="15.0" AnchorPane.bottomAnchor="10.0" AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="10.0" AnchorPane.topAnchor="10.0">
          <children>
+            <!-- Image Preview -->
             <ImageView fx:id="imagePlace" fitHeight="150.0" fitWidth="200.0" pickOnBounds="true" preserveRatio="true" />
-            <Label text="Date Added" />
-            <Label fx:id="dateAddedLbl" text="\%s %s" />
-            <Label fx:id="imageTitleLbl" text="Image Title" />
-            <HBox alignment="TOP_CENTER" spacing="10.0">
+
+            <!-- Image Details -->
+            <VBox alignment="CENTER" spacing="5.0">
+               <children>
+                  <Label text="Date Added:" style="-fx-font-weight: bold;" />
+                  <Label fx:id="dateAddedLbl" text="\%s %s" />
+                  <Label text="Title:" style="-fx-font-weight: bold;" />
+                  <Label fx:id="imageTitleLbl" text="Image Title" />
+               </children>
+            </VBox>
+
+            <!-- Action Buttons -->
+            <HBox alignment="CENTER" spacing="10.0">
                <children>
                   <Button fx:id="deleteButton" mnemonicParsing="false" onAction="#buttonClick" text="Delete" />
                   <Button fx:id="viewImgBtn" mnemonicParsing="false" onAction="#buttonClick" text="View" />
-                  <Button fx:id="pureViewBtn" layoutX="120.0" layoutY="10.0" mnemonicParsing="false" onAction="#buttonClick" text="Pure View" />
+                  <Button fx:id="pureViewBtn" mnemonicParsing="false" onAction="#buttonClick" text="Pure View" />
                </children>
             </HBox>
          </children>

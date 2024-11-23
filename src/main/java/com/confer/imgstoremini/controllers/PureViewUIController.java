@@ -167,8 +167,7 @@ public class PureViewUIController {
         if (image == null) {
             return;
         }
-        ImageConversion imageConversion = new ImageConversion();
-        BufferedImage bufferedImage = imageConversion.convertImageToBufferedImage(image);
+        BufferedImage bufferedImage = ImageConversion.convertImageToBufferedImage(image);
 
         if (bufferedImage != null) {
             BufferedImage compatibleImage = new BufferedImage(bufferedImage.getWidth(), bufferedImage.getHeight(), BufferedImage.TYPE_INT_ARGB);
@@ -209,7 +208,7 @@ public class PureViewUIController {
                         break;
                 }
             } catch (IOException e) {
-                e.printStackTrace();
+                ErrorDialog.showErrorDialog(e,"Image Saving Error","There was a problem saving the image to Disk");
             }
         }
     }

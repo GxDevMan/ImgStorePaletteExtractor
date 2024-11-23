@@ -16,7 +16,7 @@ import javax.imageio.ImageIO;
 
 public class ImageConversion {
 
-    public byte[] convertImageToByteArray(Image image, ImageType type) {
+    public static byte[] convertImageToByteArray(Image image, ImageType type) {
         BufferedImage bufferedImage = SwingFXUtils.fromFXImage(image, null);
 
         try (ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream()) {
@@ -50,7 +50,7 @@ public class ImageConversion {
         }
     }
 
-    public Image convertBufferedImageToImage(BufferedImage bufferedImage) throws IOException {
+    public static Image convertBufferedImageToImage(BufferedImage bufferedImage) throws IOException {
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
         ImageIO.write(bufferedImage, "png", byteArrayOutputStream);
         byte[] imageData = byteArrayOutputStream.toByteArray();
@@ -60,7 +60,7 @@ public class ImageConversion {
         return new Image(inputStream);
     }
 
-    public BufferedImage convertImageToBufferedImage(Image image) {
+    public static BufferedImage convertImageToBufferedImage(Image image) {
         BufferedImage bufferedImage = null;
 
         try {
@@ -80,7 +80,7 @@ public class ImageConversion {
         return bufferedImage;
     }
 
-    public Image byteArraytoImage(byte[] imageBytes) {
+    public static Image byteArraytoImage(byte[] imageBytes) {
         ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(imageBytes);
         return new Image(byteArrayInputStream);
     }

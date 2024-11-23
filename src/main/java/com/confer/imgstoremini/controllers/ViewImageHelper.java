@@ -23,35 +23,26 @@ import java.util.List;
 
 public class ViewImageHelper {
 
-    ViewImageContract contract;
+    PaletteViewImageContract contract;
 
-    public ViewImageHelper(ViewImageContract contract) {
+    public ViewImageHelper(PaletteViewImageContract contract) {
         this.contract = contract;
     }
 
     public void showStrategySelectionDialog(ImageView imageDisp) {
         Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
         alert.setTitle("Select Palette Extraction Strategy");
-        alert.setHeaderText("Choose a palette extraction strategy and color count:");
-
-        Spinner<Integer> colorCountSpinner = new Spinner<>(1, 50, 10);
-        colorCountSpinner.setEditable(true);
-        colorCountSpinner.setMaxWidth(60);
-
-        VBox vbox = new VBox();
-        vbox.getChildren().addAll(new Label("Select Number of Colors:"), colorCountSpinner);
-
+        alert.setHeaderText("Choose a palette extraction strategy:");
 
         ButtonType kMeansButton = new ButtonType("K-Means");
         ButtonType MeanShiftButton = new ButtonType("Mean Shift");
         ButtonType SpectralClusteringButton = new ButtonType("Spectral Clustering");
         ButtonType regionBasedButton = new ButtonType("Region-Based");
-
         ButtonType HistogramButton = new ButtonType("Histogram");
         ButtonType cancelButton = new ButtonType("Cancel", ButtonBar.ButtonData.CANCEL_CLOSE);
 
         alert.getButtonTypes().setAll(kMeansButton, MeanShiftButton, SpectralClusteringButton, regionBasedButton, HistogramButton, cancelButton);
-        alert.getDialogPane().setContent(vbox);
+        alert.getDialogPane().setContent(new VBox(10));  // Empty VBox for now as no spinner needed here
 
         Stage stage = (Stage) alert.getDialogPane().getScene().getWindow();
         DataStore dataStore = DataStore.getInstance();
@@ -63,56 +54,58 @@ public class ViewImageHelper {
         String preferredProcessor = (String) dataStore.getObject("preferred_processor");
 
         alert.showAndWait().ifPresent(response -> {
-            int colorCount = colorCountSpinner.getValue();
             if (response == kMeansButton) {
-                kmeansSelected(preferredProcessor, colorCount, imageDisp);
+                kmeansSelected(preferredProcessor, imageDisp);
             } else if (response == MeanShiftButton) {
-                setupUIProgress(new EfficientMeanShiftPaletteStrategy(), colorCount, "Mean Shift", imageDisp);
+                setupUIProgress(new EfficientMeanShiftPaletteStrategy(), "Mean Shift", imageDisp);
             } else if (response == regionBasedButton) {
-                setupUIProgress(new RegionBasedPaletteStrategy(), colorCount, "Region-Based", imageDisp);
+                setupUIProgress(new RegionBasedPaletteStrategy(), "Region-Based", imageDisp);
             } else if (response == HistogramButton) {
-                setupUIProgress(new HistogramPaletteStrategy(), colorCount, "Histogram", imageDisp);
+                setupUIProgress(new HistogramPaletteStrategy(), "Histogram", imageDisp);
             } else if (response == SpectralClusteringButton) {
-                spectralClusteringSelected(colorCount,imageDisp);
-            } else {
+                spectralClusteringSelected(imageDisp);
             }
         });
     }
 
-    private void kmeansSelected(String preferredProcessor, int colorCount, ImageView imageDisp) {
-        OpenCLUtils openCLUtils = new OpenCLUtils();
+    private void kmeansSelected(String preferredProcessor, ImageView imageDisp) {
         String strategyTitle = "K-means";
 
         if (preferredProcessor.equals("GPU")) {
             try {
-                openCLUtils.getDevice(openCLUtils.getPlatform());
-                setupUIProgress(new KMeansJOCLPaletteStrategy(), colorCount, strategyTitle, imageDisp);
+                OpenCLUtils.getDevice(OpenCLUtils.getPlatform());
+                setupUIProgress(new KMeansJOCLPaletteStrategy(), strategyTitle, imageDisp);
             } catch (Exception e) {
-                setupUIProgress(new KMeansPaletteStrategy(), colorCount, strategyTitle, imageDisp);
+                setupUIProgress(new KMeansPaletteStrategy(), strategyTitle, imageDisp);
             }
         } else {
-            setupUIProgress(new KMeansPaletteStrategy(), colorCount, strategyTitle, imageDisp);
+            setupUIProgress(new KMeansPaletteStrategy(), strategyTitle, imageDisp);
         }
     }
 
-    private void spectralClusteringSelected(int colorCount, ImageView imageDisp){
-        try{
-            OpenCLUtils openCLUtils = new OpenCLUtils();
-            openCLUtils.getDevice(openCLUtils.getPlatform());
-            setupUIProgress(new SpectralClusteringJOCLPaletteStrategy(),colorCount,"Spectral Clustering", imageDisp);
-        } catch (Exception e){
-            e.printStackTrace();
-            ErrorDialog errorDialog = new ErrorDialog();
-            errorDialog.errorDialog(e,"Spectral Clustering Error","Requires GPU");
+    private void spectralClusteringSelected(ImageView imageDisp) {
+        try {
+            OpenCLUtils.getDevice(OpenCLUtils.getPlatform());
+            setupUIProgress(new SpectralClusteringJOCLPaletteStrategy(), "Spectral Clustering", imageDisp);
+        } catch (Exception e) {
+            ErrorDialog.showErrorDialog(e, "Spectral Clustering Requirement Error", "Requires GPU");
         }
     }
 
-    private void setupUIProgress(PaletteExtractionStrategy strategy, int colorCount, String strategyTitle, ImageView imageDisp) {
+    private void setupUIProgress(PaletteExtractionStrategy strategy, String strategyTitle, ImageView imageDisp) {
         Stage progressStage = new Stage();
 
+        // Create ProgressBar, Labels, Buttons, and Spinner
         ProgressBar progressBar = new ProgressBar(0.0);
         Label statusLabel = new Label("Status: Waiting to start...");
-        Label colorCountLabel = new Label("Colors to extract: " + colorCount);
+        Label colorCountLabel = new Label("Select Colors to Extract:");
+
+        // Create the spinner and make it wider
+        Spinner<Integer> colorCountSpinner = new Spinner<>(1, Integer.MAX_VALUE, 10);  // Default to 10 colors
+        colorCountSpinner.setEditable(true);
+        colorCountSpinner.setMaxWidth(100);
+        colorCountSpinner.setStyle("-fx-background-color: white; -fx-pref-width: 100px;");  // Apply custom width
+
         Button startButton = new Button("Start");
         Button cancelButton = new Button("Cancel");
         Button closeButton = new Button("Close");
@@ -120,11 +113,11 @@ public class ViewImageHelper {
         HBox buttonBox = new HBox(10, startButton, cancelButton, closeButton);
         buttonBox.setAlignment(Pos.CENTER);
 
-        VBox vbox = new VBox(15, colorCountLabel, progressBar, statusLabel, buttonBox);
+        VBox vbox = new VBox(15, colorCountLabel, colorCountSpinner, progressBar, statusLabel, buttonBox);
         vbox.setAlignment(Pos.CENTER);
         vbox.setPadding(new Insets(20));
 
-        Scene scene = new Scene(vbox, 400, 220);
+        Scene scene = new Scene(vbox, 400, 250);
         progressStage.setScene(scene);
         progressStage.setTitle("Palette Extraction: " + strategyTitle);
         progressStage.initModality(Modality.WINDOW_MODAL);
@@ -136,7 +129,9 @@ public class ViewImageHelper {
         progressStage.getIcons().add(icon);
 
         progressStage.show();
+
         startButton.setOnAction(event -> {
+            int colorCount = colorCountSpinner.getValue();  // Get the value from the spinner
             computePalette(strategy, colorCount, progressBar, statusLabel, progressStage, cancelButton, closeButton, imageDisp);
         });
 
@@ -153,9 +148,6 @@ public class ViewImageHelper {
                                 Button closeButton,
                                 ImageView imageDisp) {
         PaletteExtractor paletteExtractor = new PaletteExtractor();
-        ImageConversion imageConversion = new ImageConversion();
-        PaletteImageGenerator paletteImageGenerator = new PaletteImageGenerator();
-
         Thread taskThread = new Thread(() -> {
             paletteExtractor.setStrategy(strategy);
             paletteExtractor.setObserver(new ProgressObserver() {
@@ -171,11 +163,11 @@ public class ViewImageHelper {
             });
 
             try {
-                BufferedImage bfrImg = imageConversion.convertImageToBufferedImage(imageDisp.getImage());
+                BufferedImage bfrImg = ImageConversion.convertImageToBufferedImage(imageDisp.getImage());
                 List<Color> paletteList = paletteExtractor.extractPalette(bfrImg, colorCount, () -> Thread.currentThread().isInterrupted());
-                BufferedImage extractedPaletteImg = paletteImageGenerator.generatePaletteImage(paletteList, 100);
+                BufferedImage extractedPaletteImg = PaletteImageGenerator.generatePaletteImage(paletteList, 100);
 
-                Image finalImage = imageConversion.convertBufferedImageToImage(extractedPaletteImg);
+                Image finalImage = ImageConversion.convertBufferedImageToImage(extractedPaletteImg);
 
                 Platform.runLater(() -> {
                     contract.displayPalette(finalImage);

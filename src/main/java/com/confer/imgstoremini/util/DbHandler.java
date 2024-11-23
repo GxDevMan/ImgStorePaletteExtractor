@@ -18,14 +18,14 @@ import javax.persistence.criteria.Root;
 
 public class DbHandler {
 
-    private Session getSession() {
+    private static Session getSession() {
         hibernateUtil util = hibernateUtil.getInstance();
         SessionFactory sessionFactory = util.getSessionFactory();
         Session session = sessionFactory.getCurrentSession();
         return session;
     }
 
-    public boolean saveImage(ImageObj imageObj) {
+    public static boolean saveImage(ImageObj imageObj) {
         try {
             Session session = getSession();
             Transaction transaction = session.beginTransaction();
@@ -38,7 +38,7 @@ public class DbHandler {
         }
     }
 
-    public ImageObj getImage(ImageThumbObjDTO imageThumbObjDTO){
+    public static ImageObj getImage(ImageThumbObjDTO imageThumbObjDTO){
         Session session = getSession();
         Transaction transaction = session.beginTransaction();
         ImageObj imageObjDel = session.get(ImageObj.class, imageThumbObjDTO.getImageId());
@@ -46,7 +46,7 @@ public class DbHandler {
         return imageObjDel;
     }
 
-    public boolean updateImage(ImageObj imageObj) {
+    public static boolean updateImage(ImageObj imageObj) {
         try {
             Session session = getSession();
             Transaction transaction = session.beginTransaction();
@@ -59,7 +59,7 @@ public class DbHandler {
         }
     }
 
-    public boolean deleteImage(ImageThumbObjDTO imageObj) {
+    public static boolean deleteImage(ImageThumbObjDTO imageObj) {
         try {
             Session session = getSession();
             Transaction transaction = session.beginTransaction();
@@ -78,7 +78,7 @@ public class DbHandler {
         }
     }
 
-    public int calculateTotalPages(int pageSize) {
+    public static int calculateTotalPages(int pageSize) {
         Session session = getSession();
         Transaction transaction = session.beginTransaction();
 
@@ -95,7 +95,7 @@ public class DbHandler {
         return (int) Math.ceil((double) totalRecords / pageSize);
     }
 
-    public int calculateTotalPages(int pageSize, String searchQuery) {
+    public static int calculateTotalPages(int pageSize, String searchQuery) {
         Session session = getSession();
         Transaction transaction = null;
         long totalRecords = 0;
@@ -128,7 +128,7 @@ public class DbHandler {
         return (int) Math.ceil((double) totalRecords / pageSize);
     }
 
-    public int calculateTotalPagesRegex(int pageSize, String searchQuery) {
+    public static int calculateTotalPagesRegex(int pageSize, String searchQuery) {
         Session session = getSession();
         Transaction transaction = null;
         long totalRecords = 0;
@@ -172,7 +172,7 @@ public class DbHandler {
         return (int) Math.ceil((double) totalRecords / pageSize);
     }
 
-    public List<ImageThumbObjDTO> getImagesForPageThumb(int pageNumber, int pageSize, boolean Ascending) {
+    public static List<ImageThumbObjDTO> getImagesForPageThumb(int pageNumber, int pageSize, boolean Ascending) {
         Session session = getSession();
         Transaction transaction = null;
         List<ImageThumbObjDTO> imageThumbList = null;
@@ -215,7 +215,7 @@ public class DbHandler {
         return imageThumbList;
     }
 
-    public List<ImageThumbObjDTO> getImagesForPageThumb(int pageNumber, int pageSize, boolean ascending, String searchQuery) {
+    public static List<ImageThumbObjDTO> getImagesForPageThumb(int pageNumber, int pageSize, boolean ascending, String searchQuery) {
         Session session = getSession();
         Transaction transaction = null;
         List<ImageThumbObjDTO> imageThumbList = null;
@@ -268,7 +268,7 @@ public class DbHandler {
         return imageThumbList;
     }
 
-    public List<ImageThumbObjDTO> getImagesForPageThumbRegex(int pageNumber, int pageSize, boolean ascending, String searchQuery) {
+    public static List<ImageThumbObjDTO> getImagesForPageThumbRegex(int pageNumber, int pageSize, boolean ascending, String searchQuery) {
         Session session = getSession();
         Transaction transaction = null;
         List<ImageThumbObjDTO> imageThumbList = null;

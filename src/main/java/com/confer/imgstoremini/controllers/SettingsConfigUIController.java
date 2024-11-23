@@ -100,8 +100,9 @@ public class SettingsConfigUIController {
         this.isSet = isSet;
         this.stage = stage;
 
-        stage.setHeight(600);
-        stage.setWidth(600);
+        stage.setHeight(700);
+        stage.setWidth(500);
+        stage.setTitle("Image Store - Settings");
 
         String defaultDb;
         int defaultPageSize;
@@ -113,8 +114,7 @@ public class SettingsConfigUIController {
         String preferred_processor;
 
         if (!this.isSet) {
-            ConfigFileHandler configFileHandler = new ConfigFileHandler();
-            this.configData = configFileHandler.getConfig();
+            this.configData = ConfigFileHandler.getConfig();
             defaultDb = configData.get("default_db");
             defaultPageSize = Integer.parseInt(configData.get("default_pagesize"));
             defaultRegionPalette = Integer.parseInt(configData.get("default_regionspalette"));
@@ -187,7 +187,6 @@ public class SettingsConfigUIController {
 
     private void saveConfiguration() {
         if (!isSet) {
-            ConfigFileHandler configFileHandler = new ConfigFileHandler();
             Map<String, String> newConfiguration = new HashMap<>();
             newConfiguration.put("default_pagesize", pageSizeSPN.getValue().toString());
             newConfiguration.put("default_db", selectedDefaultTxtField.getText());
@@ -197,7 +196,7 @@ public class SettingsConfigUIController {
             newConfiguration.put("default_convergence_threshold", meanShiftConvergenceSPN.getValue().toString());
             newConfiguration.put("default_spectraliter", spectralSPN.getValue().toString());
             newConfiguration.put("preferred_processor", processorChoiceBox.getValue());
-            configFileHandler.createCustomConfigFile(newConfiguration);
+            ConfigFileHandler.createCustomConfigFile(newConfiguration);
         }
         else{
             DataStore dataStore = DataStore.getInstance();

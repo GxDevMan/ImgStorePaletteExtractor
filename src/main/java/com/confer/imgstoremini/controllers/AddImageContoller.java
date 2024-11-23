@@ -170,7 +170,7 @@ public class AddImageContoller {
             contract.addImage(newEntry);
             addStage.close();
         } catch (InvalidImgObjException e) {
-            this.imageTypeArea.setText(e.getMessage());
+            ErrorDialog.showErrorDialog(e,"Invalid Image","Image Requirements not satisfied");
         }
     }
 

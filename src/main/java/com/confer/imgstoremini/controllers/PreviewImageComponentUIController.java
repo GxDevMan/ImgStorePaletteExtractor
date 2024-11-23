@@ -35,16 +35,14 @@ public class PreviewImageComponentUIController {
     private Label imageTitleLbl;
 
     public void setComponent(ImageContract contract, ImageThumbObjDTO imageObj) {
-        ImageConversion conversion = new ImageConversion();
-        Image image = conversion.byteArraytoImage(imageObj.getThumbnailImageByte());
+        Image image = ImageConversion.byteArraytoImage(imageObj.getThumbnailImageByte());
         imagePlace.setImage(image);
         this.imageObj = imageObj;
         this.contract = contract;
         imageTitleLbl.setText(imageObj.getImageTitle());
 
-        TimeFormatter timeFormatter = new TimeFormatter();
-        String timeNum = timeFormatter.formatNumTime(imageObj.getImageDate());
-        String dateDay = timeFormatter.getFormattedDate(imageObj.getImageDate());
+        String timeNum = TimeFormatter.formatNumTime(imageObj.getImageDate());
+        String dateDay = TimeFormatter.getFormattedDate(imageObj.getImageDate());
         String formatThis = String.format(dateAddedLbl.getText(), dateDay,timeNum);
         dateAddedLbl.setText(formatThis);
     }

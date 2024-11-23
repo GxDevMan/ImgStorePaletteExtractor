@@ -2,7 +2,7 @@ package com.confer.imgstoremini.util.PaletteExtraction;
 import org.jocl.*;
 
 public class OpenCLUtils {
-    public cl_platform_id getPlatform() {
+    public static cl_platform_id getPlatform() {
         int[] numPlatformsArray = new int[1];
         CL.clGetPlatformIDs(0, null, numPlatformsArray);
         int numPlatforms = numPlatformsArray[0];
@@ -13,7 +13,7 @@ public class OpenCLUtils {
         return platforms[0];
     }
 
-    public cl_device_id getDevice(cl_platform_id platform) {
+    public static cl_device_id getDevice(cl_platform_id platform) {
         int[] numDevicesArray = new int[1];
         CL.clGetDeviceIDs(platform, CL.CL_DEVICE_TYPE_GPU, 0, null, numDevicesArray);
         int numDevices = numDevicesArray[0];

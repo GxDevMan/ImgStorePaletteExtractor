@@ -15,10 +15,9 @@ import java.time.LocalTime;
 
 public class ImageObjFactory {
     public ImageObj createNewImageObj(String imageTitle, String imageTags, ImageType imageType, Image image) throws InvalidImgObjException {
-        ImageConversion conversion = new ImageConversion();
         byte[] imageByte;
         try {
-            imageByte = conversion.convertImageToByteArray(image, imageType);
+            imageByte = ImageConversion.convertImageToByteArray(image, imageType);
         } catch (Exception e) {
             throw new InvalidImgObjException("Full Image Byte conversion Failed");
         }
@@ -57,7 +56,7 @@ public class ImageObjFactory {
 
         byte[] thumbnailByte;
         try {
-           thumbnailByte = conversion.convertImageToByteArray(resizedImage, imageType);
+           thumbnailByte = ImageConversion.convertImageToByteArray(resizedImage, imageType);
         } catch (Exception e) {
             throw new InvalidImgObjException("Thumbnail Conversion Failed");
         }

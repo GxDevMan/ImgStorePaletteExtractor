@@ -8,7 +8,7 @@ import java.util.stream.Collectors;
 
 public class PaletteImageGenerator {
 
-    public BufferedImage generatePaletteImage(List<Color> colors, int swatchSize) {
+    public static BufferedImage generatePaletteImage(List<Color> colors, int swatchSize) {
         // Step 1: Sort the colors based on similarity
         colors = sortColorsBySimilarity(colors);
 
@@ -48,7 +48,7 @@ public class PaletteImageGenerator {
         return paletteImage;
     }
 
-    public Dimension computePaletteSize(int colorCount, int swatchSize) {
+    private static Dimension computePaletteSize(int colorCount, int swatchSize) {
         int cols = (int) Math.ceil(Math.sqrt(colorCount));
         int rows = (int) Math.ceil((double) colorCount / cols);
 
@@ -59,7 +59,7 @@ public class PaletteImageGenerator {
         return new Dimension(paletteWidth, paletteHeight);
     }
 
-    private List<Color> sortColorsBySimilarity(List<Color> colors) {
+    private static List<Color> sortColorsBySimilarity(List<Color> colors) {
         if (colors.isEmpty()) {
             return colors;
         }
@@ -85,7 +85,7 @@ public class PaletteImageGenerator {
         return sortedColors;
     }
 
-    private double colorDistance(Color c1, Color c2) {
+    private static double colorDistance(Color c1, Color c2) {
         int rDiff = c1.getRed() - c2.getRed();
         int gDiff = c1.getGreen() - c2.getGreen();
         int bDiff = c1.getBlue() - c2.getBlue();

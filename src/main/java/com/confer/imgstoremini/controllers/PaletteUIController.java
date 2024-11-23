@@ -22,7 +22,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-public class PaletteUIController implements ViewImageContract {
+public class PaletteUIController implements PaletteViewImageContract {
 
     @FXML
     private Button pasteBTN;
@@ -81,8 +81,7 @@ public class PaletteUIController implements ViewImageContract {
             ViewImageHelper viewImageHelper = new ViewImageHelper(this);
             viewImageHelper.showStrategySelectionDialog(imageDisp);
         } else{
-            ErrorDialog errorDialog = new ErrorDialog();
-            errorDialog.errorDialog(new Exception("Image is Null"),"Image is Null","You have not set an image");
+            ErrorDialog.showErrorDialog(new Exception(""),"Image is Null","You have not set an image");
         }
     }
 
@@ -105,8 +104,7 @@ public class PaletteUIController implements ViewImageContract {
 
             stage.show();
         } catch (Exception e) {
-            ErrorDialog errorDialog = new ErrorDialog();
-            errorDialog.errorDialog(e,"Configuration Error","There was a problem with the Config.json");
+            ErrorDialog.showErrorDialog(e,"Configuration Error","There was a problem with the Config.json");
         }
     }
 
@@ -270,8 +268,7 @@ public class PaletteUIController implements ViewImageContract {
 
             stage.show();
         } catch (Exception e) {
-            ErrorDialog dialog = new ErrorDialog();
-            dialog.errorDialog(e, "Palette Viewing Failed", "There was a problem loading the extracted Palette Image");
+            ErrorDialog.showErrorDialog(e, "Palette Viewing Failed", "There was a problem loading the extracted Palette Image");
         }
     }
 }

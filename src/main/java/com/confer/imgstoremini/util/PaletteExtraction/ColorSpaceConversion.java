@@ -3,12 +3,12 @@ package com.confer.imgstoremini.util.PaletteExtraction;
 import java.awt.*;
 
 public class ColorSpaceConversion {
-    public float[] rgbToLab(Color color) {
+    public static float[] rgbToLab(Color color) {
         float[] rgb = new float[]{color.getRed() / 255f, color.getGreen() / 255f, color.getBlue() / 255f};
         return rgbToLab(rgb);
     }
 
-    public float[] rgbToLab(float[] rgb) {
+    public static float[] rgbToLab(float[] rgb) {
         float[] xyz = rgbToXyz(rgb);
 
         float x = xyz[0] / 95.047f;
@@ -26,7 +26,7 @@ public class ColorSpaceConversion {
         return new float[]{l, a, b};
     }
 
-    public float[] rgbToXyz(float[] rgb) {
+    public static float[] rgbToXyz(float[] rgb) {
         float r = (rgb[0] > 0.04045) ? (float) Math.pow((rgb[0] + 0.055) / 1.055, 2.4) : rgb[0] / 12.92f;
         float g = (rgb[1] > 0.04045) ? (float) Math.pow((rgb[1] + 0.055) / 1.055, 2.4) : rgb[1] / 12.92f;
         float b = (rgb[2] > 0.04045) ? (float) Math.pow((rgb[2] + 0.055) / 1.055, 2.4) : rgb[2] / 12.92f;
@@ -42,12 +42,12 @@ public class ColorSpaceConversion {
         return new float[]{x, y, z};
     }
 
-    public Color labToRgb(float l, float a, float b) {
+    public static Color labToRgb(float l, float a, float b) {
         float[] xyz = labToXyz(l, a, b);
         return xyzToRgb(xyz);
     }
 
-    private float[] labToXyz(float l, float a, float b) {
+    private static float[] labToXyz(float l, float a, float b) {
         float y = (l + 16.0f) / 116.0f;
         float x = a / 500.0f + y;
         float z = y - b / 200.0f;
@@ -63,7 +63,7 @@ public class ColorSpaceConversion {
         return new float[]{x, y, z};
     }
 
-    public Color xyzToRgb(float[] xyz) {
+    public static Color xyzToRgb(float[] xyz) {
         float x = xyz[0] / 100.0f;
         float y = xyz[1] / 100.0f;
         float z = xyz[2] / 100.0f;

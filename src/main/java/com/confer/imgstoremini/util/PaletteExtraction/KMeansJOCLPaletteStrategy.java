@@ -91,12 +91,10 @@ public class KMeansJOCLPaletteStrategy implements PaletteExtractionStrategy {
             System.arraycopy(pointArray, randomIndex * numDimensions, centroidArray, i * numDimensions, numDimensions);
         }
 
-        OpenCLUtils openCLUtils = new OpenCLUtils();
-
         // Set up OpenCL
         CL.setExceptionsEnabled(true);
-        cl_platform_id platform = openCLUtils.getPlatform();
-        cl_device_id device = openCLUtils.getDevice(platform);
+        cl_platform_id platform = OpenCLUtils.getPlatform();
+        cl_device_id device = OpenCLUtils.getDevice(platform);
         cl_context context = clCreateContext(null, 1, new cl_device_id[]{device}, null, null, null);
         cl_command_queue queue = clCreateCommandQueue(context, device, 0, null);
 

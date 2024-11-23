@@ -11,25 +11,57 @@
       <URL value="@styles/dark-theme.css" />
    </stylesheets>
    <children>
-      <VBox alignment="TOP_CENTER" spacing="10.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
-         <TextField fx:id="messageBox" disable="true" promptText="Message" />
-         <TextArea fx:id="tagsImg" minWidth="300.0" prefHeight="133.0" prefWidth="478.0" promptText="Image Tags" wrapText="true" />
-         <Label fx:id="dateAddedLbl" text="Date Added: %s %s" />
-         <TextField fx:id="imageTitleField" promptText="Image Title" />
-         <ScrollPane fx:id="imageScrollPane" fitToHeight="true" fitToWidth="true" VBox.vgrow="ALWAYS">
-            <content>
-               <ImageView fx:id="imageDisp" pickOnBounds="true" preserveRatio="true" />
-            </content>
-         </ScrollPane>
-         <HBox alignment="TOP_CENTER" spacing="10.0">
-            <children>
-               <Button fx:id="updateBTN" mnemonicParsing="false" onAction="#buttonClick" text="Update" />
-               <Button fx:id="extractPaletteBTN" mnemonicParsing="false" onAction="#buttonClick" text="Extract Palette" />
-               <Button fx:id="copyImageBTN" mnemonicParsing="false" onAction="#buttonClick" text="Copy Image" />
-               <Button fx:id="saveImageBTN" mnemonicParsing="false" onAction="#buttonClick" text="Save Image" />
-               <Button fx:id="closeBTN" mnemonicParsing="false" onAction="#buttonClick" text="Close" />
-            </children>
-         </HBox>
+      <VBox alignment="TOP_CENTER" spacing="15.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+         <children>
+            <!-- Message Section -->
+            <TitledPane text="Message" expanded="true">
+               <content>
+                  <TextField fx:id="messageBox" disable="true" promptText="Message" />
+               </content>
+            </TitledPane>
+
+            <!-- Image Details Section -->
+            <TitledPane text="Image Details" expanded="true">
+               <content>
+                  <VBox alignment="CENTER_LEFT" spacing="10.0">
+                     <children>
+                        <TextArea fx:id="tagsImg" minWidth="300.0" prefHeight="133.0" prefWidth="478.0" promptText="Image Tags" wrapText="true" />
+                        <Label fx:id="dateAddedLbl" text="Date Added: %s %s" />
+                        <TextField fx:id="imageTitleField" promptText="Image Title" />
+                     </children>
+                  </VBox>
+               </content>
+            </TitledPane>
+
+            <!-- Image Display Section -->
+            <TitledPane text="Image Preview" expanded="true">
+               <content>
+                  <ScrollPane fx:id="imageScrollPane" fitToHeight="true" fitToWidth="true">
+                     <content>
+                        <ImageView fx:id="imageDisp" pickOnBounds="true" preserveRatio="true" />
+                     </content>
+                  </ScrollPane>
+               </content>
+            </TitledPane>
+
+            <!-- Action Buttons Section -->
+            <TitledPane text="Actions" expanded="true">
+               <content>
+                  <HBox alignment="CENTER" spacing="10.0">
+                     <children>
+                        <Button fx:id="updateBTN" mnemonicParsing="false" onAction="#buttonClick" text="Update" />
+                        <Button fx:id="extractPaletteBTN" mnemonicParsing="false" onAction="#buttonClick" text="Extract Palette" />
+                        <Button fx:id="copyImageBTN" mnemonicParsing="false" onAction="#buttonClick" text="Copy Image" />
+                        <Button fx:id="saveImageBTN" mnemonicParsing="false" onAction="#buttonClick" text="Save Image" />
+                        <Button fx:id="closeBTN" mnemonicParsing="false" onAction="#buttonClick" text="Close" />
+                     </children>
+                  </HBox>
+               </content>
+            </TitledPane>
+         </children>
+         <padding>
+            <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
+         </padding>
       </VBox>
    </children>
    <padding>

@@ -11,7 +11,7 @@ import javafx.stage.Stage;
 
 public class ErrorDialog {
 
-    public void errorDialog(Exception e, String title, String header){
+    public static void showErrorDialog(Exception e, String title, String header){
         Alert alert = new Alert(Alert.AlertType.ERROR);
         alert.setTitle(title);
         alert.setHeaderText(header);
@@ -27,7 +27,7 @@ public class ErrorDialog {
         alert.showAndWait();
     }
 
-    public void errorDialog(Exception e, String title, String header, ImageView imageView, ImageThumbObjDTO deleteThisImage){
+    public static void showErrorDialog(Exception e, String title, String header, ImageView imageView, ImageThumbObjDTO deleteThisImage){
         Alert alert = new Alert(Alert.AlertType.ERROR);
         alert.setTitle(title);
         alert.setHeaderText(header);

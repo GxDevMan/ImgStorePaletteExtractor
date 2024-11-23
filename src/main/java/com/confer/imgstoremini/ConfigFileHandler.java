@@ -11,7 +11,7 @@ import java.util.HashMap;
 
 public class ConfigFileHandler {
 
-    public Map<String, String> getConfig() {
+    public static Map<String, String> getConfig() {
         String currentDir = System.getProperty("user.dir");
         String filePath = currentDir + File.separator + "config.json";
         File configFile = new File(filePath);
@@ -65,7 +65,7 @@ public class ConfigFileHandler {
         return configData;
     }
 
-    private boolean checkConfigFile() {
+    private static boolean checkConfigFile() {
         String currentDir = System.getProperty("user.dir");
         String filePath = currentDir + File.separator + "config.json";
 
@@ -73,7 +73,7 @@ public class ConfigFileHandler {
         return configFile.exists();
     }
 
-    public boolean checkDBSpecifiedInConfigFile() {
+    public static boolean checkDBSpecifiedInConfigFile() {
         try {
             Map<String, String> loadedConfig = getConfig();
             String dbPath = loadedConfig.get("default_db");
@@ -88,7 +88,7 @@ public class ConfigFileHandler {
         }
     }
 
-    public void createDefaultConfigFile(File configFile) {
+    public static void createDefaultConfigFile(File configFile) {
         Map<String, String> defaultConfig = new HashMap<>();
         defaultConfig.put("default_db", "default_imageStore.db");
         defaultConfig.put("default_pagesize", "10");
@@ -106,7 +106,7 @@ public class ConfigFileHandler {
         }
     }
 
-    public void createCustomConfigFile(Map<String, String> customConfig) {
+    public static void createCustomConfigFile(Map<String, String> customConfig) {
         String currentDir = System.getProperty("user.dir");
         String filePath = currentDir + File.separator + "config.json";
         File configFile = new File(filePath);

@@ -71,10 +71,7 @@ public class MainUIController implements ImageContract {
     @FXML
     private ScrollPane rootScrollPane;
 
-    private DbHandler handleImages;
-
     public void setMainUiController() {
-        handleImages = new DbHandler();
         refreshList();
     }
 
@@ -113,8 +110,7 @@ public class MainUIController implements ImageContract {
         Image icon = (Image) dataStore.getObject("image_icon");
         stage.getIcons().add(icon);
 
-        ImageConversion conversion = new ImageConversion();
-        Image ThumbNail = conversion.byteArraytoImage(deleteThisImage.getThumbnailImageByte());
+        Image ThumbNail = ImageConversion.byteArraytoImage(deleteThisImage.getThumbnailImageByte());
 
         ResizeImgContext resizeImgContext = new ResizeImgContext();
         switch (ImageType.fromExtension(deleteThisImage.getImageType())) {
@@ -129,10 +125,9 @@ public class MainUIController implements ImageContract {
                 100, 100);
 
         try {
-            ThumbNail = conversion.convertBufferedImageToImage(bufferedImage);
+            ThumbNail = ImageConversion.convertBufferedImageToImage(bufferedImage);
         } catch (Exception e) {
-            ErrorDialog errorDialog = new ErrorDialog();
-            errorDialog.errorDialog(e, "Buffered Image to Image Conversion failed","Image Conversion Failed");
+            ErrorDialog.showErrorDialog(e, "Buffered Image to Image Conversion failed","Image Conversion Failed");
             return;
         }
         ImageView imageView = new ImageView(ThumbNail);
@@ -144,7 +139,7 @@ public class MainUIController implements ImageContract {
             try {
                 new Thread(() -> {
                     try {
-                        handleImages.deleteImage(deleteThisImage);
+                        DbHandler.deleteImage(deleteThisImage);
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
@@ -154,8 +149,7 @@ public class MainUIController implements ImageContract {
 
                 }).start();
             } catch (Exception e) {
-                ErrorDialog errorDialog = new ErrorDialog();
-                errorDialog.errorDialog(e,"Deletion Failed","There was a problem deleting this image", imageView,deleteThisImage);
+                ErrorDialog.showErrorDialog(e,"Database Error","There was a problem deleting this image", imageView,deleteThisImage);
                 return;
             }
         }
@@ -178,11 +172,11 @@ public class MainUIController implements ImageContract {
             stage.getIcons().add(icon);
 
             ViewImageController controller = fxmlLoader.getController();
-            controller.setImageView(handleImages.getImage(imageObj), this, stage);
+            controller.setImageView(DbHandler.getImage(imageObj), this, stage);
 
             stage.show();
         } catch (Exception e) {
-            e.printStackTrace();
+            ErrorDialog.showErrorDialog(e,"FXML Error","There was a problem loading View Image UI");
         }
     }
 
@@ -203,14 +197,14 @@ public class MainUIController implements ImageContract {
             stage.getIcons().add(icon);
 
             PureViewUIController controller = fxmlLoader.getController();
-            ImageObj imageObjPure = handleImages.getImage(imageThumbObjDTO);
+            ImageObj imageObjPure = DbHandler.getImage(imageThumbObjDTO);
             ImageConversion conversionImg = new ImageConversion();
             Image imageFull = conversionImg.byteArraytoImage(imageObjPure.getFullImageByte());
             controller.setPureViewUI(imageFull, stage);
 
             stage.show();
         } catch (Exception e) {
-            e.printStackTrace();
+            ErrorDialog.showErrorDialog(e,"FXML Error","There was a problem loading Pure View Image UI");
         }
     }
 
@@ -218,9 +212,9 @@ public class MainUIController implements ImageContract {
     public void updateImage(ImageObj imageObj) {
         new Thread(() -> {
             try {
-                handleImages.updateImage(imageObj);
+                DbHandler.updateImage(imageObj);
             } catch (Exception e) {
-                e.printStackTrace();
+                ErrorDialog.showErrorDialog(e,"Database Error","There was a problem loading updating this image");
             }
             Platform.runLater(() -> {
                 refreshList();
@@ -233,9 +227,9 @@ public class MainUIController implements ImageContract {
     public void addImage(ImageObj imageObj) {
         new Thread(() -> {
             try {
-                handleImages.saveImage(imageObj);
+                DbHandler.saveImage(imageObj);
             } catch (Exception e) {
-                e.printStackTrace();
+                ErrorDialog.showErrorDialog(e,"Database Error","There was a problem saving this image");
             }
             Platform.runLater(() -> {
                 refreshList();
@@ -263,8 +257,7 @@ public class MainUIController implements ImageContract {
 
             stage.show();
         } catch (Exception e) {
-            ErrorDialog errorDialog = new ErrorDialog();
-            errorDialog.errorDialog(e,"Configuration Error","There was a problem with the Config.json");
+            ErrorDialog.showErrorDialog(e,"Configuration Error","There was a problem with the Config.json");
         }
     }
 
@@ -284,8 +277,7 @@ public class MainUIController implements ImageContract {
 
             stage.show();
         } catch (Exception e) {
-            ErrorDialog errorDialog = new ErrorDialog();
-            errorDialog.errorDialog(e,"FXML Error","There was a problem loading Palette UI");
+            ErrorDialog.showErrorDialog(e,"FXML Error","There was a problem loading Palette UI");
         }
     }
 
@@ -307,7 +299,7 @@ public class MainUIController implements ImageContract {
             imgController.setContract(this, stage);
             stage.show();
         } catch (Exception e) {
-            e.printStackTrace();
+            ErrorDialog.showErrorDialog(e,"FXML Error","There was a problem loading Add Image UI");
         }
     }
 
@@ -315,7 +307,7 @@ public class MainUIController implements ImageContract {
         DataStore dataStore = DataStore.getInstance();
         int totalPages = (int) dataStore.getObject("default_pagesize");
 
-        paginationChoice.setPageCount(handleImages.calculateTotalPages(totalPages));
+        paginationChoice.setPageCount(DbHandler.calculateTotalPages(totalPages));
 
         paginationChoice.setPageFactory(pageIndex -> {
             updatePage(pageIndex);
@@ -328,7 +320,7 @@ public class MainUIController implements ImageContract {
         DataStore dataStore = DataStore.getInstance();
         int totalPages = (int) dataStore.getObject("default_pagesize");
         dataStore.insertObject("search_key", searchKey);
-        paginationChoice.setPageCount(handleImages.calculateTotalPages(totalPages, searchKey));
+        paginationChoice.setPageCount(DbHandler.calculateTotalPages(totalPages, searchKey));
 
         paginationChoice.setPageFactory(pageIndex -> {
             updatePageSearch(pageIndex);
@@ -341,7 +333,7 @@ public class MainUIController implements ImageContract {
         DataStore dataStore = DataStore.getInstance();
         int totalPages = (int) dataStore.getObject("default_pagesize");
         dataStore.insertObject("search_key", searchKey);
-        paginationChoice.setPageCount(handleImages.calculateTotalPagesRegex(totalPages, searchKey));
+        paginationChoice.setPageCount(DbHandler.calculateTotalPagesRegex(totalPages, searchKey));
 
         paginationChoice.setPageFactory(pageIndex -> {
             updatePageSearchRegex(pageIndex);
@@ -352,7 +344,7 @@ public class MainUIController implements ImageContract {
 
     private void updatePage(int pageIndex) {
         int totalPages = (int) DataStore.getInstance().getObject("default_pagesize");
-        List<ImageThumbObjDTO> imageObjList = handleImages.getImagesForPageThumb(pageIndex + 1, totalPages, true);
+        List<ImageThumbObjDTO> imageObjList = DbHandler.getImagesForPageThumb(pageIndex + 1, totalPages, true);
         displayImages(imageObjList);
     }
 
@@ -360,7 +352,7 @@ public class MainUIController implements ImageContract {
         DataStore dataStore = DataStore.getInstance();
         String searchKey = (String) dataStore.getObject("search_key");
         int totalPages = (int) DataStore.getInstance().getObject("default_pagesize");
-        List<ImageThumbObjDTO> imageObjList = handleImages.getImagesForPageThumb(pageIndex + 1, totalPages, true, searchKey);
+        List<ImageThumbObjDTO> imageObjList = DbHandler.getImagesForPageThumb(pageIndex + 1, totalPages, true, searchKey);
         displayImages(imageObjList);
     }
 
@@ -368,7 +360,7 @@ public class MainUIController implements ImageContract {
         DataStore dataStore = DataStore.getInstance();
         String searchKey = (String) dataStore.getObject("search_key");
         int totalPages = (int) DataStore.getInstance().getObject("default_pagesize");
-        List<ImageThumbObjDTO> imageObjList = handleImages.getImagesForPageThumbRegex(pageIndex + 1, totalPages, true, searchKey);
+        List<ImageThumbObjDTO> imageObjList = DbHandler.getImagesForPageThumbRegex(pageIndex + 1, totalPages, true, searchKey);
         displayImages(imageObjList);
     }
 
@@ -383,7 +375,7 @@ public class MainUIController implements ImageContract {
                 controller.setComponent(this, imageInstance);
                 imageViews.getChildren().add(previewComponent);
             } catch (Exception e) {
-                e.printStackTrace();
+                ErrorDialog.showErrorDialog(e,"FXML Error","There was a problem loading Preview Image Component UI");
             }
         }
     }
@@ -395,11 +387,11 @@ public class MainUIController implements ImageContract {
             Scene viewScene = new Scene(viewParent);
 
             Stage sourceWin = (Stage) ((Node) event.getSource()).getScene().getWindow();
-            sourceWin.setHeight(150);
+            sourceWin.setHeight(200);
             sourceWin.setWidth(400);
             sourceWin.setScene(viewScene);
 
-            sourceWin.setTitle("Image Store Mini");
+            sourceWin.setTitle("Image Store");
 
             hibernateUtil util = hibernateUtil.getInstance();
             if (util != null)
@@ -407,7 +399,7 @@ public class MainUIController implements ImageContract {
 
             sourceWin.show();
         } catch (Exception e) {
-            e.printStackTrace();
+            ErrorDialog.showErrorDialog(e,"FXML Error","There was a problem loading Entry UI");
         }
 
     }

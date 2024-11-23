@@ -97,8 +97,7 @@ public class EntryUIController {
 
             stage.show();
         } catch (Exception e) {
-            ErrorDialog errorDialog = new ErrorDialog();
-            errorDialog.errorDialog(e,"Configuration Error","There was a problem with the Config.json");
+            ErrorDialog.showErrorDialog(e,"Configuration Error","There was a problem with the Config.json");
         }
     }
 
@@ -119,8 +118,7 @@ public class EntryUIController {
 
             stage.show();
         } catch (Exception e) {
-            ErrorDialog errorDialog = new ErrorDialog();
-            errorDialog.errorDialog(e,"FXML Error","There was a problem loading Palette UI");
+            ErrorDialog.showErrorDialog(e,"FXML Error","There was a problem loading Palette UI");
         }
     }
 
@@ -129,6 +127,7 @@ public class EntryUIController {
             hibernateUtil.getInstance(getConfigSetting("default_db"));
             goToNextMenu(event);
         } catch (Exception e) {
+            ErrorDialog.showErrorDialog(e,"Error Loading Default","Specified Default Database cannot be loaded");
             outputArea.setText("Error loading Default");
         }
     }
@@ -155,7 +154,7 @@ public class EntryUIController {
 
             sourceWin.show();
         } catch (Exception e) {
-            e.printStackTrace();
+            ErrorDialog.showErrorDialog(e,"Something went wrong","Cannot Load Main UI");
             outputArea.setText("Something went wrong");
         }
 
@@ -163,8 +162,7 @@ public class EntryUIController {
 
     private void loadFinalDataStoreConfiguration() {
         DataStore dataStore = DataStore.getInstance();
-        ConfigFileHandler configFileHandler = new ConfigFileHandler();
-        Map<String, String> savedConfiguration = configFileHandler.getConfig();
+        Map<String, String> savedConfiguration = ConfigFileHandler.getConfig();
         dataStore.insertObject("dbLoc", savedConfiguration.get("default_db"));
         dataStore.insertObject("default_pagesize", Integer.parseInt(savedConfiguration.get("default_pagesize")));
         dataStore.insertObject("default_regionspalette", Integer.parseInt(savedConfiguration.get("default_regionspalette")));
@@ -194,13 +192,11 @@ public class EntryUIController {
     }
 
     private boolean checkDefaultDb() {
-        ConfigFileHandler configFileHandler = new ConfigFileHandler();
-        return configFileHandler.checkDBSpecifiedInConfigFile();
+        return ConfigFileHandler.checkDBSpecifiedInConfigFile();
     }
 
     private String getConfigSetting(String key) {
-        ConfigFileHandler configFileHandler = new ConfigFileHandler();
-        Map<String, String> loadedConfiguration = configFileHandler.getConfig();
+        Map<String, String> loadedConfiguration = ConfigFileHandler.getConfig();
         return loadedConfiguration.get(key);
     }
 }

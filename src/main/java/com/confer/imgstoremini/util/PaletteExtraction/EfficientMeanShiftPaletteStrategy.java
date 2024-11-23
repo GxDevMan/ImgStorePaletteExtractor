@@ -15,7 +15,6 @@ public class EfficientMeanShiftPaletteStrategy implements PaletteExtractionStrat
 
     private Supplier<Boolean> isCancelled;
     private ProgressObserver observer;
-    private ColorSpaceConversion colorSpaceConversion;
     private int countedIterations;
 
     @Override
@@ -27,7 +26,6 @@ public class EfficientMeanShiftPaletteStrategy implements PaletteExtractionStrat
 
         this.isCancelled = isCancelled;
         this.observer = observer;
-        this.colorSpaceConversion = new ColorSpaceConversion();
         return generateColorPalette(image, colorCount, observer, isCancelled);
     }
 
@@ -73,7 +71,7 @@ public class EfficientMeanShiftPaletteStrategy implements PaletteExtractionStrat
 
         for (Color color : colors) {
             checkInterrupt();
-            float[] lab = colorSpaceConversion.rgbToLab(color);
+            float[] lab = ColorSpaceConversion.rgbToLab(color);
             colorPoints.add(new double[]{lab[0], lab[1], lab[2]});
 
             // Update progress for every 10% of colors converted
@@ -126,7 +124,7 @@ public class EfficientMeanShiftPaletteStrategy implements PaletteExtractionStrat
         // Convert centroids back to RGB and return
         List<Color> dominantColors = new ArrayList<>();
         for (double[] centroid : centroids) {
-            dominantColors.add(colorSpaceConversion.labToRgb((float) centroid[0], (float) centroid[1], (float) centroid[2]));
+            dominantColors.add(ColorSpaceConversion.labToRgb((float) centroid[0], (float) centroid[1], (float) centroid[2]));
         }
 
         observer.updateProgress(0.9); // Almost complete
