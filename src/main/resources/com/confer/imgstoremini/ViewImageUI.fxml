@@ -36,11 +36,7 @@
             <!-- Image Display Section -->
             <TitledPane text="Image Preview" expanded="true">
                <content>
-                  <ScrollPane fx:id="imageScrollPane" fitToHeight="true" fitToWidth="true">
-                     <content>
-                        <ImageView fx:id="imageDisp" pickOnBounds="true" preserveRatio="true" />
-                     </content>
-                  </ScrollPane>
+                  <StackPane fx:id="viewImageStackPane"/>
                </content>
             </TitledPane>
 
@@ -52,7 +48,7 @@
                         <Button fx:id="updateBTN" mnemonicParsing="false" onAction="#buttonClick" text="Update" />
                         <Button fx:id="extractPaletteBTN" mnemonicParsing="false" onAction="#buttonClick" text="Extract Palette" />
                         <Button fx:id="copyImageBTN" mnemonicParsing="false" onAction="#buttonClick" text="Copy Image" />
-                        <Button fx:id="saveImageBTN" mnemonicParsing="false" onAction="#buttonClick" text="Save Image" />
+                        <Button fx:id="saveImageBTN" mnemonicParsing="false" onAction="#buttonClick" text="Save Image to File" />
                         <Button fx:id="closeBTN" mnemonicParsing="false" onAction="#buttonClick" text="Close" />
                      </children>
                   </HBox>

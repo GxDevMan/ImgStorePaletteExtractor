@@ -46,7 +46,7 @@ public class EntryUIController {
     @FXML
     protected void buttonClick(ActionEvent event) {
         if (event.getSource().equals(createNew)) {
-            createNewDBandGoTo(event);
+            createNewDBandGoTo();
         } else if (event.getSource().equals(loadDB)) {
             goToSelectedDB(event);
         } else if (event.getSource().equals(loadDefaultBtn)) {
@@ -58,7 +58,7 @@ public class EntryUIController {
         }
     }
 
-    private void createNewDBandGoTo(ActionEvent event) {
+    private void createNewDBandGoTo() {
         if (checkDefaultDb()) {
             outputArea.setText("Default DB already exists");
             return;
@@ -106,11 +106,14 @@ public class EntryUIController {
         try {
             FXMLLoader fxmlLoader = new FXMLLoader(ImageStoreMiniApplication.class.getResource("PaletteUI.fxml"));
             Scene scene = new Scene(fxmlLoader.load(), 500, 500);
+            PaletteUIController controller = fxmlLoader.getController();
+
 
             Stage stage = new Stage();
             stage.setTitle("Image Store - Palette Extractor");
             stage.setScene(scene);
             stage.initModality(Modality.WINDOW_MODAL);
+            controller.setPaletteUIController(stage);
 
             DataStore dataStore = DataStore.getInstance();
             Image icon = (Image) dataStore.getObject("image_icon");

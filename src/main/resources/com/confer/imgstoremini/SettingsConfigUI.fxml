@@ -35,7 +35,7 @@
                            <children>
                               <Label text="K Means Iterations:" GridPane.rowIndex="0" GridPane.columnIndex="0" />
                               <Spinner fx:id="kmeansSPN" GridPane.rowIndex="0" GridPane.columnIndex="1" />
-                              <Label text="Mean Shift Iterations:" GridPane.rowIndex="1" GridPane.columnIndex="0" />
+                              <Label text="Max Mean Shift Iterations:" GridPane.rowIndex="1" GridPane.columnIndex="0" />
                               <Spinner fx:id="meanshiftSPN" GridPane.rowIndex="1" GridPane.columnIndex="1" />
                               <Label text="Mean Shift Convergence:" GridPane.rowIndex="2" GridPane.columnIndex="0" />
                               <Spinner fx:id="meanShiftConvergenceSPN" GridPane.rowIndex="2" GridPane.columnIndex="1" />

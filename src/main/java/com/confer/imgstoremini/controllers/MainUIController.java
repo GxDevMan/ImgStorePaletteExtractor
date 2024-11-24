@@ -160,10 +160,10 @@ public class MainUIController implements ImageContract {
     public void viewImage(ImageThumbObjDTO imageObj) {
         try {
             FXMLLoader fxmlLoader = new FXMLLoader(ImageStoreMiniApplication.class.getResource("ViewImageUI.fxml"));
-            Scene scene = new Scene(fxmlLoader.load(), 500, 500);
+            Scene scene = new Scene(fxmlLoader.load(), 600, 600);
 
             Stage stage = new Stage();
-            stage.setTitle("Image Store");
+            stage.setTitle(String.format("Image Store - %s", imageObj.getImageTitle()));
             stage.setScene(scene);
             stage.initModality(Modality.WINDOW_MODAL);
 
@@ -188,7 +188,7 @@ public class MainUIController implements ImageContract {
             Scene scene = new Scene(fxmlLoader.load(), 500, 500);
 
             Stage stage = new Stage();
-            stage.setTitle("Image Store");
+            stage.setTitle(String.format("Image Store - %s",imageThumbObjDTO.getImageTitle()));
             stage.setScene(scene);
             stage.initModality(Modality.WINDOW_MODAL);
 
@@ -266,10 +266,14 @@ public class MainUIController implements ImageContract {
             FXMLLoader fxmlLoader = new FXMLLoader(ImageStoreMiniApplication.class.getResource("PaletteUI.fxml"));
             Scene scene = new Scene(fxmlLoader.load(), 500, 500);
 
+            PaletteUIController controller = fxmlLoader.getController();
+
+
             Stage stage = new Stage();
             stage.setTitle("Image Store - Palette Extractor");
             stage.setScene(scene);
             stage.initModality(Modality.WINDOW_MODAL);
+            controller.setPaletteUIController(stage);
 
             DataStore dataStore = DataStore.getInstance();
             Image icon = (Image) dataStore.getObject("image_icon");

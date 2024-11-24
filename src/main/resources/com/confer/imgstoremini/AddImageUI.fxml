@@ -48,13 +48,9 @@
             </TitledPane>
 
             <!-- Image Display Section -->
-            <TitledPane text="Preview Image" expanded="true">
+            <TitledPane text="Image Preview" expanded="true">
                <content>
-                  <ScrollPane fx:id="imageScrollPane" fitToHeight="true" fitToWidth="true" prefHeight="250.0" prefWidth="546.0">
-                     <content>
-                        <ImageView fx:id="imageDisp" pickOnBounds="true" preserveRatio="true" />
-                     </content>
-                  </ScrollPane>
+                  <StackPane fx:id="viewImageStackPane"/>
                </content>
             </TitledPane>
 

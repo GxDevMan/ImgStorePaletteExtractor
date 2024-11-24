@@ -12,26 +12,24 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
-import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.*;
 import javafx.scene.layout.AnchorPane;
-import javafx.stage.FileChooser;
+import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.StackPane;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 
-import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
-import java.io.File;
-import java.io.IOException;
-
+import java.sql.Time;
 
 public class ViewImageController implements PaletteViewImageContract {
     private ImageObj imageObj;
     private Stage stage;
+    private PureViewUIController pureViewUIController;
 
     ImageContract contract;
 
@@ -60,91 +58,33 @@ public class ViewImageController implements PaletteViewImageContract {
     private TextField imageTitleField;
 
     @FXML
+    private StackPane viewImageStackPane;
+
+    @FXML
     private Label dateAddedLbl;
-
-    @FXML
-    private ImageView imageDisp;
-
-    @FXML
-    private ScrollPane imageScrollPane;
-
-    @FXML
-    private AnchorPane rootPane;
-
-    private double lastMouseX;
-    private double lastMouseY;
-
-    private double scale = 1.0;
-    private double deltaScale = 1.1;
-    private double maxZoom;
-    private double minZoom;
-
-
-    @FXML
-    public void initialize() {
-        imageDisp.setOnScroll(this::handleZoom);
-
-        imageDisp.setOnMousePressed(this::handleMousePressed);
-        imageDisp.setOnMouseDragged(this::handleMouseDragged);
-
-        imageScrollPane.prefWidthProperty().bind(rootPane.widthProperty());
-        imageScrollPane.prefHeightProperty().bind(rootPane.heightProperty());
-    }
 
     public void setImageView(ImageObj imageObj, ImageContract contract, Stage stage) {
         this.imageObj = imageObj;
-        ImageConversion conversion = new ImageConversion();
-
-        this.imageDisp.setImage(conversion.byteArraytoImage(imageObj.getFullImageByte()));
-        tagsImg.setText(imageObj.getImageTags());
-        imageTitleField.setText(imageObj.getImageTitle());
-
-        double imageWidth = imageDisp.getImage().getWidth();
-        double imageHeight = imageDisp.getImage().getHeight();
-        double viewportWidth = imageScrollPane.getViewportBounds().getWidth();
-        double viewportHeight = imageScrollPane.getViewportBounds().getHeight();
-
-        double[] zoomLimits = calculateZoomLimits(imageWidth, imageHeight, viewportWidth, viewportHeight);
-
-        minZoom = zoomLimits[0];
-        maxZoom = zoomLimits[1];
-
         this.contract = contract;
         this.stage = stage;
+        Image image = ImageConversion.byteArraytoImage(imageObj.getFullImageByte());
 
+        imageTitleField.setText(imageObj.getImageTitle());
+        tagsImg.setText(imageObj.getImageTags());
         String time = TimeFormatter.formatNumTime(imageObj.getImageDate());
         String date = TimeFormatter.getFormattedDate(imageObj.getImageDate());
+        dateAddedLbl.setText(String.format(dateAddedLbl.getText(),date,time));
 
-        String formatThis = String.format(dateAddedLbl.getText(), date, time);
-        dateAddedLbl.setText(formatThis);
-        centerImageInScrollPane();
-    }
-
-    private void centerImageInScrollPane() {
-        Image image = imageDisp.getImage();
-        if (image == null) return;
-
-        double imageWidth = image.getWidth();
-        double imageHeight = image.getHeight();
-        double viewportWidth = imageScrollPane.getViewportBounds().getWidth();
-        double viewportHeight = imageScrollPane.getViewportBounds().getHeight();
-
-        double scaleX = viewportWidth / imageWidth;
-        double scaleY = viewportHeight / imageHeight;
-        double scale = Math.min(scaleX, scaleY);
-
-        imageDisp.setFitWidth(imageWidth * scale);
-        imageDisp.setFitHeight(imageHeight * scale);
-        imageDisp.setPreserveRatio(true);
-
-        double contentWidth = imageDisp.getBoundsInParent().getWidth();
-        double contentHeight = imageDisp.getBoundsInParent().getHeight();
-
-        double hValue = (contentWidth - viewportWidth) / 2 / (contentWidth - viewportWidth);
-        double vValue = (contentHeight - viewportHeight) / 2 / (contentHeight - viewportHeight);
-
-        imageScrollPane.setHvalue(Math.max(0, Math.min(1, hValue)));
-        imageScrollPane.setVvalue(Math.max(0, Math.min(1, vValue)));
+        try {
+            FXMLLoader loader = new FXMLLoader(ImageStoreMiniApplication.class.getResource("PureViewUI.fxml"));
+            BorderPane previewComponent = loader.load();
+            PureViewUIController controller = loader.getController();
+            this.pureViewUIController = controller;
+            controller.setPureViewUI(image, stage);
+            viewImageStackPane.getChildren().addAll(previewComponent);
+        } catch (Exception e) {
+            ErrorDialog.showErrorDialog(e, "FXML Error", "There was a problem Pure View UI");
+        }
     }
 
     @FXML
@@ -152,17 +92,17 @@ public class ViewImageController implements PaletteViewImageContract {
         if (event.getSource().equals(updateBTN)) {
             updateImage();
         } else if (event.getSource().equals(copyImageBTN)) {
-            copyImageToClipBoard(imageDisp.getImage());
+            copyImageToClipBoard(this.pureViewUIController.getDispImageView().getImage());
         } else if (event.getSource().equals(saveImageBTN)) {
-            saveImageToFile(imageDisp.getImage(), this.stage);
-        } else if (event.getSource().equals(closeBTN)){
+            pureViewUIController.saveImageToFile(pureViewUIController.getDispImageView().getImage(), imageObj.getImageTitle());
+        } else if (event.getSource().equals(closeBTN)) {
             stage.close();
-        } else if (event.getSource().equals(extractPaletteBTN)){
+        } else if (event.getSource().equals(extractPaletteBTN)) {
             paletteMenuExtraction();
         }
     }
 
-    private void paletteMenuExtraction(){
+    private void paletteMenuExtraction() {
         try {
             FXMLLoader fxmlLoader = new FXMLLoader(ImageStoreMiniApplication.class.getResource("PaletteStrategyChooserUI.fxml"));
             Scene scene = new Scene(fxmlLoader.load(), 380, 210);
@@ -178,14 +118,18 @@ public class ViewImageController implements PaletteViewImageContract {
             stage.getIcons().add(icon);
 
             PaletteChooserController controller = fxmlLoader.getController();
-            controller.setViewHelperController(imageDisp,stage, this);
+
+            ImageView imageView = new ImageView();
+            imageView.setImage(this.pureViewUIController.getDispImageView().getImage());
+
+            controller.setViewHelperController(imageView, stage, this);
             stage.show();
         } catch (Exception e) {
             ErrorDialog.showErrorDialog(e, "Palette Strategy Chooser Failed", "There was a problem loading the Palette Strategy Chooser UI");
         }
     }
 
-    public void displayPalette(Image paletteImage){
+    public void displayPalette(Image paletteImage) {
         try {
             FXMLLoader fxmlLoader = new FXMLLoader(ImageStoreMiniApplication.class.getResource("PureViewUI.fxml"));
             Scene scene = new Scene(fxmlLoader.load(), 500, 200);
@@ -229,97 +173,15 @@ public class ViewImageController implements PaletteViewImageContract {
             ImageObjFactory imageObjFactory = new ImageObjFactory();
             imageObjFactory.createNewImageObj(imageTitleField.getText(),
                     tagsImg.getText(),
-                    ImageType.fromExtension(imageObj.getImageType()), imageDisp.getImage());
+                    ImageType.fromExtension(imageObj.getImageType()), pureViewUIController.getDispImageView().getImage());
             imageObj.setImageTitle(imageTitleField.getText());
             imageObj.setImageTags(tagsImg.getText());
             this.contract.updateImage(imageObj);
             stage.close();
         } catch (Exception e) {
-            ErrorDialog.showErrorDialog(e,"Fields Error","Required Fields are Missing");
+            ErrorDialog.showErrorDialog(e, "Fields Error", "Required Fields are Missing");
             messageBox.setText("Error Updating, invalid information provided");
         }
     }
 
-    private void handleZoom(ScrollEvent event) {
-        if (event.getDeltaY() > 0) {
-            scale *= deltaScale;
-        } else {
-            scale /= deltaScale;
-        }
-
-        if (scale < minZoom) {
-            scale = minZoom;
-        } else if (scale > maxZoom) {
-            scale = maxZoom;
-        }
-
-        imageDisp.setScaleX(scale);
-        imageDisp.setScaleY(scale);
-
-        imageScrollPane.setVvalue(imageScrollPane.getVvalue());
-        imageScrollPane.setHvalue(imageScrollPane.getHvalue());
-
-        event.consume();
-    }
-
-    private void handleMousePressed(MouseEvent event) {
-        lastMouseX = event.getSceneX();
-        lastMouseY = event.getSceneY();
-    }
-
-    private void handleMouseDragged(MouseEvent event) {
-        double deltaX = lastMouseX - event.getSceneX();
-        double deltaY = lastMouseY - event.getSceneY();
-
-        imageScrollPane.setHvalue(imageScrollPane.getHvalue() + deltaX / imageScrollPane.getContent().getBoundsInLocal().getWidth());
-        imageScrollPane.setVvalue(imageScrollPane.getVvalue() + deltaY / imageScrollPane.getContent().getBoundsInLocal().getHeight());
-
-        lastMouseX = event.getSceneX();
-        lastMouseY = event.getSceneY();
-    }
-
-    public static double[] calculateZoomLimits(double imageWidth, double imageHeight, double viewportWidth, double viewportHeight) {
-        double minZoomX = viewportWidth / imageWidth;
-        double minZoomY = viewportHeight / imageHeight;
-        double minZoom = Math.min(minZoomX, minZoomY);
-
-        double maxZoom = 3.0;
-
-        return new double[]{minZoom, maxZoom};
-    }
-
-    public void saveImageToFile(Image image, Stage stage) {
-        FileChooser fileChooser = new FileChooser();
-        fileChooser.getExtensionFilters().add(
-                new FileChooser.ExtensionFilter("Image Files", "*.png", "*.jpg", "*.jpeg")
-        );
-        fileChooser.setInitialFileName(imageObj.getImageTitle());
-        File file = fileChooser.showSaveDialog(stage);
-
-        if (file != null) {
-            BufferedImage bufferedImage = SwingFXUtils.fromFXImage(image, null);
-            ImageType imageType = ImageType.fromExtension(imageObj.getImageType());
-            try {
-                switch (imageType) {
-                    case PNG:
-                        ImageIO.write(bufferedImage, "PNG", file);
-                        break;
-                    case JPEG:
-                    case JPG:
-                        BufferedImage jpegImage = new BufferedImage(
-                                bufferedImage.getWidth(),
-                                bufferedImage.getHeight(),
-                                BufferedImage.TYPE_INT_RGB
-                        );
-                        jpegImage.createGraphics().drawImage(bufferedImage, 0, 0, null);
-                        ImageIO.write(jpegImage, "JPEG", file);
-                        break;
-                    default:
-                        break;
-                }
-            } catch (IOException e) {
-                ErrorDialog.showErrorDialog(e,"Image Saving Error","There was a problem saving the image to Disk");
-            }
-        }
-    }
 }

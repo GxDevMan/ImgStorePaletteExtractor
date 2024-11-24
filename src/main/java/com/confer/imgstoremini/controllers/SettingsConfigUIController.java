@@ -58,8 +58,6 @@ public class SettingsConfigUIController {
     @FXML
     private Spinner meanShiftConvergenceSPN;
 
-
-
     @FXML
     private ChoiceBox<String> processorChoiceBox;
 

@@ -18,6 +18,8 @@ import javafx.scene.input.Clipboard;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.input.ScrollEvent;
 import javafx.scene.layout.AnchorPane;
+import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 import javafx.stage.Modality;
@@ -28,6 +30,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class PaletteUIController implements PaletteViewImageContract {
+    Stage stage;
+    private PureViewUIController pureViewUIController;
 
     @FXML
     private Button pasteBTN;
@@ -42,44 +46,13 @@ public class PaletteUIController implements PaletteViewImageContract {
     private Button settingBTN;
 
     @FXML
-    private ScrollPane imageScrollPane;
-
-    @FXML
-    private ImageView imageDisp;
-
-    @FXML
-    private AnchorPane scrollAnchorPane;
-
-    @FXML
-    private TitledPane imagePreviewTitledPane;
-
-    @FXML
-    private VBox vboxContainer;
-
-    private double scale = 1.0;
-    private double deltaScale = 1.1;
-    private double maxZoom;
-    private double minZoom;
-
-    private double lastMouseX;
-    private double lastMouseY;
-
-    @FXML
-    public void initialize() {
-        imageDisp.setOnScroll(this::handleZoom);
-
-        imageDisp.setOnMousePressed(this::handleMousePressed);
-        imageDisp.setOnMouseDragged(this::handleMouseDragged);
-
-        imageScrollPane.prefWidthProperty().bind(scrollAnchorPane.widthProperty());
-        imageScrollPane.prefHeightProperty().bind(scrollAnchorPane.heightProperty());
-    }
+    private StackPane viewImageStackPane;
 
     public void buttonClick(ActionEvent event) {
         if (event.getSource().equals(selectImage)) {
             addSelectedImage();
         } else if (event.getSource().equals(extractPaletteBTN)) {
-            processPaletteExtraction();
+            processPaletteExtraction(pureViewUIController.getDispImageView());
         } else if (event.getSource().equals(pasteBTN)) {
             pasteImageFromClip();
         } else if (event.getSource().equals(settingBTN)) {
@@ -87,7 +60,40 @@ public class PaletteUIController implements PaletteViewImageContract {
         }
     }
 
-    private void processPaletteExtraction() {
+    public void setPaletteUIController(Stage stage) {
+        this.stage = stage;
+        try {
+            FXMLLoader loader = new FXMLLoader(ImageStoreMiniApplication.class.getResource("PureViewUI.fxml"));
+            BorderPane previewComponent = loader.load();
+            PureViewUIController controller = loader.getController();
+            this.pureViewUIController = controller;
+
+            controller.setPureViewUI(null, stage);
+            viewImageStackPane.getChildren().addAll(previewComponent);
+        } catch (Exception e) {
+            ErrorDialog.showErrorDialog(e, "FXML Error", "There was a problem Pure View UI");
+        }
+
+    }
+
+    private void setPaletteUIController(Stage stage, Image image) {
+        this.stage = stage;
+        viewImageStackPane.getChildren().clear();
+        try {
+            FXMLLoader loader = new FXMLLoader(ImageStoreMiniApplication.class.getResource("PureViewUI.fxml"));
+            BorderPane previewComponent = loader.load();
+            PureViewUIController controller = loader.getController();
+            this.pureViewUIController = controller;
+
+            controller.setPureViewUI(image, stage);
+            viewImageStackPane.getChildren().addAll(previewComponent);
+        } catch (Exception e) {
+            ErrorDialog.showErrorDialog(e, "FXML Error", "There was a problem Pure View UI");
+        }
+
+    }
+
+    private void processPaletteExtraction(ImageView imageDisp) {
         if (imageDisp.getImage() != null) {
             try {
                 FXMLLoader fxmlLoader = new FXMLLoader(ImageStoreMiniApplication.class.getResource("PaletteStrategyChooserUI.fxml"));
@@ -157,96 +163,17 @@ public class PaletteUIController implements PaletteViewImageContract {
 
         if (selectedFile != null) {
             Image selectedImage = new Image(selectedFile.toURI().toString());
-            imageDisp.setImage(selectedImage);
-
-            double imageWidth = imageDisp.getImage().getWidth();
-            double imageHeight = imageDisp.getImage().getHeight();
-            double viewportWidth = imageScrollPane.getViewportBounds().getWidth();
-            double viewportHeight = imageScrollPane.getViewportBounds().getHeight();
-            double[] zoomLimits = calculateZoomLimits(imageWidth, imageHeight, viewportWidth, viewportHeight);
-            minZoom = zoomLimits[0];
-            maxZoom = zoomLimits[1];
+            setPaletteUIController(stage, selectedImage);
         }
-    }
-
-    private void handleZoom(ScrollEvent event) {
-        if (imageDisp.getImage() == null) {
-            return;
-        }
-
-        if (event.getDeltaY() > 0) {
-            scale *= deltaScale;
-        } else {
-            scale /= deltaScale;
-        }
-
-        if (scale < minZoom) {
-            scale = minZoom;
-        } else if (scale > maxZoom) {
-            scale = maxZoom;
-        }
-
-        imageDisp.setScaleX(scale);
-        imageDisp.setScaleY(scale);
-
-        imageScrollPane.setVvalue(imageScrollPane.getVvalue());
-        imageScrollPane.setHvalue(imageScrollPane.getHvalue());
-
-        event.consume();
-    }
-
-    private void handleMousePressed(MouseEvent event) {
-        if (imageDisp.getImage() == null) {
-            return;
-        }
-
-        lastMouseX = event.getSceneX();
-        lastMouseY = event.getSceneY();
-    }
-
-    private void handleMouseDragged(MouseEvent event) {
-        if (imageDisp.getImage() == null) {
-            return;
-        }
-
-        double deltaX = lastMouseX - event.getSceneX();
-        double deltaY = lastMouseY - event.getSceneY();
-
-        imageScrollPane.setHvalue(imageScrollPane.getHvalue() + deltaX / imageScrollPane.getContent().getBoundsInLocal().getWidth());
-        imageScrollPane.setVvalue(imageScrollPane.getVvalue() + deltaY / imageScrollPane.getContent().getBoundsInLocal().getHeight());
-
-        lastMouseX = event.getSceneX();
-        lastMouseY = event.getSceneY();
     }
 
     private void pasteImageFromClip() {
         Clipboard clipboard = Clipboard.getSystemClipboard();
-
         if (clipboard.hasImage()) {
             Image image = clipboard.getImage();
-            imageDisp.setImage(image);
-
-            double imageWidth = imageDisp.getImage().getWidth();
-            double imageHeight = imageDisp.getImage().getHeight();
-            double viewportWidth = imageScrollPane.getViewportBounds().getWidth();
-            double viewportHeight = imageScrollPane.getViewportBounds().getHeight();
-            double[] zoomLimits = calculateZoomLimits(imageWidth, imageHeight, viewportWidth, viewportHeight);
-            minZoom = zoomLimits[0];
-            maxZoom = zoomLimits[1];
+            setPaletteUIController(stage, image);
         }
     }
-
-    public double[] calculateZoomLimits(double imageWidth, double imageHeight, double viewportWidth, double viewportHeight) {
-        double minZoomX = viewportWidth / imageWidth;
-        double minZoomY = viewportHeight / imageHeight;
-        double minZoom = Math.min(minZoomX, minZoomY);
-
-        double maxZoom = 8.0;
-
-        return new double[]{minZoom, maxZoom};
-    }
-
-
 
     @Override
     public void displayPalette(Image paletteImage) {

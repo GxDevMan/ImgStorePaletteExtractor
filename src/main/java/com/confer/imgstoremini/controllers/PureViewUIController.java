@@ -2,23 +2,20 @@ package com.confer.imgstoremini.controllers;
 
 import com.confer.imgstoremini.model.ImageType;
 import com.confer.imgstoremini.util.ImageConversion;
+import javafx.application.Platform;
 import javafx.embed.swing.SwingFXUtils;
-import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.*;
-import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
-
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
-
 
 public class PureViewUIController {
     private Stage stage;
@@ -31,10 +28,6 @@ public class PureViewUIController {
 
     @FXML
     private BorderPane rootPane;
-
-    @FXML
-    private Button resetViewBTN;
-
 
     private double lastMouseX;
     private double lastMouseY;
@@ -55,46 +48,55 @@ public class PureViewUIController {
         scrollPane.prefHeightProperty().bind(rootPane.heightProperty());
     }
 
-    public void buttonClick(ActionEvent event) {
+    public void buttonClick() {
         handleResetView();
     }
 
     public void setPureViewUI(Image image, Stage stage){
-        dispImageView.setImage(image);
         this.stage = stage;
 
+        if (image != null) {
+            dispImageView.setImage(image);
+            double imageWidth = dispImageView.getImage().getWidth();
+            double imageHeight = dispImageView.getImage().getHeight();
+            double viewportWidth = scrollPane.getViewportBounds().getWidth();
+            double viewportHeight = scrollPane.getViewportBounds().getHeight();
 
-        double imageWidth = dispImageView.getImage().getWidth();
-        double imageHeight = dispImageView.getImage().getHeight();
-        double viewportWidth = scrollPane.getViewportBounds().getWidth();
-        double viewportHeight = scrollPane.getViewportBounds().getHeight();
+            double[] zoomLimits = calculateZoomLimits(imageWidth, imageHeight, viewportWidth, viewportHeight);
 
-        double[] zoomLimits = calculateZoomLimits(imageWidth, imageHeight, viewportWidth, viewportHeight);
+            minZoom = zoomLimits[0];
+            maxZoom = zoomLimits[1];
 
-        minZoom = zoomLimits[0];
-        maxZoom = zoomLimits[1];
+            scale = calculateScale(imageWidth,imageHeight,viewportWidth,viewportHeight);
 
-        centerImageInScrollPane();
+            ContextMenu contextMenu = new ContextMenu();
+            MenuItem copyImageItem = new MenuItem("Copy Image");
+            MenuItem saveImageItem = new MenuItem("Save Image to File");
+            copyImageItem.setOnAction(e -> {
+                copyImageToClipBoard(dispImageView.getImage());
+            });
+            saveImageItem.setOnAction(e -> {
+                saveImageToFile(dispImageView.getImage());
+            });
 
-        ContextMenu contextMenu = new ContextMenu();
-        MenuItem copyImageItem = new MenuItem("Copy Image");
-        MenuItem saveImageItem = new MenuItem("Save Image");
-        copyImageItem.setOnAction(e -> {
-            copyImageToClipBoard(dispImageView.getImage());
-        });
-        saveImageItem.setOnAction(e -> {
-            saveImageToFile(dispImageView.getImage());
-        });
+            contextMenu.getItems().addAll(copyImageItem, saveImageItem);
 
-        contextMenu.getItems().addAll(copyImageItem, saveImageItem);
+            dispImageView.setOnMouseClicked(event -> {
+                if (event.getButton() == MouseButton.SECONDARY) {
+                    contextMenu.show(dispImageView, event.getScreenX(), event.getScreenY());
+                } else {
+                    contextMenu.hide();
+                }
+            });
+            centerImageInScrollPane();
+            Platform.runLater(() -> {
+                handleResetView();
+            });
+        }
+    }
 
-        dispImageView.setOnMouseClicked(event -> {
-            if (event.getButton() == MouseButton.SECONDARY) {
-                contextMenu.show(dispImageView, event.getScreenX(), event.getScreenY());
-            } else {
-                contextMenu.hide();
-            }
-        });
+    public ImageView getDispImageView(){
+        return this.dispImageView;
     }
 
     private void centerImageInScrollPane() {
@@ -124,7 +126,20 @@ public class PureViewUIController {
         scrollPane.setVvalue(Math.max(0, Math.min(1, vValue)));
     }
 
+    private void handleResetView() {
+        if(dispImageView.getImage() == null) return;
+        double imageWidth = dispImageView.getImage().getWidth();
+        double imageHeight = dispImageView.getImage().getHeight();
+        double viewportWidth = scrollPane.getViewportBounds().getWidth();
+        double viewportHeight = scrollPane.getViewportBounds().getHeight();
+        scale = calculateScale(imageWidth,imageHeight,viewportWidth,viewportHeight);
+        setScale(scale);
+        scrollPane.setHvalue(0.5);
+        scrollPane.setVvalue(0.5);
+    }
+
     private void handleZoom(ScrollEvent event) {
+        if(dispImageView.getImage() == null) return;
         if (event.getDeltaY() > 0) {
             scale *= deltaScale;
         } else {
@@ -146,6 +161,7 @@ public class PureViewUIController {
     }
 
     private void handleMouseDragged(MouseEvent event) {
+        if(dispImageView.getImage() == null) return;
         double deltaX = lastMouseX - event.getSceneX();
         double deltaY = lastMouseY - event.getSceneY();
 
@@ -157,6 +173,7 @@ public class PureViewUIController {
     }
 
     private void handleMousePressed(MouseEvent event) {
+        if(dispImageView.getImage() == null) return;
         lastMouseX = event.getSceneX();
         lastMouseY = event.getSceneY();
     }
@@ -221,10 +238,39 @@ public class PureViewUIController {
         }
     }
 
-    private void handleResetView() {
-        setScale(1.0);
-        scrollPane.setHvalue(0.5);
-        scrollPane.setVvalue(0.5);
+    public void saveImageToFile(Image image, String initialName) {
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.getExtensionFilters().add(
+                new FileChooser.ExtensionFilter("Image Files", "*.png", "*.jpg", "*.jpeg")
+        );
+        fileChooser.setInitialFileName(initialName);
+        File file = fileChooser.showSaveDialog(stage);
+
+        if (file != null) {
+            BufferedImage bufferedImage = SwingFXUtils.fromFXImage(image, null);
+            ImageType imageType = ImageType.fromExtension(".png");
+            try {
+                switch (imageType) {
+                    case PNG:
+                        ImageIO.write(bufferedImage, "PNG", file);
+                        break;
+                    case JPEG:
+                    case JPG:
+                        BufferedImage jpegImage = new BufferedImage(
+                                bufferedImage.getWidth(),
+                                bufferedImage.getHeight(),
+                                BufferedImage.TYPE_INT_RGB
+                        );
+                        jpegImage.createGraphics().drawImage(bufferedImage, 0, 0, null);
+                        ImageIO.write(jpegImage, "JPEG", file);
+                        break;
+                    default:
+                        break;
+                }
+            } catch (IOException e) {
+                ErrorDialog.showErrorDialog(e,"Image Saving Error","There was a problem saving the image to Disk");
+            }
+        }
     }
 
     private void setScale(double newScale) {
