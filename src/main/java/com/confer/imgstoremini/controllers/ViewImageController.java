@@ -5,6 +5,7 @@ import com.confer.imgstoremini.model.ImageObj;
 import com.confer.imgstoremini.model.ImageObjFactory;
 import com.confer.imgstoremini.model.ImageType;
 import com.confer.imgstoremini.util.*;
+import javafx.application.Platform;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -73,7 +74,7 @@ public class ViewImageController implements PaletteViewImageContract {
         tagsImg.setText(imageObj.getImageTags());
         String time = TimeFormatter.formatNumTime(imageObj.getImageDate());
         String date = TimeFormatter.getFormattedDate(imageObj.getImageDate());
-        dateAddedLbl.setText(String.format(dateAddedLbl.getText(),date,time));
+        dateAddedLbl.setText(String.format(dateAddedLbl.getText(), date, time));
 
         try {
             FXMLLoader loader = new FXMLLoader(ImageStoreMiniApplication.class.getResource("PureViewUI.fxml"));
@@ -170,18 +171,25 @@ public class ViewImageController implements PaletteViewImageContract {
 
     private void updateImage() {
         try {
-            ImageObjFactory imageObjFactory = new ImageObjFactory();
-            imageObjFactory.createNewImageObj(imageTitleField.getText(),
-                    tagsImg.getText(),
-                    ImageType.fromExtension(imageObj.getImageType()), pureViewUIController.getDispImageView().getImage());
-            imageObj.setImageTitle(imageTitleField.getText());
-            imageObj.setImageTags(tagsImg.getText());
-            this.contract.updateImage(imageObj);
-            stage.close();
+            ImageObjFactory.updateImageObj(imageTitleField.getText(),
+                    tagsImg.getText());
         } catch (Exception e) {
             ErrorDialog.showErrorDialog(e, "Fields Error", "Required Fields are Missing");
             messageBox.setText("Error Updating, invalid information provided");
+            return;
         }
+
+        Thread taskThread = new Thread(() -> {
+            imageObj.setImageTags(tagsImg.getText());
+            imageObj.setImageTitle(imageTitleField.getText());
+            this.contract.updateImage(imageObj);
+            Platform.runLater(() -> {
+                stage.close();
+            });
+
+        });
+        taskThread.setDaemon(true);
+        taskThread.start();
     }
 
 }

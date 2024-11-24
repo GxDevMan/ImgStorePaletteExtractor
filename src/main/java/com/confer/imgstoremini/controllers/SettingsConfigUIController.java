@@ -61,6 +61,9 @@ public class SettingsConfigUIController {
     @FXML
     private ChoiceBox<String> processorChoiceBox;
 
+    @FXML
+    private ChoiceBox<String> dateSortingChoiceBox;
+
     public void initialize() {
         SpinnerValueFactory<Integer> valueFactory = new SpinnerValueFactory.IntegerSpinnerValueFactory(1, Integer.MAX_VALUE, 1);
         pageSizeSPN.setValueFactory(valueFactory);
@@ -100,6 +103,10 @@ public class SettingsConfigUIController {
         ObservableList<String> processorChoices = FXCollections.observableArrayList("CPU", "GPU");
         processorChoiceBox.setItems(processorChoices);
         processorChoiceBox.setValue("CPU");
+
+        ObservableList<String> sortingChoices = FXCollections.observableArrayList("Ascending","Descending");
+        dateSortingChoiceBox.setItems(sortingChoices);
+        dateSortingChoiceBox.setValue("Descending");
     }
 
     public void setConfigurationSetting(Stage stage, boolean isSet) {
@@ -119,6 +126,7 @@ public class SettingsConfigUIController {
         double default_convergence_threshold;
         String preferred_processor;
         int default_gmmiter;
+        String date_sorting;
 
         if (!this.isSet) {
             this.configData = ConfigFileHandler.getConfig();
@@ -131,6 +139,7 @@ public class SettingsConfigUIController {
             default_spectraliter = Integer.parseInt(configData.get("default_spectraliter"));
             preferred_processor = configData.get("preferred_processor");
             default_gmmiter = Integer.parseInt(configData.get("default_gmmiter"));
+            date_sorting = configData.get("date_sorting");
         } else {
             DataStore dataStore = DataStore.getInstance();
             defaultDb = (String) dataStore.getObject("db_name");
@@ -142,11 +151,13 @@ public class SettingsConfigUIController {
             preferred_processor = (String) dataStore.getObject("preferred_processor");
             default_spectraliter = (int) dataStore.getObject("default_spectraliter");
             default_gmmiter = (int) dataStore.getObject("default_gmmiter");
+            date_sorting = (String) dataStore.getObject("date_sorting");
 
             dbNameTxtField.setDisable(true);
             newdbBTN.setDisable(true);
             selectDefaultBTN.setDisable(true);
             saveBTN.setText("Set");
+
         }
 
         selectedDefaultTxtField.setText(defaultDb);
@@ -158,6 +169,7 @@ public class SettingsConfigUIController {
         meanShiftConvergenceSPN.getValueFactory().setValue(default_convergence_threshold);
         gmmSPN.getValueFactory().setValue(default_gmmiter);
         processorChoiceBox.setValue(preferred_processor);
+        dateSortingChoiceBox.setValue(date_sorting);
     }
 
     @FXML
@@ -207,6 +219,7 @@ public class SettingsConfigUIController {
             newConfiguration.put("default_spectraliter", spectralSPN.getValue().toString());
             newConfiguration.put("preferred_processor", processorChoiceBox.getValue());
             newConfiguration.put("default_gmmiter", gmmSPN.getValue().toString());
+            newConfiguration.put("date_sorting", dateSortingChoiceBox.getValue());
             ConfigFileHandler.createCustomConfigFile(newConfiguration);
         }
         else{
@@ -219,6 +232,7 @@ public class SettingsConfigUIController {
             dataStore.insertObject("preferred_processor", processorChoiceBox.getValue());
             dataStore.insertObject("default_spectraliter",spectralSPN.getValue());
             dataStore.insertObject("default_gmmiter", gmmSPN.getValue());
+            dataStore.insertObject("date_sorting", dateSortingChoiceBox.getValue());
         }
     }
 

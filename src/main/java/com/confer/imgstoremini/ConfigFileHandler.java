@@ -35,6 +35,7 @@ public class ConfigFileHandler {
             boolean preferred_processor = rootNode.has("preferred_processor");
             boolean default_spectraliter = rootNode.has("default_spectraliter");
             boolean default_gmmiter = rootNode.has("default_gmmiter");
+            boolean date_sorting = rootNode.has("date_sorting");
 
 
             boolean fieldsCheck = default_db &&
@@ -45,7 +46,8 @@ public class ConfigFileHandler {
                     default_convergence_threshold &&
                     preferred_processor &&
                     default_spectraliter &&
-                    default_gmmiter;
+                    default_gmmiter &&
+                    date_sorting;
 
             if (!fieldsCheck) {
                 createDefaultConfigFile(configFile);
@@ -60,6 +62,7 @@ public class ConfigFileHandler {
             configData.put("default_convergence_threshold", rootNode.get("default_convergence_threshold").asText());
             configData.put("preferred_processor", rootNode.get("preferred_processor").asText());
             configData.put("default_gmmiter", rootNode.get("default_gmmiter").asText());
+            configData.put("date_sorting", rootNode.get("date_sorting").asText());
 
         } catch (Exception e) {
             File configFile2 = new File(filePath);
@@ -103,6 +106,7 @@ public class ConfigFileHandler {
         defaultConfig.put("preferred_processor", "CPU");
         defaultConfig.put("default_spectraliter", "100");
         defaultConfig.put("default_gmmiter", "100");
+        defaultConfig.put("date_sorting","Descending");
         ObjectMapper mapper = new ObjectMapper();
         ObjectWriter writer = mapper.writerWithDefaultPrettyPrinter();
         try {

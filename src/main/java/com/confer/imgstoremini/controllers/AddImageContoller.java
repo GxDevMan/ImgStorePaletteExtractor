@@ -5,6 +5,7 @@ import com.confer.imgstoremini.exceptions.InvalidImgObjException;
 import com.confer.imgstoremini.model.ImageObj;
 import com.confer.imgstoremini.model.ImageObjFactory;
 import com.confer.imgstoremini.model.ImageType;
+import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -17,6 +18,7 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.StackPane;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
+
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
@@ -48,7 +50,7 @@ public class AddImageContoller {
     @FXML
     private StackPane viewImageStackPane;
 
-    private void setAddImageController(Stage stage, Image image){
+    private void setAddImageController(Stage stage, Image image) {
         this.addStage = stage;
         viewImageStackPane.getChildren().clear();
         try {
@@ -57,10 +59,10 @@ public class AddImageContoller {
             PureViewUIController controller = loader.getController();
             this.pureViewUIController = controller;
 
-            controller.setPureViewUI(image,stage);
+            controller.setPureViewUI(image, stage);
             viewImageStackPane.getChildren().addAll(previewComponent);
         } catch (Exception e) {
-            ErrorDialog.showErrorDialog(e,"FXML Error","There was a problem Pure View UI");
+            ErrorDialog.showErrorDialog(e, "FXML Error", "There was a problem Pure View UI");
         }
 
     }
@@ -75,21 +77,21 @@ public class AddImageContoller {
             addSelectedImage();
         } else if (event.getSource().equals(addBtn)) {
             addImageDB();
-        } else if (event.getSource().equals(pasteBTN)){
+        } else if (event.getSource().equals(pasteBTN)) {
             pasteImageFromClip();
         }
     }
 
-    private void pasteImageFromClip(){
+    private void pasteImageFromClip() {
         Clipboard clipboard = Clipboard.getSystemClipboard();
 
-        if(clipboard.hasImage()){
+        if (clipboard.hasImage()) {
             Image image = clipboard.getImage();
-            setAddImageController(this.addStage,image);
+            setAddImageController(this.addStage, image);
         }
     }
 
-    private void addSelectedImage(){
+    private void addSelectedImage() {
         List<String> imgExtensions = new ArrayList<>();
         for (ImageType imageType : ImageType.values()) {
             imgExtensions.add(imageType.getExtension());
@@ -119,7 +121,7 @@ public class AddImageContoller {
 
             this.imageTypeArea.setText(fileExtension);
             Image selectedImage = new Image(selectedFile.toURI().toString());
-            setAddImageController(this.addStage,selectedImage);
+            setAddImageController(this.addStage, selectedImage);
         }
     }
 
@@ -130,14 +132,20 @@ public class AddImageContoller {
         } catch (IllegalArgumentException e) {
             imgType = ImageType.PNG;
         }
-
-        try {
-            ImageObjFactory factory = new ImageObjFactory();
-            ImageObj newEntry = factory.createNewImageObj(imageTitleTxtArea.getText(), tagsImg.getText(), imgType, pureViewUIController.getDispImageView().getImage());
-            contract.addImage(newEntry);
-            addStage.close();
-        } catch (InvalidImgObjException e) {
-            ErrorDialog.showErrorDialog(e,"Invalid Image","Image Requirements not satisfied");
-        }
+        final ImageType finalImgType = imgType;
+            Thread taskThread = new Thread(() -> {
+                try {
+                    ImageObj newEntry = ImageObjFactory.createNewImageObj(imageTitleTxtArea.getText(), tagsImg.getText(), finalImgType, pureViewUIController.getDispImageView().getImage());
+                    contract.addImage(newEntry);
+                    Platform.runLater(() -> {
+                                addStage.close();
+                            }
+                    );
+                } catch (InvalidImgObjException e){
+                    ErrorDialog.showErrorDialog(e, "Invalid Image", "Image Requirements not satisfied");
+                }
+            });
+            taskThread.setDaemon(true);
+            taskThread.start();
     }
 }

@@ -175,7 +175,7 @@ public class EntryUIController {
         dataStore.insertObject("preferred_processor", savedConfiguration.get("preferred_processor"));
         dataStore.insertObject("default_spectraliter", Integer.parseInt(savedConfiguration.get("default_spectraliter")));
         dataStore.insertObject("default_gmmiter", Integer.parseInt(savedConfiguration.get("default_gmmiter")));
-
+        dataStore.insertObject("date_sorting", savedConfiguration.get("date_sorting"));
     }
 
     public String openDbFileChooser() {

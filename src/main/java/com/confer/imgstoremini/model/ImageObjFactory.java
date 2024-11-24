@@ -14,7 +14,7 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 
 public class ImageObjFactory {
-    public ImageObj createNewImageObj(String imageTitle, String imageTags, ImageType imageType, Image image) throws InvalidImgObjException {
+    public static ImageObj createNewImageObj(String imageTitle, String imageTags, ImageType imageType, Image image) throws InvalidImgObjException {
         byte[] imageByte;
         try {
             imageByte = ImageConversion.convertImageToByteArray(image, imageType);
@@ -67,7 +67,18 @@ public class ImageObjFactory {
         return new ImageObj(imageTitle.trim(), imageTags.trim(), imageType, thumbnailByte, imageByte, date);
     }
 
-    private boolean isNullOrEmpty(String str) {
+    public static void updateImageObj(String imageTitle, String imageTags) throws InvalidImgObjException {
+
+        if (isNullOrEmpty(imageTitle)) {
+            throw new InvalidImgObjException("No Image Title provided");
+        }
+
+        if (isNullOrEmpty(imageTags)) {
+            throw new InvalidImgObjException("No Image Tags provided");
+        }
+    }
+
+    private static boolean isNullOrEmpty(String str) {
         return str == null || str.trim().isEmpty();
     }
 

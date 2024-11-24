@@ -348,7 +348,12 @@ public class MainUIController implements ImageContract {
 
     private void updatePage(int pageIndex) {
         int totalPages = (int) DataStore.getInstance().getObject("default_pagesize");
-        List<ImageThumbObjDTO> imageObjList = DbHandler.getImagesForPageThumb(pageIndex + 1, totalPages, true);
+
+        DataStore dataStore = DataStore.getInstance();
+        String ascending = (String) dataStore.getObject("date_sorting");
+        boolean ascendingCheck = ascending.equals("Ascending");
+
+        List<ImageThumbObjDTO> imageObjList = DbHandler.getImagesForPageThumb(pageIndex + 1, totalPages, ascendingCheck);
         displayImages(imageObjList);
     }
 
@@ -356,7 +361,11 @@ public class MainUIController implements ImageContract {
         DataStore dataStore = DataStore.getInstance();
         String searchKey = (String) dataStore.getObject("search_key");
         int totalPages = (int) DataStore.getInstance().getObject("default_pagesize");
-        List<ImageThumbObjDTO> imageObjList = DbHandler.getImagesForPageThumb(pageIndex + 1, totalPages, true, searchKey);
+
+        String ascending = (String) dataStore.getObject("date_sorting");
+        boolean ascendingCheck = ascending.equals("Ascending");
+
+        List<ImageThumbObjDTO> imageObjList = DbHandler.getImagesForPageThumb(pageIndex + 1, totalPages, ascendingCheck, searchKey);
         displayImages(imageObjList);
     }
 
@@ -364,7 +373,11 @@ public class MainUIController implements ImageContract {
         DataStore dataStore = DataStore.getInstance();
         String searchKey = (String) dataStore.getObject("search_key");
         int totalPages = (int) DataStore.getInstance().getObject("default_pagesize");
-        List<ImageThumbObjDTO> imageObjList = DbHandler.getImagesForPageThumbRegex(pageIndex + 1, totalPages, true, searchKey);
+
+        String ascending = (String) dataStore.getObject("date_sorting");
+        boolean ascendingCheck = ascending.equals("Ascending");
+
+        List<ImageThumbObjDTO> imageObjList = DbHandler.getImagesForPageThumbRegex(pageIndex + 1, totalPages, ascendingCheck, searchKey);
         displayImages(imageObjList);
     }
 
