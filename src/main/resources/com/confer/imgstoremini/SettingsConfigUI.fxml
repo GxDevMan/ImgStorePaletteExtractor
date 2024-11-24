@@ -41,6 +41,8 @@
                               <Spinner fx:id="meanShiftConvergenceSPN" GridPane.rowIndex="2" GridPane.columnIndex="1" />
                               <Label text="Spectral Clustering Iterations:" GridPane.rowIndex="3" GridPane.columnIndex="0" />
                               <Spinner fx:id="spectralSPN" GridPane.rowIndex="3" GridPane.columnIndex="1" />
+                              <Label text="Gaussian Mixture Model Iterations:" GridPane.rowIndex="4" GridPane.columnIndex="0" />
+                              <Spinner fx:id="gmmSPN" GridPane.rowIndex="4" GridPane.columnIndex="1" />
                            </children>
                         </GridPane>
                      </content>

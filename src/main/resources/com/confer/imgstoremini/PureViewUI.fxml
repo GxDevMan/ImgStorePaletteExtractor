@@ -1,18 +1,24 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import java.net.*?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.image.*?>
 <?import javafx.scene.layout.*?>
-<?import java.net.URL?>
-<AnchorPane fx:id="rootPane" prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/17.0.2-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.confer.imgstoremini.controllers.PureViewUIController">
-   <stylesheets>
-      <URL value="@styles/dark-theme.css" />
-   </stylesheets>
-   <children>
-      <ScrollPane fx:id="scrollPane" fitToHeight="true" fitToWidth="true" pannable="true" AnchorPane.topAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0">
-         <content>
-            <ImageView fx:id="dispImageView" fitHeight="300.0" fitWidth="400.0" pickOnBounds="true" preserveRatio="true" />
-         </content>
-      </ScrollPane>
-   </children>
-</AnchorPane>
+
+<BorderPane fx:id="rootPane" prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/17.0.2-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.confer.imgstoremini.controllers.PureViewUIController">
+    <stylesheets>
+        <URL value="@styles/dark-theme.css" />
+    </stylesheets>
+    <top>
+        <ToolBar>
+            <Button fx:id="resetViewBTN" onAction="#buttonClick" text="Reset View" />
+        </ToolBar>
+    </top>
+    <center>
+        <ScrollPane fx:id="scrollPane" fitToHeight="true" fitToWidth="true" pannable="true" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+            <content>
+                <ImageView fx:id="dispImageView" fitHeight="300.0" fitWidth="400.0" pickOnBounds="true" preserveRatio="true" />
+            </content>
+        </ScrollPane>
+    </center>
+</BorderPane>

@@ -163,8 +163,26 @@ public class ViewImageController implements PaletteViewImageContract {
     }
 
     private void paletteMenuExtraction(){
-        ViewImageHelper viewImageHelper = new ViewImageHelper(this);
-        viewImageHelper.showStrategySelectionDialog(imageDisp);
+        try {
+            FXMLLoader fxmlLoader = new FXMLLoader(ImageStoreMiniApplication.class.getResource("PaletteStrategyChooserUI.fxml"));
+            Scene scene = new Scene(fxmlLoader.load(), 380, 210);
+
+            Stage stage = new Stage();
+            stage.setTitle("Image Store - Choose Palette Strategy");
+            stage.setScene(scene);
+            stage.initModality(Modality.WINDOW_MODAL);
+            stage.setResizable(false);
+
+            DataStore dataStore = DataStore.getInstance();
+            Image icon = (Image) dataStore.getObject("image_icon");
+            stage.getIcons().add(icon);
+
+            PaletteChooserController controller = fxmlLoader.getController();
+            controller.setViewHelperController(imageDisp,stage, this);
+            stage.show();
+        } catch (Exception e) {
+            ErrorDialog.showErrorDialog(e, "Palette Strategy Chooser Failed", "There was a problem loading the Palette Strategy Chooser UI");
+        }
     }
 
     public void displayPalette(Image paletteImage){

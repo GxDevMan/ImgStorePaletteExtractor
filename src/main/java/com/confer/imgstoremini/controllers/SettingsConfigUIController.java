@@ -53,6 +53,9 @@ public class SettingsConfigUIController {
     private Spinner spectralSPN;
 
     @FXML
+    private Spinner gmmSPN;
+
+    @FXML
     private Spinner meanShiftConvergenceSPN;
 
 
@@ -91,6 +94,11 @@ public class SettingsConfigUIController {
         spectralSPN.setEditable(true);
         addIntegerValidation(spectralSPN, 1, Integer.MAX_VALUE);
 
+        SpinnerValueFactory<Integer> valueFactory7 = new SpinnerValueFactory.IntegerSpinnerValueFactory(1, Integer.MAX_VALUE, 1);
+        gmmSPN.setValueFactory(valueFactory7);
+        gmmSPN.setEditable(true);
+        addIntegerValidation(gmmSPN, 1, Integer.MAX_VALUE);
+
         ObservableList<String> processorChoices = FXCollections.observableArrayList("CPU", "GPU");
         processorChoiceBox.setItems(processorChoices);
         processorChoiceBox.setValue("CPU");
@@ -101,7 +109,7 @@ public class SettingsConfigUIController {
         this.stage = stage;
 
         stage.setHeight(700);
-        stage.setWidth(500);
+        stage.setWidth(600);
         stage.setTitle("Image Store - Settings");
 
         String defaultDb;
@@ -112,6 +120,7 @@ public class SettingsConfigUIController {
         int default_spectraliter;
         double default_convergence_threshold;
         String preferred_processor;
+        int default_gmmiter;
 
         if (!this.isSet) {
             this.configData = ConfigFileHandler.getConfig();
@@ -123,6 +132,7 @@ public class SettingsConfigUIController {
             default_convergence_threshold = Double.parseDouble(configData.get("default_convergence_threshold"));
             default_spectraliter = Integer.parseInt(configData.get("default_spectraliter"));
             preferred_processor = configData.get("preferred_processor");
+            default_gmmiter = Integer.parseInt(configData.get("default_gmmiter"));
         } else {
             DataStore dataStore = DataStore.getInstance();
             defaultDb = (String) dataStore.getObject("db_name");
@@ -133,6 +143,7 @@ public class SettingsConfigUIController {
             default_convergence_threshold = (double) dataStore.getObject("default_convergence_threshold");
             preferred_processor = (String) dataStore.getObject("preferred_processor");
             default_spectraliter = (int) dataStore.getObject("default_spectraliter");
+            default_gmmiter = (int) dataStore.getObject("default_gmmiter");
 
             dbNameTxtField.setDisable(true);
             newdbBTN.setDisable(true);
@@ -147,6 +158,7 @@ public class SettingsConfigUIController {
         meanshiftSPN.getValueFactory().setValue(default_meanshiftIter);
         spectralSPN.getValueFactory().setValue(default_spectraliter);
         meanShiftConvergenceSPN.getValueFactory().setValue(default_convergence_threshold);
+        gmmSPN.getValueFactory().setValue(default_gmmiter);
         processorChoiceBox.setValue(preferred_processor);
     }
 
@@ -196,6 +208,7 @@ public class SettingsConfigUIController {
             newConfiguration.put("default_convergence_threshold", meanShiftConvergenceSPN.getValue().toString());
             newConfiguration.put("default_spectraliter", spectralSPN.getValue().toString());
             newConfiguration.put("preferred_processor", processorChoiceBox.getValue());
+            newConfiguration.put("default_gmmiter", gmmSPN.getValue().toString());
             ConfigFileHandler.createCustomConfigFile(newConfiguration);
         }
         else{
@@ -207,6 +220,7 @@ public class SettingsConfigUIController {
             dataStore.insertObject("default_convergence_threshold", meanShiftConvergenceSPN.getValue());
             dataStore.insertObject("preferred_processor", processorChoiceBox.getValue());
             dataStore.insertObject("default_spectraliter",spectralSPN.getValue());
+            dataStore.insertObject("default_gmmiter", gmmSPN.getValue());
         }
     }
 

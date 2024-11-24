@@ -34,6 +34,8 @@ public class ConfigFileHandler {
             boolean default_convergence_threshold = rootNode.has("default_convergence_threshold");
             boolean preferred_processor = rootNode.has("preferred_processor");
             boolean default_spectraliter = rootNode.has("default_spectraliter");
+            boolean default_gmmiter = rootNode.has("default_gmmiter");
+
 
             boolean fieldsCheck = default_db &&
                     default_pagesize &&
@@ -42,7 +44,8 @@ public class ConfigFileHandler {
                     default_meanshiftiter &&
                     default_convergence_threshold &&
                     preferred_processor &&
-                    default_spectraliter;
+                    default_spectraliter &&
+                    default_gmmiter;
 
             if (!fieldsCheck) {
                 createDefaultConfigFile(configFile);
@@ -56,6 +59,7 @@ public class ConfigFileHandler {
             configData.put("default_spectraliter", rootNode.get("default_spectraliter").asText());
             configData.put("default_convergence_threshold", rootNode.get("default_convergence_threshold").asText());
             configData.put("preferred_processor", rootNode.get("preferred_processor").asText());
+            configData.put("default_gmmiter", rootNode.get("default_gmmiter").asText());
 
         } catch (Exception e) {
             File configFile2 = new File(filePath);
@@ -91,13 +95,14 @@ public class ConfigFileHandler {
     public static void createDefaultConfigFile(File configFile) {
         Map<String, String> defaultConfig = new HashMap<>();
         defaultConfig.put("default_db", "default_imageStore.db");
-        defaultConfig.put("default_pagesize", "10");
+        defaultConfig.put("default_pagesize", "5");
         defaultConfig.put("default_regionspalette", "4");
-        defaultConfig.put("default_kmeansiter", "20");
-        defaultConfig.put("default_meanshiftiter","10");
+        defaultConfig.put("default_kmeansiter", "100");
+        defaultConfig.put("default_meanshiftiter","60");
         defaultConfig.put("default_convergence_threshold","0.1");
         defaultConfig.put("preferred_processor", "CPU");
-        defaultConfig.put("default_spectraliter", "10");
+        defaultConfig.put("default_spectraliter", "100");
+        defaultConfig.put("default_gmmiter", "100");
         ObjectMapper mapper = new ObjectMapper();
         ObjectWriter writer = mapper.writerWithDefaultPrettyPrinter();
         try {

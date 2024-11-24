@@ -17,6 +17,7 @@ public class PaletteImageGenerator {
         int paletteWidth = (int) dimension.getWidth();
         int paletteHeight = (int) dimension.getHeight();
 
+
         BufferedImage paletteImage = new BufferedImage(paletteWidth, paletteHeight, BufferedImage.TYPE_INT_ARGB);
         Graphics2D graphics = paletteImage.createGraphics();
         graphics.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);

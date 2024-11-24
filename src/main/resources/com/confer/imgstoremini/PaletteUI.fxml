@@ -6,54 +6,62 @@
 <?import javafx.scene.image.*?>
 <?import javafx.scene.layout.*?>
 
-<AnchorPane fx:id="rootPane" xmlns="http://javafx.com/javafx/17.0.2-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.confer.imgstoremini.controllers.PaletteUIController">
-   <stylesheets>
-      <URL value="@styles/dark-theme.css" />
-   </stylesheets>
-   <children>
-      <VBox alignment="TOP_CENTER" spacing="15.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
-         <children>
-            <!-- Image Selection Section -->
-            <TitledPane expanded="true" text="Image Selection">
-               <content>
-                  <HBox alignment="CENTER" spacing="10.0">
-                     <children>
-                        <Button fx:id="pasteBTN" mnemonicParsing="false" onAction="#buttonClick" text="Paste Image" />
-                        <Button fx:id="selectImage" mnemonicParsing="false" onAction="#buttonClick" text="Select Image" />
-                        <Button fx:id="settingBTN" mnemonicParsing="false" onAction="#buttonClick" text="Settings" />
-                     </children>
-                  </HBox>
-               </content>
-            </TitledPane>
+<AnchorPane fx:id="rootPane" xmlns="http://javafx.com/javafx/17.0.2-ea" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.confer.imgstoremini.controllers.PaletteUIController">
+    <stylesheets>
+        <URL value="@styles/dark-theme.css"/>
+    </stylesheets>
+    <children>
+        <VBox fx:id="vboxContainer" alignment="TOP_CENTER" spacing="15.0" AnchorPane.bottomAnchor="0.0"
+              AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+            <children>
+                <!-- Image Selection Section -->
+                <TitledPane expanded="true" text="Image Selection">
+                    <content>
+                        <HBox alignment="CENTER" spacing="10.0">
+                            <children>
+                                <Button fx:id="pasteBTN" mnemonicParsing="false" onAction="#buttonClick"
+                                        text="Paste Image"/>
+                                <Button fx:id="selectImage" mnemonicParsing="false" onAction="#buttonClick"
+                                        text="Select Image"/>
+                                <Button fx:id="settingBTN" mnemonicParsing="false" onAction="#buttonClick"
+                                        text="Settings"/>
+                            </children>
+                        </HBox>
+                    </content>
+                </TitledPane>
 
-            <!-- Palette Extraction Section -->
-            <TitledPane expanded="true" text="Palette Extraction">
-               <content>
-                  <HBox alignment="CENTER">
-                     <children>
-                        <Button fx:id="extractPaletteBTN" mnemonicParsing="false" onAction="#buttonClick" text="Extract Palette" />
-                     </children>
-                  </HBox>
-               </content>
-            </TitledPane>
-
-            <!-- Image Display Section -->
-            <TitledPane expanded="true" text="Image Preview">
-               <content>
-                  <ScrollPane fx:id="imageScrollPane" fitToHeight="true" fitToWidth="true" hbarPolicy="ALWAYS" pannable="true" vbarPolicy="ALWAYS">
-                     <content>
-                        <ImageView fx:id="imageDisp" pickOnBounds="true" preserveRatio="true" />
-                     </content>
-                  </ScrollPane>
-               </content>
-            </TitledPane>
-         </children>
-         <padding>
-            <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
-         </padding>
-      </VBox>
-   </children>
-   <padding>
-      <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
-   </padding>
+                <!-- Palette Extraction Section -->
+                <TitledPane expanded="true" text="Palette Extraction">
+                    <content>
+                        <HBox alignment="CENTER">
+                            <children>
+                                <Button fx:id="extractPaletteBTN" mnemonicParsing="false" onAction="#buttonClick"
+                                        text="Extract Palette"/>
+                            </children>
+                        </HBox>
+                    </content>
+                </TitledPane>
+                <AnchorPane fx:id="scrollAnchorPane" prefHeight="200.0" prefWidth="200.0">
+                    <children>
+                        <ScrollPane fx:id="imageScrollPane" fitToHeight="true" fitToWidth="true" hbarPolicy="ALWAYS"
+                                    pannable="true" vbarPolicy="ALWAYS" AnchorPane.topAnchor="0.0"
+                                    AnchorPane.rightAnchor="0.0" AnchorPane.bottomAnchor="0.0"
+                                    AnchorPane.leftAnchor="0.0">
+                            <content>
+                                <ImageView fx:id="imageDisp" fitHeight="300.0" fitWidth="400.0" pickOnBounds="true"
+                                           preserveRatio="true"/>
+                            </content>
+                        </ScrollPane>
+                    </children>
+                </AnchorPane>
+            </children>
+            <padding>
+                <Insets bottom="10.0" left="10.0" right="10.0" top="10.0"/>
+            </padding>
+        </VBox>
+    </children>
+    <padding>
+        <Insets bottom="10.0" left="10.0" right="10.0" top="10.0"/>
+    </padding>
 </AnchorPane>

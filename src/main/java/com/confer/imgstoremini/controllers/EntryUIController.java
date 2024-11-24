@@ -171,6 +171,8 @@ public class EntryUIController {
         dataStore.insertObject("default_convergence_threshold",Double.parseDouble(savedConfiguration.get("default_convergence_threshold")));
         dataStore.insertObject("preferred_processor", savedConfiguration.get("preferred_processor"));
         dataStore.insertObject("default_spectraliter", Integer.parseInt(savedConfiguration.get("default_spectraliter")));
+        dataStore.insertObject("default_gmmiter", Integer.parseInt(savedConfiguration.get("default_gmmiter")));
+
     }
 
     public String openDbFileChooser() {

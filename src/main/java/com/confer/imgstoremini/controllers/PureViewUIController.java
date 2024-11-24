@@ -3,14 +3,14 @@ package com.confer.imgstoremini.controllers;
 import com.confer.imgstoremini.model.ImageType;
 import com.confer.imgstoremini.util.ImageConversion;
 import javafx.embed.swing.SwingFXUtils;
+import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-import javafx.scene.control.ContextMenu;
-import javafx.scene.control.MenuItem;
-import javafx.scene.control.ScrollPane;
+import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.*;
 import javafx.scene.layout.AnchorPane;
+import javafx.scene.layout.BorderPane;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 
@@ -30,7 +30,11 @@ public class PureViewUIController {
     private ImageView dispImageView;
 
     @FXML
-    private AnchorPane rootPane;
+    private BorderPane rootPane;
+
+    @FXML
+    private Button resetViewBTN;
+
 
     private double lastMouseX;
     private double lastMouseY;
@@ -49,6 +53,10 @@ public class PureViewUIController {
 
         scrollPane.prefWidthProperty().bind(rootPane.widthProperty());
         scrollPane.prefHeightProperty().bind(rootPane.heightProperty());
+    }
+
+    public void buttonClick(ActionEvent event) {
+        handleResetView();
     }
 
     public void setPureViewUI(Image image, Stage stage){
@@ -213,4 +221,22 @@ public class PureViewUIController {
         }
     }
 
+    private void handleResetView() {
+        setScale(1.0);
+        scrollPane.setHvalue(0.5);
+        scrollPane.setVvalue(0.5);
+    }
+
+    private void setScale(double newScale) {
+        scale = Math.max(minZoom, Math.min(newScale, maxZoom));
+        dispImageView.setScaleX(scale);
+        dispImageView.setScaleY(scale);
+    }
+
+    private double calculateScale(double imageWidth, double imageHeight, double viewportWidth, double viewportHeight) {
+        double scaleX = viewportWidth / imageWidth;
+        double scaleY = viewportHeight / imageHeight;
+        double scale = Math.min(scaleX, scaleY);
+        return scale;
+    }
 }

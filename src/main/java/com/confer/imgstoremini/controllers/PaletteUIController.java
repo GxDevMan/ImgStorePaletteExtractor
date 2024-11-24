@@ -1,19 +1,24 @@
 package com.confer.imgstoremini.controllers;
+
 import com.confer.imgstoremini.ImageStoreMiniApplication;
 import com.confer.imgstoremini.model.ImageType;
 import com.confer.imgstoremini.util.DataStore;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
+import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
+import javafx.scene.control.ScrollBar;
 import javafx.scene.control.ScrollPane;
+import javafx.scene.control.TitledPane;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.Clipboard;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.input.ScrollEvent;
 import javafx.scene.layout.AnchorPane;
+import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
@@ -43,7 +48,13 @@ public class PaletteUIController implements PaletteViewImageContract {
     private ImageView imageDisp;
 
     @FXML
-    private AnchorPane rootPane;
+    private AnchorPane scrollAnchorPane;
+
+    @FXML
+    private TitledPane imagePreviewTitledPane;
+
+    @FXML
+    private VBox vboxContainer;
 
     private double scale = 1.0;
     private double deltaScale = 1.1;
@@ -54,38 +65,56 @@ public class PaletteUIController implements PaletteViewImageContract {
     private double lastMouseY;
 
     @FXML
-    public void initialize(){
+    public void initialize() {
         imageDisp.setOnScroll(this::handleZoom);
 
         imageDisp.setOnMousePressed(this::handleMousePressed);
         imageDisp.setOnMouseDragged(this::handleMouseDragged);
 
-        imageScrollPane.prefWidthProperty().bind(rootPane.widthProperty());
-        imageScrollPane.prefHeightProperty().bind(rootPane.heightProperty());
+        imageScrollPane.prefWidthProperty().bind(scrollAnchorPane.widthProperty());
+        imageScrollPane.prefHeightProperty().bind(scrollAnchorPane.heightProperty());
     }
 
     public void buttonClick(ActionEvent event) {
-        if(event.getSource().equals(selectImage)){
+        if (event.getSource().equals(selectImage)) {
             addSelectedImage();
-        } else if(event.getSource().equals(extractPaletteBTN)){
+        } else if (event.getSource().equals(extractPaletteBTN)) {
             processPaletteExtraction();
-        } else if(event.getSource().equals(pasteBTN)){
+        } else if (event.getSource().equals(pasteBTN)) {
             pasteImageFromClip();
-        } else if(event.getSource().equals(settingBTN)){
+        } else if (event.getSource().equals(settingBTN)) {
             checkSettings();
         }
     }
 
-    private void processPaletteExtraction(){
-        if(!(imageDisp.getImage() == null)){
-            ViewImageHelper viewImageHelper = new ViewImageHelper(this);
-            viewImageHelper.showStrategySelectionDialog(imageDisp);
-        } else{
-            ErrorDialog.showErrorDialog(new Exception(""),"Image is Null","You have not set an image");
+    private void processPaletteExtraction() {
+        if (imageDisp.getImage() != null) {
+            try {
+                FXMLLoader fxmlLoader = new FXMLLoader(ImageStoreMiniApplication.class.getResource("PaletteStrategyChooserUI.fxml"));
+                Scene scene = new Scene(fxmlLoader.load(), 380, 210);
+
+                Stage stage = new Stage();
+                stage.setTitle("Image Store - Choose Palette Strategy");
+                stage.setScene(scene);
+                stage.initModality(Modality.WINDOW_MODAL);
+                stage.setResizable(false);
+
+                DataStore dataStore = DataStore.getInstance();
+                Image icon = (Image) dataStore.getObject("image_icon");
+                stage.getIcons().add(icon);
+
+                PaletteChooserController controller = fxmlLoader.getController();
+                controller.setViewHelperController(imageDisp, stage, this);
+                stage.show();
+            } catch (Exception e) {
+                ErrorDialog.showErrorDialog(e, "Palette Strategy Chooser Failed", "There was a problem loading the Palette Strategy Chooser UI");
+            }
+        } else {
+            ErrorDialog.showErrorDialog(new Exception("No Image Set"), "Image is not set", "Please set an Image");
         }
     }
 
-    private void checkSettings(){
+    private void checkSettings() {
         try {
             FXMLLoader fxmlLoader = new FXMLLoader(ImageStoreMiniApplication.class.getResource("SettingsConfigUI.fxml"));
             Scene scene = new Scene(fxmlLoader.load(), 550, 250);
@@ -104,11 +133,11 @@ public class PaletteUIController implements PaletteViewImageContract {
 
             stage.show();
         } catch (Exception e) {
-            ErrorDialog.showErrorDialog(e,"Configuration Error","There was a problem with the Config.json");
+            ErrorDialog.showErrorDialog(e, "Configuration Error", "There was a problem with the Config.json");
         }
     }
 
-    private void addSelectedImage(){
+    private void addSelectedImage() {
         List<String> imgExtensions = new ArrayList<>();
         for (ImageType imageType : ImageType.values()) {
             imgExtensions.add(imageType.getExtension());
@@ -137,8 +166,6 @@ public class PaletteUIController implements PaletteViewImageContract {
             double[] zoomLimits = calculateZoomLimits(imageWidth, imageHeight, viewportWidth, viewportHeight);
             minZoom = zoomLimits[0];
             maxZoom = zoomLimits[1];
-
-            centerImageInScrollPane();
         }
     }
 
@@ -192,10 +219,10 @@ public class PaletteUIController implements PaletteViewImageContract {
         lastMouseY = event.getSceneY();
     }
 
-    private void pasteImageFromClip(){
+    private void pasteImageFromClip() {
         Clipboard clipboard = Clipboard.getSystemClipboard();
 
-        if(clipboard.hasImage()){
+        if (clipboard.hasImage()) {
             Image image = clipboard.getImage();
             imageDisp.setImage(image);
 
@@ -206,8 +233,6 @@ public class PaletteUIController implements PaletteViewImageContract {
             double[] zoomLimits = calculateZoomLimits(imageWidth, imageHeight, viewportWidth, viewportHeight);
             minZoom = zoomLimits[0];
             maxZoom = zoomLimits[1];
-
-            centerImageInScrollPane();
         }
     }
 
@@ -216,37 +241,12 @@ public class PaletteUIController implements PaletteViewImageContract {
         double minZoomY = viewportHeight / imageHeight;
         double minZoom = Math.min(minZoomX, minZoomY);
 
-        double maxZoom = 3.0;
+        double maxZoom = 8.0;
 
         return new double[]{minZoom, maxZoom};
     }
 
-    private void centerImageInScrollPane() {
-        Image image = imageDisp.getImage();
-        if (image == null) return;
 
-        double imageWidth = image.getWidth();
-        double imageHeight = image.getHeight();
-        double viewportWidth = imageScrollPane.getViewportBounds().getWidth();
-        double viewportHeight = imageScrollPane.getViewportBounds().getHeight();
-
-        double scaleX = viewportWidth / imageWidth;
-        double scaleY = viewportHeight / imageHeight;
-        double scale = Math.min(scaleX, scaleY);
-
-        imageDisp.setFitWidth(imageWidth * scale);
-        imageDisp.setFitHeight(imageHeight * scale);
-        imageDisp.setPreserveRatio(true);
-
-        double contentWidth = imageDisp.getBoundsInParent().getWidth();
-        double contentHeight = imageDisp.getBoundsInParent().getHeight();
-
-        double hValue = (contentWidth - viewportWidth) / 2 / (contentWidth - viewportWidth);
-        double vValue = (contentHeight - viewportHeight) / 2 / (contentHeight - viewportHeight);
-
-        imageScrollPane.setHvalue(Math.max(0, Math.min(1, hValue)));
-        imageScrollPane.setVvalue(Math.max(0, Math.min(1, vValue)));
-    }
 
     @Override
     public void displayPalette(Image paletteImage) {

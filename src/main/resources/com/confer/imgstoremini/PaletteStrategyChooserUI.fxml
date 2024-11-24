@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.net.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<AnchorPane xmlns="http://javafx.com/javafx/17.0.2-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.confer.imgstoremini.controllers.PaletteChooserController">
+    <stylesheets>
+        <URL value="@styles/dark-theme.css" />
+    </stylesheets>
+   <children>
+      <ScrollPane pannable="true">
+         <content>
+            <VBox alignment="CENTER">
+               <children>
+                  <Label text="Select Palette Extraction Strategy" style="-fx-font-size: 18px; -fx-font-weight: bold;"/>
+                  <HBox spacing="10" alignment="CENTER" VBox.vgrow="ALWAYS">
+                     <children>
+                        <Button fx:id="kmeansBTN" mnemonicParsing="false" onAction="#buttonClick" text="K-Means" />
+                        <Button fx:id="meanShiftBTN" mnemonicParsing="false" onAction="#buttonClick" text="Mean Shift" />
+                        <Button fx:id="spectralClusteringBTN" layoutX="117.0" layoutY="20.0" mnemonicParsing="false" onAction="#buttonClick" text="Spectral Clustering" />
+                     </children></HBox>
+                  <HBox spacing="10" alignment="CENTER" VBox.vgrow="ALWAYS">
+                     <children>
+                        <Button fx:id="GmmBTN" layoutX="122.0" layoutY="20.0" mnemonicParsing="false" onAction="#buttonClick" text="Gaussian Mixture Model" />
+                        <Button fx:id="regionBasedBTN" layoutX="88.0" layoutY="20.0" mnemonicParsing="false" onAction="#buttonClick" text="Region-Based" />
+                        <Button fx:id="histogramBTN" layoutX="156.0" layoutY="20.0" mnemonicParsing="false" onAction="#buttonClick" text="Histogram" />
+                     </children>
+                  </HBox>
+                  <Button fx:id="closeBTN" mnemonicParsing="false" onAction="#buttonClick" text="Close" style="-fx-font-size: 14px;" />
+               </children>
+            </VBox>
+         </content>
+      </ScrollPane>
+   </children>
+
+</AnchorPane>

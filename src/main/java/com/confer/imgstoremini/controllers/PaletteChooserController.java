@@ -4,6 +4,8 @@ import com.confer.imgstoremini.ImageStoreMiniApplication;
 import com.confer.imgstoremini.util.*;
 import com.confer.imgstoremini.util.PaletteExtraction.*;
 import javafx.application.Platform;
+import javafx.event.ActionEvent;
+import javafx.fxml.FXML;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
@@ -21,55 +23,62 @@ import java.awt.Color;
 import java.awt.image.BufferedImage;
 import java.util.List;
 
-public class ViewImageHelper {
+public class PaletteChooserController {
 
     PaletteViewImageContract contract;
+    Stage stage;
+    private ImageView imageDisp;
 
-    public ViewImageHelper(PaletteViewImageContract contract) {
+    @FXML
+    private Button kmeansBTN;
+
+    @FXML
+    private Button meanShiftBTN;
+
+    @FXML
+    private Button spectralClusteringBTN;
+
+    @FXML
+    private Button GmmBTN;
+
+    @FXML
+    private Button regionBasedBTN;
+
+    @FXML
+    private Button histogramBTN;
+
+    @FXML
+    private Button closeBTN;
+
+    public void setViewHelperController(ImageView imageDisp, Stage stage, PaletteViewImageContract contract){
         this.contract = contract;
+        this.imageDisp = imageDisp;
+        this.stage = stage;
     }
 
-    public void showStrategySelectionDialog(ImageView imageDisp) {
-        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
-        alert.setTitle("Select Palette Extraction Strategy");
-        alert.setHeaderText("Choose a palette extraction strategy:");
-
-        ButtonType kMeansButton = new ButtonType("K-Means");
-        ButtonType MeanShiftButton = new ButtonType("Mean Shift");
-        ButtonType SpectralClusteringButton = new ButtonType("Spectral Clustering");
-        ButtonType regionBasedButton = new ButtonType("Region-Based");
-        ButtonType HistogramButton = new ButtonType("Histogram");
-        ButtonType cancelButton = new ButtonType("Cancel", ButtonBar.ButtonData.CANCEL_CLOSE);
-
-        alert.getButtonTypes().setAll(kMeansButton, MeanShiftButton, SpectralClusteringButton, regionBasedButton, HistogramButton, cancelButton);
-        alert.getDialogPane().setContent(new VBox(10));  // Empty VBox for now as no spinner needed here
-
-        Stage stage = (Stage) alert.getDialogPane().getScene().getWindow();
-        DataStore dataStore = DataStore.getInstance();
-        Image icon = (Image) dataStore.getObject("image_icon");
-        stage.getIcons().add(icon);
-
-        DialogPane dialogPane = alert.getDialogPane();
-        dialogPane.getStylesheets().add(ImageStoreMiniApplication.class.getResource("styles/dark-theme.css").toExternalForm());
-        String preferredProcessor = (String) dataStore.getObject("preferred_processor");
-
-        alert.showAndWait().ifPresent(response -> {
-            if (response == kMeansButton) {
-                kmeansSelected(preferredProcessor, imageDisp);
-            } else if (response == MeanShiftButton) {
-                setupUIProgress(new EfficientMeanShiftPaletteStrategy(), "Mean Shift", imageDisp);
-            } else if (response == regionBasedButton) {
-                setupUIProgress(new RegionBasedPaletteStrategy(), "Region-Based", imageDisp);
-            } else if (response == HistogramButton) {
-                setupUIProgress(new HistogramPaletteStrategy(), "Histogram", imageDisp);
-            } else if (response == SpectralClusteringButton) {
-                spectralClusteringSelected(imageDisp);
-            }
-        });
+    @FXML
+    public void buttonClick(ActionEvent event){
+        if(event.getSource().equals(kmeansBTN)){
+            kmeansSelected(this.imageDisp);
+        } else if(event.getSource().equals(meanShiftBTN)){
+            setupUIProgress(new EfficientMeanShiftPaletteStrategy(), "Mean Shift", imageDisp);
+        } else if(event.getSource().equals(spectralClusteringBTN)){
+            spectralClusteringSelected(imageDisp);
+        } else if(event.getSource().equals(GmmBTN)){
+            GMMSelected(imageDisp);
+        } else if(event.getSource().equals(regionBasedBTN)){
+            setupUIProgress(new RegionBasedPaletteStrategy(), "Region-Based", imageDisp);
+        } else if(event.getSource().equals(histogramBTN)){
+            setupUIProgress(new HistogramPaletteStrategy(), "Histogram", imageDisp);
+        } else if (event.getSource().equals(closeBTN)){
+            this.stage.close();
+        }
     }
 
-    private void kmeansSelected(String preferredProcessor, ImageView imageDisp) {
+    private void kmeansSelected(ImageView imageDisp) {
         String strategyTitle = "K-means";
+        DataStore dataStore = DataStore.getInstance();
+        String preferredProcessor = (String) dataStore.getObject("preferred_processor");
 
         if (preferredProcessor.equals("GPU")) {
             try {
@@ -89,6 +98,15 @@ public class ViewImageHelper {
             setupUIProgress(new SpectralClusteringJOCLPaletteStrategy(), "Spectral Clustering", imageDisp);
         } catch (Exception e) {
             ErrorDialog.showErrorDialog(e, "Spectral Clustering Requirement Error", "Requires GPU");
+        }
+    }
+
+    private void GMMSelected(ImageView imageDisp) {
+        try {
+            OpenCLUtils.getDevice(OpenCLUtils.getPlatform());
+            setupUIProgress(new GMMPaletteStrategy(), "Gaussian Mixture Model", imageDisp);
+        } catch (Exception e) {
+            ErrorDialog.showErrorDialog(e,"GMM Requirement Error", "Requires GPU");
         }
     }
 
