@@ -39,6 +39,7 @@ build/
 
 
 ### Others ###
+out/
 Image DB Test Pics/
 *.db
 *.jpeg
