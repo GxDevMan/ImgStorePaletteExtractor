@@ -71,8 +71,8 @@ public class EfficientMeanShiftPaletteStrategy implements PaletteExtractionStrat
 
         for (Color color : colors) {
             checkInterrupt();
-            float[] lab = ColorSpaceConversion.rgbToLab(color);
-            colorPoints.add(new double[]{lab[0], lab[1], lab[2]});
+            float[] rgbColorLab = ColorConverter.RGBtoLAB(color.getRed(),color.getGreen(),color.getBlue(), ColorConverter.CIE2_D65);
+            colorPoints.add(new double[]{rgbColorLab[0], rgbColorLab[1], rgbColorLab[2]});
 
             // Update progress for every 10% of colors converted
             processedColors++;
@@ -93,6 +93,8 @@ public class EfficientMeanShiftPaletteStrategy implements PaletteExtractionStrat
         while ((iterations < maxIterations) && !converged) {
             iterations++;
             countedIterations++;
+
+            checkInterrupt();
 
             observer.updateStatus(String.format("(CPU) Iteration %d / %d", countedIterations, maxIterations));
 
@@ -119,14 +121,21 @@ public class EfficientMeanShiftPaletteStrategy implements PaletteExtractionStrat
             observer.updateProgress(0.3 + 0.1 * iterations / maxIterations); // Update progress (30%-40%)
         }
 
-        observer.updateStatus(converged ? "(CPU) Mean Shift Converged" : "(CPU) Max Iterations Reached");
+        if(converged)
+            observer.updateStatus("(CPU) Mean Shift Converged");
+        else
+            observer.updateStatus("(CPU) Max Iterations Reached");
+
 
         // Convert centroids back to RGB and return
         List<Color> dominantColors = new ArrayList<>();
         for (double[] centroid : centroids) {
-            dominantColors.add(ColorSpaceConversion.labToRgb((float) centroid[0], (float) centroid[1], (float) centroid[2]));
+            int[] rgb = ColorConverter.LABtoRGB((float) centroid[0], (float) centroid[1],(float) centroid[2], ColorConverter.CIE2_D65);
+            rgb[0] = Math.min(255, Math.max(0, rgb[0]));
+            rgb[1] = Math.min(255, Math.max(0, rgb[1]));
+            rgb[2] = Math.min(255, Math.max(0, rgb[2]));
+            dominantColors.add(new Color(rgb[0],rgb[1],rgb[2]));
         }
-
         observer.updateProgress(0.9); // Almost complete
         return dominantColors;
     }

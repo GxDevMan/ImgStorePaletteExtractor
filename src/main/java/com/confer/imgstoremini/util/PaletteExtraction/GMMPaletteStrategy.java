@@ -2,6 +2,8 @@ package com.confer.imgstoremini.util.PaletteExtraction;
 
 import com.confer.imgstoremini.util.DataStore;
 import com.confer.imgstoremini.util.ProgressObserver;
+import com.confer.imgstoremini.util.Resizing.PngResizeStrategy;
+import com.confer.imgstoremini.util.Resizing.ResizeImgContext;
 import org.jocl.*;
 import java.awt.*;
 import java.awt.image.BufferedImage;
@@ -34,17 +36,18 @@ public class GMMPaletteStrategy implements PaletteExtractionStrategy {
                     "        float prob = 0.0f;\n" +
                     "        for (int k = 0; k < 3; k++) {\n" +
                     "            float diff = points[i * 3 + k] - means[j * 3 + k];\n" +
-                    "            prob += diff * diff / covariances[j * 3 + k];\n" +
+                    "            prob += diff * diff / covariances[j * 3 + k];\n" +  // Correctly handling diagonal covariance
                     "        }\n" +
-                    "        prob = exp(-0.5f * prob) / sqrt(covariances[j * 3]);\n" +
-                    "        prob *= priors[j];\n" +
+                    "        prob = -0.5f * prob - 0.5f * log(2.0f * M_PI) - 0.5f * log(covariances[j * 3]);\n" +  // Use log to avoid underflow
+                    "        prob += log(priors[j]);\n" +  // Incorporate prior
                     "        if (prob > max_prob) {\n" +
                     "            max_prob = prob;\n" +
                     "            best_cluster = j;\n" +
                     "        }\n" +
                     "    }\n" +
-                    "    responsibilities[i * num_clusters + best_cluster] = 1.0f;\n" +
-                    "}" ;
+                    "    responsibilities[i * num_clusters + best_cluster] = 1.0f;\n" +  // Assign highest responsibility
+                    "}";  // Close kernel
+
 
     private static final String kernelSourceMStep =
             "__kernel void m_step(\n" +
@@ -70,7 +73,7 @@ public class GMMPaletteStrategy implements PaletteExtractionStrategy {
                     "        means[j * 3 + k] = sum[k] / total_responsibility;\n" +
                     "    }\n" +
                     "    priors[j] = total_responsibility / num_points;\n" +
-                    "    // Update covariance here (for simplicity, assume a diagonal covariance matrix)\n" +
+                    "    // Update covariance (diagonal) here\n" +
                     "    for (int k = 0; k < 3; k++) {\n" +
                     "        float sum_diff_square = 0.0f;\n" +
                     "        for (int i = 0; i < num_points; i++) {\n" +
@@ -79,7 +82,7 @@ public class GMMPaletteStrategy implements PaletteExtractionStrategy {
                     "        }\n" +
                     "        covariances[j * 3 + k] = sum_diff_square / total_responsibility;\n" +
                     "    }\n" +
-                    "}" ;
+                    "}";  // Close kernel
 
     @Override
     public List<Color> extractPalette(BufferedImage image, int colorCount, ProgressObserver observer, Supplier<Boolean> isCancelled) {
@@ -87,34 +90,53 @@ public class GMMPaletteStrategy implements PaletteExtractionStrategy {
         maxIterations = (int) dataStore.getObject("default_gmmiter");
         this.observer = observer;
         this.isCancelled = isCancelled;
-        List<float[]> pixels = extractPixels(image);
+
+        int width = image.getWidth();
+        int height = image.getHeight();
+
+        int maxHeightWidth = (int) dataStore.getObject("default_gmmimageheightwidth");
+        if((width > maxHeightWidth) || (height > maxHeightWidth)) {
+            ResizeImgContext resizeImgContext = new ResizeImgContext();
+            resizeImgContext.setStrategy(new PngResizeStrategy());
+            image = resizeImgContext.executeResize(image,maxHeightWidth,maxHeightWidth);
+            width = image.getWidth();
+            height = image.getHeight();
+        }
+
+        int numPoints = width * height;
+        int numDimensions = 3; // RGB
+
+        // Flattened pixel data
+        float[] pointArray = new float[numPoints * numDimensions];
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
+                int index = (y * width + x) * numDimensions;
+                int rgb = image.getRGB(x, y);
+                pointArray[index] = (rgb >> 16) & 0xFF;
+                pointArray[index + 1] = (rgb >> 8) & 0xFF;
+                pointArray[index + 2] = rgb & 0xFF;
+            }
+        }
+
+        // Apply GMM
         try {
-            return applyGaussianMixtureModel(pixels, colorCount);
+            return applyGaussianMixtureModel(pointArray, numPoints, colorCount, numDimensions);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
 
-    private List<Color> applyGaussianMixtureModel(List<float[]> pixels, int k) {
-        int numPoints = pixels.size();
-        int numDimensions = 3; // RGB
-
-        // Flatten pixel data
-        float[] pointArray = new float[numPoints * numDimensions];
-        for (int i = 0; i < numPoints; i++) {
-            System.arraycopy(pixels.get(i), 0, pointArray, i * numDimensions, numDimensions);
-        }
-
-        // Initialize GMM parameters randomly
+    private List<Color> applyGaussianMixtureModel(float[] points, int numPoints, int k, int numDimensions) {
+        // Initialize GMM parameters
         float[] means = new float[k * numDimensions];
-        float[] covariances = new float[k * numDimensions]; // For simplicity, assume diagonal covariance
+        float[] covariances = new float[k * numDimensions];
         float[] priors = new float[k];
         Random random = new Random();
         for (int i = 0; i < k; i++) {
             int randomIndex = random.nextInt(numPoints);
-            System.arraycopy(pointArray, randomIndex * numDimensions, means, i * numDimensions, numDimensions);
-            priors[i] = 1.0f / k;  // Uniform priors
-            Arrays.fill(covariances, i * numDimensions, (i + 1) * numDimensions, 1.0f); // Diagonal covariance
+            System.arraycopy(points, randomIndex * numDimensions, means, i * numDimensions, numDimensions);
+            priors[i] = 1.0f / k;
+            Arrays.fill(covariances, i * numDimensions, (i + 1) * numDimensions, 1.0f);
         }
 
         // Set up OpenCL
@@ -124,20 +146,17 @@ public class GMMPaletteStrategy implements PaletteExtractionStrategy {
         cl_context context = clCreateContext(null, 1, new cl_device_id[]{device}, null, null, null);
         cl_command_queue queue = clCreateCommandQueue(context, device, 0, null);
 
-        // Create OpenCL buffers
-        cl_mem pointsBuffer = clCreateBuffer(context, CL.CL_MEM_READ_ONLY | CL.CL_MEM_COPY_HOST_PTR, Sizeof.cl_float * pointArray.length, Pointer.to(pointArray), null);
+        cl_mem pointsBuffer = clCreateBuffer(context, CL.CL_MEM_READ_ONLY | CL.CL_MEM_COPY_HOST_PTR, Sizeof.cl_float * points.length, Pointer.to(points), null);
         cl_mem meansBuffer = clCreateBuffer(context, CL.CL_MEM_READ_WRITE | CL.CL_MEM_COPY_HOST_PTR, Sizeof.cl_float * means.length, Pointer.to(means), null);
         cl_mem covariancesBuffer = clCreateBuffer(context, CL.CL_MEM_READ_WRITE | CL.CL_MEM_COPY_HOST_PTR, Sizeof.cl_float * covariances.length, Pointer.to(covariances), null);
         cl_mem priorsBuffer = clCreateBuffer(context, CL.CL_MEM_READ_WRITE | CL.CL_MEM_COPY_HOST_PTR, Sizeof.cl_float * priors.length, Pointer.to(priors), null);
         cl_mem responsibilitiesBuffer = clCreateBuffer(context, CL.CL_MEM_READ_WRITE, Sizeof.cl_float * numPoints * k, null, null);
 
-        // Build kernels
         cl_program program = clCreateProgramWithSource(context, 2, new String[]{kernelSourceEStep, kernelSourceMStep}, null, null);
         clBuildProgram(program, 0, null, null, null, null);
         cl_kernel eStepKernel = clCreateKernel(program, "e_step", null);
         cl_kernel mStepKernel = clCreateKernel(program, "m_step", null);
 
-        // Set arguments for the E-step kernel
         clSetKernelArg(eStepKernel, 0, Sizeof.cl_mem, Pointer.to(pointsBuffer));
         clSetKernelArg(eStepKernel, 1, Sizeof.cl_mem, Pointer.to(meansBuffer));
         clSetKernelArg(eStepKernel, 2, Sizeof.cl_mem, Pointer.to(covariancesBuffer));
@@ -146,7 +165,6 @@ public class GMMPaletteStrategy implements PaletteExtractionStrategy {
         clSetKernelArg(eStepKernel, 5, Sizeof.cl_int, Pointer.to(new int[]{numPoints}));
         clSetKernelArg(eStepKernel, 6, Sizeof.cl_int, Pointer.to(new int[]{k}));
 
-        // Set arguments for the M-step kernel
         clSetKernelArg(mStepKernel, 0, Sizeof.cl_mem, Pointer.to(pointsBuffer));
         clSetKernelArg(mStepKernel, 1, Sizeof.cl_mem, Pointer.to(responsibilitiesBuffer));
         clSetKernelArg(mStepKernel, 2, Sizeof.cl_mem, Pointer.to(meansBuffer));
@@ -155,32 +173,24 @@ public class GMMPaletteStrategy implements PaletteExtractionStrategy {
         clSetKernelArg(mStepKernel, 5, Sizeof.cl_int, Pointer.to(new int[]{numPoints}));
         clSetKernelArg(mStepKernel, 6, Sizeof.cl_int, Pointer.to(new int[]{k}));
 
-        // Main loop
-        float[] responsibilitiesArray = new float[numPoints * k];
-        Pointer responsibilitiesPointer = Pointer.to(responsibilitiesArray);
         try {
             for (int iteration = 0; iteration < maxIterations; iteration++) {
                 if (isCancelled.get()) {
                     observer.updateStatus("(GPU) GMM Clustering Cancelled");
+                    observer.updateProgress(0.0);
                     throw new CancellationException("Task Cancelled");
                 }
 
-                int dispIteration = iteration + 1;
-                observer.updateStatus(String.format("(GPU) Iteration %d / %d", dispIteration, maxIterations));
+                // Update status every 5 iterations to reduce observer overhead
+                if (iteration % 5 == 0 || iteration == maxIterations - 1) {
+                    observer.updateStatus(String.format("(GPU) Iteration %d / %d", iteration + 1, maxIterations));
+                    observer.updateProgress((double) iteration / maxIterations);
+                }
 
-                // Expectation step
                 clEnqueueNDRangeKernel(queue, eStepKernel, 1, null, new long[]{numPoints}, null, 0, null, null);
-                clEnqueueReadBuffer(queue, responsibilitiesBuffer, CL.CL_TRUE, 0, Sizeof.cl_float * numPoints * k, responsibilitiesPointer, 0, null, null);
-
-                // Maximization step
                 clEnqueueNDRangeKernel(queue, mStepKernel, 1, null, new long[]{k}, null, 0, null, null);
-
-                observer.updateProgress((double) iteration / maxIterations);
             }
         } finally {
-            clReleaseKernel(eStepKernel);
-            clReleaseKernel(mStepKernel);
-            clReleaseProgram(program);
             clReleaseMemObject(pointsBuffer);
             clReleaseMemObject(meansBuffer);
             clReleaseMemObject(covariancesBuffer);
@@ -190,31 +200,21 @@ public class GMMPaletteStrategy implements PaletteExtractionStrategy {
             clReleaseContext(context);
         }
 
-        // Convert means to Java Color objects
+        observer.updateStatus("Getting Colors...");
+        observer.updateProgress(0.0);
+
         List<Color> colors = new ArrayList<>();
         for (int i = 0; i < k; i++) {
             colors.add(new Color(
                     Math.round(means[i * 3]),
                     Math.round(means[i * 3 + 1]),
                     Math.round(means[i * 3 + 2])));
+
+            observer.updateProgress((double) (i + 1) / k); // Accurate progress update
         }
 
         observer.updateStatus(String.format("(GPU) GMM Clustering Complete, Iterations: %d", maxIterations));
+        observer.updateProgress(1.0);
         return colors;
-    }
-
-    private List<float[]> extractPixels(BufferedImage image) {
-        List<float[]> pixels = new ArrayList<>();
-        for (int y = 0; y < image.getHeight(); y++) {
-            for (int x = 0; x < image.getWidth(); x++) {
-                int rgb = image.getRGB(x, y);
-                pixels.add(new float[] {
-                        (rgb >> 16) & 0xFF,
-                        (rgb >> 8) & 0xFF,
-                        rgb & 0xFF
-                });
-            }
-        }
-        return pixels;
     }
 }

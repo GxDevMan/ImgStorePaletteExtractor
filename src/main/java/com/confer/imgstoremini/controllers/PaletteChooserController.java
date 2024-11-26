@@ -50,27 +50,27 @@ public class PaletteChooserController {
     @FXML
     private Button closeBTN;
 
-    public void setViewHelperController(ImageView imageDisp, Stage stage, PaletteViewImageContract contract){
+    public void setViewHelperController(ImageView imageDisp, Stage stage, PaletteViewImageContract contract) {
         this.contract = contract;
         this.imageDisp = imageDisp;
         this.stage = stage;
     }
 
     @FXML
-    public void buttonClick(ActionEvent event){
-        if(event.getSource().equals(kmeansBTN)){
+    public void buttonClick(ActionEvent event) {
+        if (event.getSource().equals(kmeansBTN)) {
             kmeansSelected(this.imageDisp);
-        } else if(event.getSource().equals(meanShiftBTN)){
-            setupUIProgress(new EfficientMeanShiftPaletteStrategy(), "Mean Shift", imageDisp);
-        } else if(event.getSource().equals(spectralClusteringBTN)){
+        } else if (event.getSource().equals(meanShiftBTN)) {
+            meanShiftSelected(imageDisp);
+        } else if (event.getSource().equals(spectralClusteringBTN)) {
             spectralClusteringSelected(imageDisp);
-        } else if(event.getSource().equals(GmmBTN)){
+        } else if (event.getSource().equals(GmmBTN)) {
             GMMSelected(imageDisp);
-        } else if(event.getSource().equals(regionBasedBTN)){
-            setupUIProgress(new RegionBasedPaletteStrategy(), "Region-Based", imageDisp);
-        } else if(event.getSource().equals(histogramBTN)){
-            setupUIProgress(new HistogramPaletteStrategy(), "Histogram", imageDisp);
-        } else if (event.getSource().equals(closeBTN)){
+        } else if (event.getSource().equals(regionBasedBTN)) {
+            regionBasedSelected(imageDisp);
+        } else if (event.getSource().equals(histogramBTN)) {
+            histogramSelected(imageDisp);
+        } else if (event.getSource().equals(closeBTN)) {
             this.stage.close();
         }
     }
@@ -106,7 +106,41 @@ public class PaletteChooserController {
             OpenCLUtils.getDevice(OpenCLUtils.getPlatform());
             setupUIProgress(new GMMPaletteStrategy(), "Gaussian Mixture Model", imageDisp);
         } catch (Exception e) {
-            ErrorDialog.showErrorDialog(e,"GMM Requirement Error", "Requires GPU");
+            ErrorDialog.showErrorDialog(e, "GMM Requirement Error", "Requires GPU");
+        }
+    }
+
+    private void meanShiftSelected(ImageView imageDisp) {
+        setupUIProgress(new EfficientMeanShiftPaletteStrategy(), "Mean Shift", imageDisp);
+    }
+
+    private void histogramSelected(ImageView imageDisp) {
+        DataStore dataStore = DataStore.getInstance();
+        String preferredProcessor = (String) dataStore.getObject("preferred_processor");
+        if (preferredProcessor.equals("GPU")) {
+            try {
+                OpenCLUtils.getDevice(OpenCLUtils.getPlatform());
+                setupUIProgress(new HistogramJOCLPaletteStrategy(), "Histogram", imageDisp);
+            } catch (Exception e) {
+                setupUIProgress(new HistogramPaletteStrategy(), "Histogram", imageDisp);
+            }
+        } else {
+            setupUIProgress(new HistogramPaletteStrategy(), "Histogram", imageDisp);
+        }
+    }
+
+    private void regionBasedSelected(ImageView imageDisp) {
+        DataStore dataStore = DataStore.getInstance();
+        String preferredProcessor = (String) dataStore.getObject("preferred_processor");
+        if (preferredProcessor.equals("GPU")) {
+            try {
+                OpenCLUtils.getDevice(OpenCLUtils.getPlatform());
+                setupUIProgress(new RegionBasedJOCLPaletteStrategy(),"Region Based", imageDisp);
+            } catch (Exception e) {
+                setupUIProgress(new RegionBasedPaletteStrategy(), "Region Based", imageDisp);
+            }
+        } else{
+            setupUIProgress(new RegionBasedPaletteStrategy(), "Region Based", imageDisp);
         }
     }
 
@@ -191,7 +225,7 @@ public class PaletteChooserController {
                     contract.displayPalette(finalImage);
                 });
             } catch (Exception e) {
-//                e.printStackTrace();
+                e.printStackTrace();
 //                Platform.runLater(() -> {
 //                    ErrorDialog errorDialog = new ErrorDialog();
 //                    errorDialog.errorDialog(e, "Palette Extraction Failed", "There was a problem extracting the palette.");

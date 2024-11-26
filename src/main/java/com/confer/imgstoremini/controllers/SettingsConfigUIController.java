@@ -59,6 +59,9 @@ public class SettingsConfigUIController {
     private Spinner meanShiftConvergenceSPN;
 
     @FXML
+    private Spinner gmmHeightWidthSPN;
+
+    @FXML
     private ChoiceBox<String> processorChoiceBox;
 
     @FXML
@@ -100,6 +103,12 @@ public class SettingsConfigUIController {
         gmmSPN.setEditable(true);
         addIntegerValidation(gmmSPN, 1, Integer.MAX_VALUE);
 
+        SpinnerValueFactory<Integer> valueFactory8 = new SpinnerValueFactory.IntegerSpinnerValueFactory(1,Integer.MAX_VALUE, 1);
+        gmmHeightWidthSPN.setValueFactory(valueFactory8);
+        gmmHeightWidthSPN.setEditable(true);
+        addIntegerValidation(gmmHeightWidthSPN, 1,Integer.MAX_VALUE);
+
+
         ObservableList<String> processorChoices = FXCollections.observableArrayList("CPU", "GPU");
         processorChoiceBox.setItems(processorChoices);
         processorChoiceBox.setValue("CPU");
@@ -127,6 +136,7 @@ public class SettingsConfigUIController {
         String preferred_processor;
         int default_gmmiter;
         String date_sorting;
+        int default_gmmimageheightwidth;
 
         if (!this.isSet) {
             this.configData = ConfigFileHandler.getConfig();
@@ -140,6 +150,7 @@ public class SettingsConfigUIController {
             preferred_processor = configData.get("preferred_processor");
             default_gmmiter = Integer.parseInt(configData.get("default_gmmiter"));
             date_sorting = configData.get("date_sorting");
+            default_gmmimageheightwidth = Integer.parseInt(configData.get("default_gmmimageheightwidth"));
         } else {
             DataStore dataStore = DataStore.getInstance();
             defaultDb = (String) dataStore.getObject("db_name");
@@ -152,6 +163,7 @@ public class SettingsConfigUIController {
             default_spectraliter = (int) dataStore.getObject("default_spectraliter");
             default_gmmiter = (int) dataStore.getObject("default_gmmiter");
             date_sorting = (String) dataStore.getObject("date_sorting");
+            default_gmmimageheightwidth = (int) dataStore.getObject("default_gmmimageheightwidth");
 
             dbNameTxtField.setDisable(true);
             newdbBTN.setDisable(true);
@@ -168,6 +180,7 @@ public class SettingsConfigUIController {
         spectralSPN.getValueFactory().setValue(default_spectraliter);
         meanShiftConvergenceSPN.getValueFactory().setValue(default_convergence_threshold);
         gmmSPN.getValueFactory().setValue(default_gmmiter);
+        gmmHeightWidthSPN.getValueFactory().setValue(default_gmmimageheightwidth);
         processorChoiceBox.setValue(preferred_processor);
         dateSortingChoiceBox.setValue(date_sorting);
     }
@@ -220,6 +233,7 @@ public class SettingsConfigUIController {
             newConfiguration.put("preferred_processor", processorChoiceBox.getValue());
             newConfiguration.put("default_gmmiter", gmmSPN.getValue().toString());
             newConfiguration.put("date_sorting", dateSortingChoiceBox.getValue());
+            newConfiguration.put("default_gmmimageheightwidth", gmmHeightWidthSPN.getValue().toString());
             ConfigFileHandler.createCustomConfigFile(newConfiguration);
         }
         else{
@@ -233,6 +247,7 @@ public class SettingsConfigUIController {
             dataStore.insertObject("default_spectraliter",spectralSPN.getValue());
             dataStore.insertObject("default_gmmiter", gmmSPN.getValue());
             dataStore.insertObject("date_sorting", dateSortingChoiceBox.getValue());
+            dataStore.insertObject("default_gmmimageheightwidth", gmmHeightWidthSPN.getValue());
         }
     }
 
@@ -262,24 +277,41 @@ public class SettingsConfigUIController {
 
     private void addDoubleValidation(Spinner<Double> spinner, double min, double max) {
         TextField editor = spinner.getEditor();
+
+        // Format the spinner value correctly when it changes
         spinner.valueProperty().addListener((obs, oldValue, newValue) -> {
-            editor.setText(String.format("%.2f", newValue));
+            if (newValue != null) {
+                editor.setText(String.format("%.2f", newValue));
+            }
         });
 
+        // Listener to handle user input
         editor.textProperty().addListener((obs, oldText, newText) -> {
-            if (!newText.matches("-?\\d*(\\.\\d*)?")) {
-                editor.setText(oldText);
-            } else {
-                try {
-                    Double value = Double.parseDouble(newText);
-                    if (value < min || value > max) {
-                        spinner.getValueFactory().setValue(value < min ? min : max);
-                    } else {
-                        spinner.getValueFactory().setValue(value);
-                    }
-                } catch (NumberFormatException e) {
+            if (newText.isEmpty()) {
+                return;
+            }
+
+            // Allow only valid double values with optional one decimal point
+            if (!newText.matches("-?\\d*\\.?\\d*")) {
+                editor.setText(oldText); // Restore the last valid value
+                return;
+            }
+
+            try {
+                Double value = Double.parseDouble(newText);
+
+                // Check if the value is within bounds and adjust if necessary
+                if (value < min) {
                     spinner.getValueFactory().setValue(min);
+                } else if (value > max) {
+                    spinner.getValueFactory().setValue(max);
+                } else {
+                    spinner.getValueFactory().setValue(value);
                 }
+
+            } catch (NumberFormatException e) {
+                // If the input is invalid, reset the spinner to the last valid value
+                spinner.getValueFactory().setValue(spinner.getValue());
             }
         });
     }

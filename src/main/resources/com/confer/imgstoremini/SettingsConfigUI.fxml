@@ -45,6 +45,8 @@
                               <Spinner fx:id="spectralSPN" GridPane.rowIndex="3" GridPane.columnIndex="1" />
                               <Label text="Gaussian Mixture Model Iterations:" GridPane.rowIndex="4" GridPane.columnIndex="0" />
                               <Spinner fx:id="gmmSPN" GridPane.rowIndex="4" GridPane.columnIndex="1" />
+                              <Label text="GMM Max Height, Width Resize:" GridPane.rowIndex="5" GridPane.columnIndex="0" />
+                              <Spinner fx:id="gmmHeightWidthSPN" GridPane.rowIndex="5" GridPane.columnIndex="1" />
                            </children>
                         </GridPane>
                      </content>

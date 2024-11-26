@@ -176,6 +176,7 @@ public class EntryUIController {
         dataStore.insertObject("default_spectraliter", Integer.parseInt(savedConfiguration.get("default_spectraliter")));
         dataStore.insertObject("default_gmmiter", Integer.parseInt(savedConfiguration.get("default_gmmiter")));
         dataStore.insertObject("date_sorting", savedConfiguration.get("date_sorting"));
+        dataStore.insertObject("default_gmmimageheightwidth", Integer.parseInt(savedConfiguration.get("default_gmmimageheightwidth")));
     }
 
     public String openDbFileChooser() {

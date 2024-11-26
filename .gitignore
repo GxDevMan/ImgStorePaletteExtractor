@@ -45,4 +45,5 @@ Image DB Test Pics/
 *.jpeg
 *.png
 *.jpg
+*.jar
 config.json

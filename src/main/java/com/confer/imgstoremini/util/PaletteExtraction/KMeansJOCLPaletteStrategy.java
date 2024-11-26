@@ -168,7 +168,7 @@ public class KMeansJOCLPaletteStrategy implements PaletteExtractionStrategy {
                     Math.round(centroidArray[i * 3 + 2])));
         }
 
-        observer.updateStatus(String.format("(GPU) K-Means Complete, Iterations:%d", maxIterations));
+        observer.updateStatus(String.format("(GPU) K-Means Complete, Iterations: %d", maxIterations));
         return centroids;
     }
 

@@ -80,7 +80,7 @@ public class KMeansPaletteStrategy implements PaletteExtractionStrategy {
 
         } while (centroidsChanged && (iteration < maxIterations));
 
-        observer.updateStatus(String.format("(CPU) K-Means Complete, Iterations:%d", maxIterations));
+        observer.updateStatus(String.format("(CPU) K-Means Complete, Iterations: %d", maxIterations));
         observer.updateProgress(1.0);
 
         return centroids;

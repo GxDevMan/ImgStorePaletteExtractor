@@ -174,7 +174,7 @@ public class SpectralClusteringJOCLPaletteStrategy implements PaletteExtractionS
                     Math.round(eigenvectorArray[i * 3 + 2])));
         }
 
-        observer.updateStatus(String.format("(GPU) Spectral Clustering Complete, Iterations:%d", maxIterations));
+        observer.updateStatus(String.format("(GPU) Spectral Clustering Complete, Iterations: %d", maxIterations));
         return eigenvectors;
     }
 

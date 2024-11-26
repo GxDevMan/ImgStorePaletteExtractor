@@ -179,7 +179,7 @@ public class PaletteUIController implements PaletteViewImageContract {
     public void displayPalette(Image paletteImage) {
         try {
             FXMLLoader fxmlLoader = new FXMLLoader(ImageStoreMiniApplication.class.getResource("PureViewUI.fxml"));
-            Scene scene = new Scene(fxmlLoader.load(), 500, 200);
+            Scene scene = new Scene(fxmlLoader.load(), 200, 200);
 
             Stage stage = new Stage();
             stage.setTitle("Image Store");
