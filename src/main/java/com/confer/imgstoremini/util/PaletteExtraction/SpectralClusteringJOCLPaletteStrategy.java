@@ -16,57 +16,6 @@ public class SpectralClusteringJOCLPaletteStrategy implements PaletteExtractionS
     private ProgressObserver observer;
     private Supplier<Boolean> isCancelled;
 
-    private static final String kernelSourceAssignClusters =
-            "__kernel void assign_clusters(\n" +
-                    "    __global const float* points,\n" +
-                    "    __global const float* eigenvectors,\n" +
-                    "    __global int* assignments,\n" +
-                    "    const int num_points,\n" +
-                    "    const int num_clusters) {\n" +
-                    "    int i = get_global_id(0);\n" +
-                    "    if (i >= num_points) return;\n" +
-                    "    float min_distance = FLT_MAX;\n" +
-                    "    int best_cluster = 0;\n" +
-                    "    for (int j = 0; j < num_clusters; j++) {\n" +
-                    "        float distance = 0.0f;\n" +
-                    "        for (int k = 0; k < 3; k++) {\n" +
-                    "            float dx = points[i * 3 + k] - eigenvectors[j * 3 + k];\n" +
-                    "            distance += dx * dx;\n" +
-                    "        }\n" +
-                    "        if (distance < min_distance) {\n" +
-                    "            min_distance = distance;\n" +
-                    "            best_cluster = j;\n" +
-                    "        }\n" +
-                    "    }\n" +
-                    "    assignments[i] = best_cluster;\n" +
-                    "}";
-
-    private static final String kernelSourceUpdateClusters =
-            "__kernel void update_clusters(\n" +
-                    "    __global const float* points,\n" +
-                    "    __global const int* assignments,\n" +
-                    "    __global float* eigenvectors,\n" +
-                    "    const int num_points,\n" +
-                    "    const int num_clusters) {\n" +
-                    "    int i = get_global_id(0);\n" +
-                    "    if (i >= num_clusters) return;\n" +
-                    "    float sum[3] = {0.0f, 0.0f, 0.0f};\n" +
-                    "    int count = 0;\n" +
-                    "    for (int j = 0; j < num_points; j++) {\n" +
-                    "        if (assignments[j] == i) {\n" +
-                    "            sum[0] += points[j * 3];\n" +
-                    "            sum[1] += points[j * 3 + 1];\n" +
-                    "            sum[2] += points[j * 3 + 2];\n" +
-                    "            count++;\n" +
-                    "        }\n" +
-                    "    }\n" +
-                    "    if (count > 0) {\n" +
-                    "        eigenvectors[i * 3] = sum[0] / count;\n" +
-                    "        eigenvectors[i * 3 + 1] = sum[1] / count;\n" +
-                    "        eigenvectors[i * 3 + 2] = sum[2] / count;\n" +
-                    "    }\n" +
-                    "}";
-
     @Override
     public List<Color> extractPalette(BufferedImage image, int colorCount, ProgressObserver observer, Supplier<Boolean> isCancelled) {
         DataStore dataStore = DataStore.getInstance();
@@ -105,15 +54,18 @@ public class SpectralClusteringJOCLPaletteStrategy implements PaletteExtractionS
         cl_platform_id platform = OpenCLUtils.getPlatform();
         cl_device_id device = OpenCLUtils.getDevice(platform);
         cl_context context = clCreateContext(null, 1, new cl_device_id[]{device}, null, null, null);
-        cl_command_queue queue = clCreateCommandQueue(context, device, 0, null);
+        cl_command_queue queue = clCreateCommandQueueWithProperties(context, device, null, null);
 
         // Create OpenCL buffers
         cl_mem pointsBuffer = clCreateBuffer(context, CL.CL_MEM_READ_ONLY | CL.CL_MEM_COPY_HOST_PTR, Sizeof.cl_float * pointArray.length, Pointer.to(pointArray), null);
         cl_mem eigenvectorsBuffer = clCreateBuffer(context, CL.CL_MEM_READ_WRITE | CL.CL_MEM_COPY_HOST_PTR, Sizeof.cl_float * eigenvectorArray.length, Pointer.to(eigenvectorArray), null);
         cl_mem assignmentsBuffer = clCreateBuffer(context, CL.CL_MEM_WRITE_ONLY, Sizeof.cl_int * numPoints, null, null);
 
+        String assignClustersCode = KernelOpenCLENUM.SPECTRAL_CLUSTERING_ASSIGN_CLUSTER.getKernelCode();
+        String updateClustersCode = KernelOpenCLENUM.SPECTRAL_CLUSTERING_UPDATE_CLUSTER.getKernelCode();
+
         // Build kernels
-        cl_program program = clCreateProgramWithSource(context, 2, new String[]{kernelSourceAssignClusters, kernelSourceUpdateClusters}, null, null);
+        cl_program program = clCreateProgramWithSource(context, 2, new String[]{assignClustersCode, updateClustersCode}, null, null);
         clBuildProgram(program, 0, null, null, null, null);
         cl_kernel assignKernel = clCreateKernel(program, "assign_clusters", null);
         cl_kernel updateKernel = clCreateKernel(program, "update_clusters", null);

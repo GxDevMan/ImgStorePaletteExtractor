@@ -14,75 +14,10 @@ import java.util.function.Supplier;
 
 import static org.jocl.CL.*;
 
-public class GMMPaletteStrategy implements PaletteExtractionStrategy {
+public class GMMJOCLPaletteStrategy implements PaletteExtractionStrategy {
     private int maxIterations;
     private ProgressObserver observer;
     private Supplier<Boolean> isCancelled;
-
-    private static final String kernelSourceEStep =
-            "__kernel void e_step(\n" +
-                    "    __global const float* points,\n" +
-                    "    __global const float* means,\n" +
-                    "    __global const float* covariances,\n" +
-                    "    __global const float* priors,\n" +
-                    "    __global float* responsibilities,\n" +
-                    "    const int num_points,\n" +
-                    "    const int num_clusters) {\n" +
-                    "    int i = get_global_id(0);\n" +
-                    "    if (i >= num_points) return;\n" +
-                    "    float max_prob = -FLT_MAX;\n" +
-                    "    int best_cluster = 0;\n" +
-                    "    for (int j = 0; j < num_clusters; j++) {\n" +
-                    "        float prob = 0.0f;\n" +
-                    "        for (int k = 0; k < 3; k++) {\n" +
-                    "            float diff = points[i * 3 + k] - means[j * 3 + k];\n" +
-                    "            prob += diff * diff / covariances[j * 3 + k];\n" +  // Correctly handling diagonal covariance
-                    "        }\n" +
-                    "        prob = -0.5f * prob - 0.5f * log(2.0f * M_PI) - 0.5f * log(covariances[j * 3]);\n" +  // Use log to avoid underflow
-                    "        prob += log(priors[j]);\n" +  // Incorporate prior
-                    "        if (prob > max_prob) {\n" +
-                    "            max_prob = prob;\n" +
-                    "            best_cluster = j;\n" +
-                    "        }\n" +
-                    "    }\n" +
-                    "    responsibilities[i * num_clusters + best_cluster] = 1.0f;\n" +  // Assign highest responsibility
-                    "}";  // Close kernel
-
-
-    private static final String kernelSourceMStep =
-            "__kernel void m_step(\n" +
-                    "    __global const float* points,\n" +
-                    "    __global const float* responsibilities,\n" +
-                    "    __global float* means,\n" +
-                    "    __global float* covariances,\n" +
-                    "    __global float* priors,\n" +
-                    "    const int num_points,\n" +
-                    "    const int num_clusters) {\n" +
-                    "    int j = get_global_id(0);\n" +
-                    "    if (j >= num_clusters) return;\n" +
-                    "    float sum[3] = {0.0f, 0.0f, 0.0f};\n" +
-                    "    float total_responsibility = 0.0f;\n" +
-                    "    for (int i = 0; i < num_points; i++) {\n" +
-                    "        float resp = responsibilities[i * num_clusters + j];\n" +
-                    "        total_responsibility += resp;\n" +
-                    "        for (int k = 0; k < 3; k++) {\n" +
-                    "            sum[k] += resp * points[i * 3 + k];\n" +
-                    "        }\n" +
-                    "    }\n" +
-                    "    for (int k = 0; k < 3; k++) {\n" +
-                    "        means[j * 3 + k] = sum[k] / total_responsibility;\n" +
-                    "    }\n" +
-                    "    priors[j] = total_responsibility / num_points;\n" +
-                    "    // Update covariance (diagonal) here\n" +
-                    "    for (int k = 0; k < 3; k++) {\n" +
-                    "        float sum_diff_square = 0.0f;\n" +
-                    "        for (int i = 0; i < num_points; i++) {\n" +
-                    "            float diff = points[i * 3 + k] - means[j * 3 + k];\n" +
-                    "            sum_diff_square += responsibilities[i * num_clusters + j] * diff * diff;\n" +
-                    "        }\n" +
-                    "        covariances[j * 3 + k] = sum_diff_square / total_responsibility;\n" +
-                    "    }\n" +
-                    "}";  // Close kernel
 
     @Override
     public List<Color> extractPalette(BufferedImage image, int colorCount, ProgressObserver observer, Supplier<Boolean> isCancelled) {
@@ -152,7 +87,10 @@ public class GMMPaletteStrategy implements PaletteExtractionStrategy {
         cl_mem priorsBuffer = clCreateBuffer(context, CL.CL_MEM_READ_WRITE | CL.CL_MEM_COPY_HOST_PTR, Sizeof.cl_float * priors.length, Pointer.to(priors), null);
         cl_mem responsibilitiesBuffer = clCreateBuffer(context, CL.CL_MEM_READ_WRITE, Sizeof.cl_float * numPoints * k, null, null);
 
-        cl_program program = clCreateProgramWithSource(context, 2, new String[]{kernelSourceEStep, kernelSourceMStep}, null, null);
+        String e_stepCode = KernelOpenCLENUM.GMM_E_STEP.getKernelCode();
+        String m_stepCode = KernelOpenCLENUM.GMM_M_STEP.getKernelCode();
+
+        cl_program program = clCreateProgramWithSource(context, 2, new String[]{e_stepCode, m_stepCode}, null, null);
         clBuildProgram(program, 0, null, null, null, null);
         cl_kernel eStepKernel = clCreateKernel(program, "e_step", null);
         cl_kernel mStepKernel = clCreateKernel(program, "m_step", null);

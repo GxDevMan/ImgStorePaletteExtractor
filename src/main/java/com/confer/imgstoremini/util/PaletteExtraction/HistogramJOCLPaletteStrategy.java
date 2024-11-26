@@ -15,28 +15,6 @@ public class HistogramJOCLPaletteStrategy implements PaletteExtractionStrategy {
     private ProgressObserver observer;
     private Supplier<Boolean> isCancelled;
 
-    private static final String kernelSourceComputeHistogram = "\n" +
-            "__kernel void compute_histogram(\n" +
-            "    __global const unsigned char* data,\n" +
-            "    __global unsigned int* histogram,\n" +
-            "    const unsigned int data_size) {\n" +
-            "\n" +
-            "    // Global thread ID\n" +
-            "    int gid = get_global_id(0);\n" +
-            "\n" +
-            "    // Check bounds\n" +
-            "    if (gid >= data_size / 3) return;\n" +
-            "\n" +
-            "    // Compute histogram index from RGB values\n" +
-            "    int r = data[gid * 3];\n" +
-            "    int g = data[gid * 3 + 1];\n" +
-            "    int b = data[gid * 3 + 2];\n" +
-            "    int index = r * 65536 + g * 256 + b;\n" +
-            "\n" +
-            "    // Increment the histogram bin atomically\n" +
-            "    atomic_inc(&histogram[index]);\n" +
-            "}\n";
-
     public List<Color> extractPalette(BufferedImage image, int colorCount, ProgressObserver observer, Supplier<Boolean> isCancelled) {
         this.observer = observer;
         this.isCancelled = isCancelled;
@@ -69,9 +47,11 @@ public class HistogramJOCLPaletteStrategy implements PaletteExtractionStrategy {
         cl_device_id device = OpenCLUtils.getDevice(platform);
 
         cl_context context = clCreateContext(null, 1, new cl_device_id[]{device}, null, null, null);
-        cl_command_queue queue = clCreateCommandQueue(context, device, 0, null);
+        cl_command_queue queue = clCreateCommandQueueWithProperties(context, device, null, null);
 
-        cl_program program = clCreateProgramWithSource(context, 1, new String[]{kernelSourceComputeHistogram}, null, null);
+        String histogramCode = KernelOpenCLENUM.COMPUTE_HISTOGRAM.getKernelCode();
+
+        cl_program program = clCreateProgramWithSource(context, 1, new String[]{histogramCode}, null, null);
         clBuildProgram(program, 0, null, null, null, null);
         cl_kernel kernel = clCreateKernel(program, "compute_histogram", null);
 

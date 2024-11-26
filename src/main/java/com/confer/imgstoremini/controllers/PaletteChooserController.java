@@ -104,14 +104,25 @@ public class PaletteChooserController {
     private void GMMSelected(ImageView imageDisp) {
         try {
             OpenCLUtils.getDevice(OpenCLUtils.getPlatform());
-            setupUIProgress(new GMMPaletteStrategy(), "Gaussian Mixture Model", imageDisp);
+            setupUIProgress(new GMMJOCLPaletteStrategy(), "Gaussian Mixture Model", imageDisp);
         } catch (Exception e) {
             ErrorDialog.showErrorDialog(e, "GMM Requirement Error", "Requires GPU");
         }
     }
 
     private void meanShiftSelected(ImageView imageDisp) {
-        setupUIProgress(new EfficientMeanShiftPaletteStrategy(), "Mean Shift", imageDisp);
+        DataStore dataStore = DataStore.getInstance();
+        String preferredProcessor = (String) dataStore.getObject("preferred_processor");
+        if (preferredProcessor.equals("GPU")) {
+            try {
+                OpenCLUtils.getDevice(OpenCLUtils.getPlatform());
+                setupUIProgress(new MeanShiftJOCLPaletteStrategy(), "Mean Shift", imageDisp);
+            } catch (Exception e) {
+                setupUIProgress(new EfficientMeanShiftPaletteStrategy(), "Mean Shift", imageDisp);
+            }
+        } else {
+            setupUIProgress(new EfficientMeanShiftPaletteStrategy(), "Mean Shift", imageDisp);
+        }
     }
 
     private void histogramSelected(ImageView imageDisp) {
@@ -134,8 +145,8 @@ public class PaletteChooserController {
         String preferredProcessor = (String) dataStore.getObject("preferred_processor");
         if (preferredProcessor.equals("GPU")) {
             try {
-                OpenCLUtils.getDevice(OpenCLUtils.getPlatform());
-                setupUIProgress(new RegionBasedJOCLPaletteStrategy(),"Region Based", imageDisp);
+                //OpenCLUtils.getDevice(OpenCLUtils.getPlatform());
+                setupUIProgress(new RegionBasedPaletteStrategy(),"Region Based", imageDisp);
             } catch (Exception e) {
                 setupUIProgress(new RegionBasedPaletteStrategy(), "Region Based", imageDisp);
             }

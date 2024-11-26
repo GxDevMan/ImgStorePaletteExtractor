@@ -13,54 +13,6 @@ import static org.jocl.CL.*;
 
 public class KMeansJOCLPaletteStrategy implements PaletteExtractionStrategy {
     private int maxIterations;
-
-    private static final String kernelSourceAssignClusters =
-            "__kernel void assign_clusters(\n" +
-                    "    __global const float* points,\n" +
-                    "    __global const float* centroids,\n" +
-                    "    __global int* assignments,\n" +
-                    "    const int num_points,\n" +
-                    "    const int num_centroids) {\n" +
-                    "    int i = get_global_id(0); // Point index\n" +
-                    "    if (i >= num_points) return;\n" +
-                    "    float min_distance = FLT_MAX;\n" +
-                    "    int best_centroid = 0;\n" +
-                    "    for (int j = 0; j < num_centroids; j++) {\n" +
-                    "        float dx = points[i * 3] - centroids[j * 3];\n" +
-                    "        float dy = points[i * 3 + 1] - centroids[j * 3 + 1];\n" +
-                    "        float dz = points[i * 3 + 2] - centroids[j * 3 + 2];\n" +
-                    "        float distance = dx * dx + dy * dy + dz * dz;\n" +
-                    "        if (distance < min_distance) {\n" +
-                    "            min_distance = distance;\n" +
-                    "            best_centroid = j;\n" +
-                    "        }\n" +
-                    "    }\n" +
-                    "    assignments[i] = best_centroid;\n" +
-                    "}";
-
-    private static final String kernelSourceUpdateCentroids =
-            "__kernel void update_centroids(\n" +
-                    "    __global const float* points,\n" +
-                    "    __global const int* assignments,\n" +
-                    "    __global float* centroids,\n" +
-                    "    __global int* counts,\n" +
-                    "    const int num_points,\n" +
-                    "    const int num_centroids) {\n" +
-                    "    int i = get_global_id(0); // Point index\n" +
-                    "    if (i >= num_points) return;\n" +
-                    "    \n" +
-                    "    // Get the assigned centroid index\n" +
-                    "    int centroid_idx = assignments[i];\n" +
-                    "    \n" +
-                    "    // Use bitwise reinterpretation to safely add float as int\n" +
-                    "    atomic_add((__global int*)&centroids[centroid_idx * 3], as_int(points[i * 3]));\n" +
-                    "    atomic_add((__global int*)&centroids[centroid_idx * 3 + 1], as_int(points[i * 3 + 1]));\n" +
-                    "    atomic_add((__global int*)&centroids[centroid_idx * 3 + 2], as_int(points[i * 3 + 2]));\n" +
-                    "    \n" +
-                    "    // Increment the count for this centroid\n" +
-                    "    atomic_add(&counts[centroid_idx], 1);\n" +
-                    "}";
-
     @Override
     public List<Color> extractPalette(BufferedImage image, int colorCount, ProgressObserver observer, Supplier<Boolean> isCancelled) {
         DataStore dataStore = DataStore.getInstance();
@@ -96,7 +48,7 @@ public class KMeansJOCLPaletteStrategy implements PaletteExtractionStrategy {
         cl_platform_id platform = OpenCLUtils.getPlatform();
         cl_device_id device = OpenCLUtils.getDevice(platform);
         cl_context context = clCreateContext(null, 1, new cl_device_id[]{device}, null, null, null);
-        cl_command_queue queue = clCreateCommandQueue(context, device, 0, null);
+        cl_command_queue queue = clCreateCommandQueueWithProperties(context, device, null, null);
 
         // Create OpenCL buffers
         cl_mem pointsBuffer = clCreateBuffer(context, CL.CL_MEM_READ_ONLY | CL.CL_MEM_COPY_HOST_PTR, Sizeof.cl_float * pointArray.length, Pointer.to(pointArray), null);
@@ -104,8 +56,11 @@ public class KMeansJOCLPaletteStrategy implements PaletteExtractionStrategy {
         cl_mem assignmentsBuffer = clCreateBuffer(context, CL.CL_MEM_WRITE_ONLY, Sizeof.cl_int * numPoints, null, null);
         cl_mem countsBuffer = clCreateBuffer(context, CL.CL_MEM_READ_WRITE, Sizeof.cl_int * k, null, null);
 
-        // Build kernels
-        cl_program program = clCreateProgramWithSource(context, 2, new String[]{kernelSourceAssignClusters, kernelSourceUpdateCentroids}, null, null);
+        String assignClusterCode = KernelOpenCLENUM.KMEANS_ASSIGN_CLUSTER.getKernelCode();
+        String updateCentroidsCode = KernelOpenCLENUM.KMEANS_UPDATE_CENTROIDS.getKernelCode();
+
+        // Build kernel
+        cl_program program = clCreateProgramWithSource(context, 2, new String[]{assignClusterCode, updateCentroidsCode}, null, null);
         clBuildProgram(program, 0, null, null, null, null);
         cl_kernel assignKernel = clCreateKernel(program, "assign_clusters", null);
         cl_kernel updateKernel = clCreateKernel(program, "update_centroids", null);
