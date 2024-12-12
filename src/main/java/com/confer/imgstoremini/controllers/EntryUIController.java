@@ -80,22 +80,7 @@ public class EntryUIController {
 
     private void goToSettingsConfigUI() {
         try {
-            FXMLLoader fxmlLoader = new FXMLLoader(ImageStoreMiniApplication.class.getResource("SettingsConfigUI.fxml"));
-            Scene scene = new Scene(fxmlLoader.load(), 550, 250);
-
-            Stage stage = new Stage();
-            stage.setTitle("Image Store");
-            stage.setScene(scene);
-            stage.initModality(Modality.APPLICATION_MODAL);
-
-            DataStore dataStore = DataStore.getInstance();
-            Image icon = (Image) dataStore.getObject("image_icon");
-            stage.getIcons().add(icon);
-
-            SettingsConfigUIController controller = fxmlLoader.getController();
-            controller.setConfigurationSetting(stage, false);
-
-            stage.show();
+            ComponentFactory.checkSettingsUI(false);
         } catch (Exception e) {
             ErrorDialog.showErrorDialog(e,"Configuration Error","There was a problem with the Config.json");
         }
@@ -104,22 +89,7 @@ public class EntryUIController {
     private void goToPaletteExtractor() {
         loadFinalDataStoreConfiguration();
         try {
-            FXMLLoader fxmlLoader = new FXMLLoader(ImageStoreMiniApplication.class.getResource("PaletteUI.fxml"));
-            Scene scene = new Scene(fxmlLoader.load(), 500, 500);
-            PaletteUIController controller = fxmlLoader.getController();
-
-
-            Stage stage = new Stage();
-            stage.setTitle("Image Store - Palette Extractor");
-            stage.setScene(scene);
-            stage.initModality(Modality.WINDOW_MODAL);
-            controller.setPaletteUIController(stage);
-
-            DataStore dataStore = DataStore.getInstance();
-            Image icon = (Image) dataStore.getObject("image_icon");
-            stage.getIcons().add(icon);
-
-            stage.show();
+            ComponentFactory.showPaletteExtractor();
         } catch (Exception e) {
             ErrorDialog.showErrorDialog(e,"FXML Error","There was a problem loading Palette UI");
         }
@@ -177,9 +147,14 @@ public class EntryUIController {
         dataStore.insertObject("default_gmmiter", Integer.parseInt(savedConfiguration.get("default_gmmiter")));
         dataStore.insertObject("date_sorting", savedConfiguration.get("date_sorting"));
         dataStore.insertObject("default_gmmimageheightwidth", Integer.parseInt(savedConfiguration.get("default_gmmimageheightwidth")));
+        dataStore.insertObject("default_meanshift_bandwidth", Double.parseDouble(savedConfiguration.get("default_meanshift_bandwidth")));
     }
 
-    public String openDbFileChooser() {
+    private boolean checkDefaultDb() {
+        return ConfigFileHandler.checkDBSpecifiedInConfigFile();
+    }
+
+    private String openDbFileChooser() {
         FileChooser fileChooser = new FileChooser();
         FileChooser.ExtensionFilter dbFilter = new FileChooser.ExtensionFilter("Database Files (*.db)", "*.db");
         fileChooser.getExtensionFilters().add(dbFilter);
@@ -195,10 +170,6 @@ public class EntryUIController {
             return null;
         }
 
-    }
-
-    private boolean checkDefaultDb() {
-        return ConfigFileHandler.checkDBSpecifiedInConfigFile();
     }
 
     private String getConfigSetting(String key) {

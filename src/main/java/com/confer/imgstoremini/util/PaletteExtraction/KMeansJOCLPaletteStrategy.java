@@ -2,6 +2,7 @@ package com.confer.imgstoremini.util.PaletteExtraction;
 import com.confer.imgstoremini.util.DataStore;
 import com.confer.imgstoremini.util.ProgressObserver;
 import org.jocl.*;
+
 import java.awt.Color;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
@@ -9,6 +10,7 @@ import java.util.List;
 import java.util.Random;
 import java.util.concurrent.CancellationException;
 import java.util.function.Supplier;
+
 import static org.jocl.CL.*;
 
 public class KMeansJOCLPaletteStrategy implements PaletteExtractionStrategy {
@@ -17,15 +19,17 @@ public class KMeansJOCLPaletteStrategy implements PaletteExtractionStrategy {
     public List<Color> extractPalette(BufferedImage image, int colorCount, ProgressObserver observer, Supplier<Boolean> isCancelled) {
         DataStore dataStore = DataStore.getInstance();
         maxIterations = (int) dataStore.getObject("default_kmeansiter");
-        List<float[]> pixels = extractPixels(image);
+
         try {
-            return applyKMeansJOCL(pixels, colorCount, observer, isCancelled);
+            return applyKMeansJOCL(image, colorCount, observer, isCancelled);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
 
-    private List<Color> applyKMeansJOCL(List<float[]> pixels, int k, ProgressObserver observer, Supplier<Boolean> isCancelled) {
+    private List<Color> applyKMeansJOCL(BufferedImage image, int k, ProgressObserver observer, Supplier<Boolean> isCancelled) {
+        List<float[]> pixels = extractPixels(image);
+
         int numPoints = pixels.size();
         int numDimensions = 3; // RGB
 
@@ -36,12 +40,8 @@ public class KMeansJOCLPaletteStrategy implements PaletteExtractionStrategy {
         }
 
         // Initialize centroids randomly
-        float[] centroidArray = new float[k * numDimensions];
-        Random random = new Random();
-        for (int i = 0; i < k; i++) {
-            int randomIndex = random.nextInt(numPoints);
-            System.arraycopy(pointArray, randomIndex * numDimensions, centroidArray, i * numDimensions, numDimensions);
-        }
+        float[] centroidArray = initializeCentroids(pointArray, numPoints, numDimensions, k);
+        ;
 
         // Set up OpenCL
         CL.setExceptionsEnabled(true);
@@ -58,6 +58,11 @@ public class KMeansJOCLPaletteStrategy implements PaletteExtractionStrategy {
 
         String assignClusterCode = KernelOpenCLENUM.KMEANS_ASSIGN_CLUSTER.getKernelCode();
         String updateCentroidsCode = KernelOpenCLENUM.KMEANS_UPDATE_CENTROIDS.getKernelCode();
+
+//        System.out.println("");
+//        System.out.println(assignClusterCode);
+//        System.out.println("");
+//        System.out.println(updateCentroidsCode);
 
         // Build kernel
         cl_program program = clCreateProgramWithSource(context, 2, new String[]{assignClusterCode, updateCentroidsCode}, null, null);
@@ -117,10 +122,11 @@ public class KMeansJOCLPaletteStrategy implements PaletteExtractionStrategy {
         // Convert centroids to Java Color objects
         List<Color> centroids = new ArrayList<>();
         for (int i = 0; i < k; i++) {
-            centroids.add(new Color(
-                    Math.round(centroidArray[i * 3]),
-                    Math.round(centroidArray[i * 3 + 1]),
-                    Math.round(centroidArray[i * 3 + 2])));
+            int r = Math.min(255, Math.max(0, Math.round(centroidArray[i * 3])));
+            int g = Math.min(255, Math.max(0, Math.round(centroidArray[i * 3 + 1])));
+            int b = Math.min(255, Math.max(0, Math.round(centroidArray[i * 3 + 2])));
+
+            centroids.add(new Color(r, g, b));
         }
 
         observer.updateStatus(String.format("(GPU) K-Means Complete, Iterations: %d", maxIterations));
@@ -141,4 +147,71 @@ public class KMeansJOCLPaletteStrategy implements PaletteExtractionStrategy {
         }
         return pixels;
     }
+
+    public float[] initializeCentroids(float[] pointArray, int numPoints, int numDimensions, int k) {
+        float[] centroidArray = new float[k * numDimensions];
+        Random random = new Random();
+
+        for (int i = 0; i < k; i++) {
+            int randomIndex = random.nextInt(numPoints);
+            System.arraycopy(pointArray, randomIndex * numDimensions, centroidArray, i * numDimensions, numDimensions);
+        }
+
+        return centroidArray;
+    }
+
+//    public float[] cannyInitializeCentroids(
+//            BufferedImage image, int numDimensions, int k, boolean getBackground) {
+//
+//        OpenCV.loadLocally();
+//        float[] centroidArray = new float[k * numDimensions];
+//
+//        BufferedImage convertedToJpg = ImageConversion.convertToJpgBufferedImage(image);
+//        byte[] matData = ImageConversion.extractByteArrayFromImage(convertedToJpg);
+//
+//        int width = convertedToJpg.getWidth();
+//        int height = convertedToJpg.getHeight();
+//
+//        double minThreshold = 10;
+//        double maxThreshold = 200;
+//
+//        // Perform Canny edge detection
+//        Mat mat = new Mat(height, width, CvType.CV_8UC3);
+//        mat.put(0, 0, matData);
+//        Mat grayImage = new Mat(height, width, CvType.CV_8UC1);
+//        Imgproc.cvtColor(mat, grayImage, Imgproc.COLOR_BGR2GRAY);
+//        Mat edges = new Mat(height, width, CvType.CV_8UC1);
+//        Imgproc.Canny(grayImage, edges, minThreshold, maxThreshold);
+//
+//        // Fill contours
+//        List<MatOfPoint> contours = new ArrayList<>();
+//        Mat hierarchy = new Mat();
+//        Imgproc.findContours(edges, contours, hierarchy, Imgproc.RETR_EXTERNAL, Imgproc.CHAIN_APPROX_SIMPLE);
+//        Mat mask = Mat.zeros(height, width, CvType.CV_8UC1);
+//        Imgproc.drawContours(mask, contours, -1, new Scalar(255), Core.FILLED);
+//
+//        Random random = new Random();
+//        int placedCentroids = 0;
+//
+//        while (placedCentroids < k) {
+//            int x = random.nextInt(width);
+//            int y = random.nextInt(height);
+//
+//            // Check if the pixel is valid (foreground or background based on `getBackground`)
+//            if ((mask.get(y, x)[0] == 255) != getBackground) {
+//                centroidArray[placedCentroids * numDimensions] = x;
+//                centroidArray[placedCentroids * numDimensions + 1] = y;
+//
+//                // Sample RGB from the image at (x, y)
+//                int rgb = image.getRGB(x, y);
+//                centroidArray[placedCentroids * numDimensions + 0] = (rgb >> 16) & 0xFF;  // R
+//                centroidArray[placedCentroids * numDimensions + 1] = (rgb >> 8) & 0xFF;   // G
+//                centroidArray[placedCentroids * numDimensions + 2] = rgb & 0xFF;          // B
+//
+//                placedCentroids++;
+//            }
+//        }
+//
+//        return centroidArray;
+//    }
 }

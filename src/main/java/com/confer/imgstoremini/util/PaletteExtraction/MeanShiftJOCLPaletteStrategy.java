@@ -3,7 +3,6 @@ package com.confer.imgstoremini.util.PaletteExtraction;
 import com.confer.imgstoremini.util.DataStore;
 import com.confer.imgstoremini.util.ProgressObserver;
 import org.jocl.*;
-
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
@@ -23,10 +22,16 @@ public class MeanShiftJOCLPaletteStrategy implements PaletteExtractionStrategy {
         this.observer = observer;
         this.isCancelled = isCancelled;
 
+        boolean cannyEdgeActive = true;
+
         DataStore dataStore = DataStore.getInstance();
         int maxIterations = (int) dataStore.getObject("default_meanshiftiter");
         double convergenceThreshold = (double) dataStore.getObject("default_convergence_threshold");
         float epsilon = (float) convergenceThreshold;
+        double bandwidthStore = (double) dataStore.getObject("default_meanshift_bandwidth");
+        float bandwidth = (float) bandwidthStore;
+
+        //System.out.println(String.format("Mean Shift Set Bandwidth: %f", bandwidth));
 
         int width = image.getWidth();
         int height = image.getHeight();
@@ -57,10 +62,19 @@ public class MeanShiftJOCLPaletteStrategy implements PaletteExtractionStrategy {
         cl_mem updatedCentroidBuffer = clCreateBuffer(context, CL_MEM_READ_WRITE, Sizeof.cl_float * centroids.length, null, null);
         cl_mem neighborCountBuffer = clCreateBuffer(context, CL_MEM_READ_WRITE, Sizeof.cl_int * rgbPoints.length, null, null);
 
-        String computeDistance = KernelOpenCLENUM.COMPUTE_COLOR_DISTANCE.getKernelCode();
-        String findNeighbors = KernelOpenCLENUM.FIND_NEIGHBORS_WITHIN_BANDWIDTH.getKernelCode();
-        String updateCentroid = KernelOpenCLENUM.UPDATE_CLUSTER_CENTER.getKernelCode();
-        String checkConvergence = KernelOpenCLENUM.CHECK_CONVERGENCE.getKernelCode();
+        String computeDistance = KernelOpenCLENUM.MEANSHIFT_COMPUTE_COLOR_DISTANCE.getKernelCode();
+        String findNeighbors = KernelOpenCLENUM.MEANSHIFT_FIND_NEIGHBORS_WITHIN_BANDWIDTH.getKernelCode();
+        String updateCentroid = KernelOpenCLENUM.MEANSHIFTUPDATE_CLUSTER_CENTER.getKernelCode();
+        String checkConvergence = KernelOpenCLENUM.MEANSHIFTCHECK_CONVERGENCE.getKernelCode();
+
+//        System.out.println("");
+//        System.out.println(computeDistance);
+//        System.out.println("");
+//        System.out.println(findNeighbors);
+//        System.out.println("");
+//        System.out.println(updateCentroid);
+//        System.out.println("");
+//        System.out.println(checkConvergence);
 
         cl_program program = clCreateProgramWithSource(context, 4, new String[]{computeDistance, findNeighbors, updateCentroid, checkConvergence}, null, null);
         clBuildProgram(program, 0, null, null, null, null);
@@ -69,7 +83,6 @@ public class MeanShiftJOCLPaletteStrategy implements PaletteExtractionStrategy {
         cl_kernel updateCentroidKernel = clCreateKernel(program, "update_cluster_center", null);
         cl_kernel checkConvergenceKernel = clCreateKernel(program, "check_convergence", null);
 
-        float bandwidth = 0.3f;
         boolean converged = false;
         int countedIterations = 0;
         List<Color> palette;
@@ -77,7 +90,7 @@ public class MeanShiftJOCLPaletteStrategy implements PaletteExtractionStrategy {
         observer.updateProgress(0.0);
         try {
             while ((!converged) && (countedIterations < maxIterations)) {
-                if(isCancelled.get()){
+                if (isCancelled.get()) {
                     observer.updateStatus("(GPU) Mean Shift Computation Cancelled");
                     throw new CancellationException("(GPU) Mean Shift Computation Cancelled");
                 }
@@ -94,7 +107,7 @@ public class MeanShiftJOCLPaletteStrategy implements PaletteExtractionStrategy {
                 clSetKernelArg(findneighborsKernel, 0, Sizeof.cl_mem, Pointer.to(pointBuffer));
                 clSetKernelArg(findneighborsKernel, 1, Sizeof.cl_mem, Pointer.to(centroidBuffer));
                 clSetKernelArg(findneighborsKernel, 2, Sizeof.cl_mem, Pointer.to(updatedCentroidBuffer));
-                clSetKernelArg(findneighborsKernel,3,Sizeof.cl_int,Pointer.to(new int[]{numPixels}));
+                clSetKernelArg(findneighborsKernel, 3, Sizeof.cl_int, Pointer.to(new int[]{numPixels}));
                 clSetKernelArg(findneighborsKernel, 4, Sizeof.cl_float, Pointer.to(new float[]{bandwidth}));
                 clEnqueueNDRangeKernel(queue, findneighborsKernel, 1, null,
                         new long[]{rgbPoints.length / 3}, null, 0, null, null);

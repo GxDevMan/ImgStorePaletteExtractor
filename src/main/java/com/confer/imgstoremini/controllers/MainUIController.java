@@ -4,13 +4,8 @@ import com.confer.imgstoremini.ImageStoreMiniApplication;
 import com.confer.imgstoremini.model.*;
 import com.confer.imgstoremini.util.DataStore;
 import com.confer.imgstoremini.util.DbHandler;
-import com.confer.imgstoremini.util.ImageConversion;
-import com.confer.imgstoremini.util.Resizing.JpegResizeStrategy;
-import com.confer.imgstoremini.util.Resizing.PngResizeStrategy;
-import com.confer.imgstoremini.util.Resizing.ResizeImgContext;
 import com.confer.imgstoremini.util.hibernateUtil;
 import javafx.application.Platform;
-import javafx.embed.swing.SwingFXUtils;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -18,17 +13,10 @@ import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
-import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.TilePane;
-import javafx.stage.Modality;
 import javafx.stage.Stage;
-import javafx.scene.control.Alert;
-
-import java.awt.image.BufferedImage;
 import java.util.List;
-import java.util.Optional;
 
 public class MainUIController implements ImageContract {
 
@@ -89,53 +77,17 @@ public class MainUIController implements ImageContract {
             imgSearchBox.setText("");
             regeximgSearchBox.setText("");
             refreshList();
-        } else if (event.getSource().equals(settingsBTN)){
+        } else if (event.getSource().equals(settingsBTN)) {
             checkSettings();
-        } else if (event.getSource().equals(goToPaletteExtractorBTN)){
+        } else if (event.getSource().equals(goToPaletteExtractorBTN)) {
             goToPaletteExtractor();
         }
     }
 
     @Override
     public void deleteImage(ImageThumbObjDTO deleteThisImage) {
-        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
-        alert.setTitle("Delete Confirmation");
-        alert.setHeaderText("Are you sure you want to delete this image?");
-        alert.setContentText("Image Title: " + deleteThisImage.getImageTitle());
-        DialogPane dialogPane = alert.getDialogPane();
-        dialogPane.getStylesheets().add(ImageStoreMiniApplication.class.getResource("styles/dark-theme.css").toExternalForm());
-
-        Stage stage = (Stage) alert.getDialogPane().getScene().getWindow();
-        DataStore dataStore = DataStore.getInstance();
-        Image icon = (Image) dataStore.getObject("image_icon");
-        stage.getIcons().add(icon);
-
-        Image ThumbNail = ImageConversion.byteArraytoImage(deleteThisImage.getThumbnailImageByte());
-
-        ResizeImgContext resizeImgContext = new ResizeImgContext();
-        switch (ImageType.fromExtension(deleteThisImage.getImageType())) {
-            case JPG, JPEG -> resizeImgContext.setStrategy(new JpegResizeStrategy());
-            case PNG -> resizeImgContext.setStrategy(new PngResizeStrategy());
-            default -> {
-                return;
-            }
-        }
-        BufferedImage bufferedImage = resizeImgContext.executeResize(
-                SwingFXUtils.fromFXImage(ThumbNail, null),
-                100, 100);
-
-        try {
-            ThumbNail = ImageConversion.convertBufferedImageToImage(bufferedImage);
-        } catch (Exception e) {
-            ErrorDialog.showErrorDialog(e, "Buffered Image to Image Conversion failed","Image Conversion Failed");
-            return;
-        }
-        ImageView imageView = new ImageView(ThumbNail);
-        alert.setGraphic(imageView);
-
-        Optional<ButtonType> result = alert.showAndWait();
-
-        if (result.isPresent() && result.get() == ButtonType.OK) {
+        boolean result = ComponentFactory.imageConfirmationDeleteDialog(deleteThisImage);
+        if (result) {
             try {
                 new Thread(() -> {
                     try {
@@ -149,7 +101,7 @@ public class MainUIController implements ImageContract {
 
                 }).start();
             } catch (Exception e) {
-                ErrorDialog.showErrorDialog(e,"Database Error","There was a problem deleting this image", imageView,deleteThisImage);
+                ErrorDialog.showErrorDialog(e, "Database Error", "There was a problem deleting this image");
                 return;
             }
         }
@@ -159,52 +111,18 @@ public class MainUIController implements ImageContract {
     @Override
     public void viewImage(ImageThumbObjDTO imageObj) {
         try {
-            FXMLLoader fxmlLoader = new FXMLLoader(ImageStoreMiniApplication.class.getResource("ViewImageUI.fxml"));
-            Scene scene = new Scene(fxmlLoader.load(), 600, 600);
-
-            Stage stage = new Stage();
-            stage.setTitle(String.format("Image Store - %s", imageObj.getImageTitle()));
-            stage.setScene(scene);
-            stage.initModality(Modality.WINDOW_MODAL);
-
-            DataStore dataStore = DataStore.getInstance();
-            Image icon = (Image) dataStore.getObject("image_icon");
-            stage.getIcons().add(icon);
-
-            ViewImageController controller = fxmlLoader.getController();
-            controller.setImageView(DbHandler.getImage(imageObj), this, stage);
-
-            stage.show();
+            ComponentFactory.viewImageRecord(imageObj, this);
         } catch (Exception e) {
-            ErrorDialog.showErrorDialog(e,"FXML Error","There was a problem loading View Image UI");
+            ErrorDialog.showErrorDialog(e, "FXML Error", "There was a problem loading View Image UI");
         }
     }
 
     @Override
     public void pureViewImage(ImageThumbObjDTO imageThumbObjDTO) {
         try {
-
-            FXMLLoader fxmlLoader = new FXMLLoader(ImageStoreMiniApplication.class.getResource("PureViewUI.fxml"));
-            Scene scene = new Scene(fxmlLoader.load(), 500, 500);
-
-            Stage stage = new Stage();
-            stage.setTitle(String.format("Image Store - %s",imageThumbObjDTO.getImageTitle()));
-            stage.setScene(scene);
-            stage.initModality(Modality.WINDOW_MODAL);
-
-            DataStore dataStore = DataStore.getInstance();
-            Image icon = (Image) dataStore.getObject("image_icon");
-            stage.getIcons().add(icon);
-
-            PureViewUIController controller = fxmlLoader.getController();
-            ImageObj imageObjPure = DbHandler.getImage(imageThumbObjDTO);
-            ImageConversion conversionImg = new ImageConversion();
-            Image imageFull = conversionImg.byteArraytoImage(imageObjPure.getFullImageByte());
-            controller.setPureViewUI(imageFull, stage);
-
-            stage.show();
+            ComponentFactory.displayPureView(imageThumbObjDTO);
         } catch (Exception e) {
-            ErrorDialog.showErrorDialog(e,"FXML Error","There was a problem loading Pure View Image UI");
+            ErrorDialog.showErrorDialog(e, "FXML Error", "There was a problem loading Pure View Image UI");
         }
     }
 
@@ -214,7 +132,7 @@ public class MainUIController implements ImageContract {
             try {
                 DbHandler.updateImage(imageObj);
             } catch (Exception e) {
-                ErrorDialog.showErrorDialog(e,"Database Error","There was a problem loading updating this image");
+                ErrorDialog.showErrorDialog(e, "Database Error", "There was a problem loading updating this image");
             }
             Platform.runLater(() -> {
                 refreshList();
@@ -229,7 +147,7 @@ public class MainUIController implements ImageContract {
             try {
                 DbHandler.saveImage(imageObj);
             } catch (Exception e) {
-                ErrorDialog.showErrorDialog(e,"Database Error","There was a problem saving this image");
+                ErrorDialog.showErrorDialog(e, "Database Error", "There was a problem saving this image");
             }
             Platform.runLater(() -> {
                 refreshList();
@@ -238,72 +156,27 @@ public class MainUIController implements ImageContract {
         }).start();
     }
 
-    private void checkSettings(){
+    private void checkSettings() {
         try {
-            FXMLLoader fxmlLoader = new FXMLLoader(ImageStoreMiniApplication.class.getResource("SettingsConfigUI.fxml"));
-            Scene scene = new Scene(fxmlLoader.load(), 550, 250);
-
-            Stage stage = new Stage();
-            stage.setTitle("Image Store");
-            stage.setScene(scene);
-            stage.initModality(Modality.APPLICATION_MODAL);
-
-            DataStore dataStore = DataStore.getInstance();
-            Image icon = (Image) dataStore.getObject("image_icon");
-            stage.getIcons().add(icon);
-
-            SettingsConfigUIController controller = fxmlLoader.getController();
-            controller.setConfigurationSetting(stage, true);
-
-            stage.show();
+            ComponentFactory.checkSettingsUI(true);
         } catch (Exception e) {
-            ErrorDialog.showErrorDialog(e,"Configuration Error","There was a problem with the Config.json");
+            ErrorDialog.showErrorDialog(e, "Configuration Error", "There was a problem with the Config.json");
         }
     }
 
     private void goToPaletteExtractor() {
         try {
-            FXMLLoader fxmlLoader = new FXMLLoader(ImageStoreMiniApplication.class.getResource("PaletteUI.fxml"));
-            Scene scene = new Scene(fxmlLoader.load(), 500, 500);
-
-            PaletteUIController controller = fxmlLoader.getController();
-
-
-            Stage stage = new Stage();
-            stage.setTitle("Image Store - Palette Extractor");
-            stage.setScene(scene);
-            stage.initModality(Modality.WINDOW_MODAL);
-            controller.setPaletteUIController(stage);
-
-            DataStore dataStore = DataStore.getInstance();
-            Image icon = (Image) dataStore.getObject("image_icon");
-            stage.getIcons().add(icon);
-
-            stage.show();
+            ComponentFactory.showPaletteExtractor();
         } catch (Exception e) {
-            ErrorDialog.showErrorDialog(e,"FXML Error","There was a problem loading Palette UI");
+            ErrorDialog.showErrorDialog(e, "FXML Error", "There was a problem loading Palette UI");
         }
     }
 
     private void goToAddImage() {
         try {
-            FXMLLoader fxmlLoader = new FXMLLoader(ImageStoreMiniApplication.class.getResource("AddImageUI.fxml"));
-            Scene scene = new Scene(fxmlLoader.load(), 600, 500);
-            AddImageContoller imgController = fxmlLoader.getController();
-
-            Stage stage = new Stage();
-            stage.setTitle("Add Image to Database");
-            stage.setScene(scene);
-            stage.initModality(Modality.APPLICATION_MODAL);
-
-            DataStore dataStore = DataStore.getInstance();
-            Image icon = (Image) dataStore.getObject("image_icon");
-            stage.getIcons().add(icon);
-
-            imgController.setContract(this, stage);
-            stage.show();
+            ComponentFactory.showAddImageUI(this);
         } catch (Exception e) {
-            ErrorDialog.showErrorDialog(e,"FXML Error","There was a problem loading Add Image UI");
+            ErrorDialog.showErrorDialog(e, "FXML Error", "There was a problem loading Add Image UI");
         }
     }
 
@@ -392,7 +265,7 @@ public class MainUIController implements ImageContract {
                 controller.setComponent(this, imageInstance);
                 imageViews.getChildren().add(previewComponent);
             } catch (Exception e) {
-                ErrorDialog.showErrorDialog(e,"FXML Error","There was a problem loading Preview Image Component UI");
+                ErrorDialog.showErrorDialog(e, "FXML Error", "There was a problem loading Preview Image Component UI");
             }
         }
     }
@@ -416,7 +289,7 @@ public class MainUIController implements ImageContract {
 
             sourceWin.show();
         } catch (Exception e) {
-            ErrorDialog.showErrorDialog(e,"FXML Error","There was a problem loading Entry UI");
+            ErrorDialog.showErrorDialog(e, "FXML Error", "There was a problem loading Entry UI");
         }
 
     }

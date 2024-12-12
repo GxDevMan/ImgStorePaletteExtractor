@@ -79,7 +79,7 @@ public class GMMJOCLPaletteStrategy implements PaletteExtractionStrategy {
         cl_platform_id platform = OpenCLUtils.getPlatform();
         cl_device_id device = OpenCLUtils.getDevice(platform);
         cl_context context = clCreateContext(null, 1, new cl_device_id[]{device}, null, null, null);
-        cl_command_queue queue = clCreateCommandQueue(context, device, 0, null);
+        cl_command_queue queue = clCreateCommandQueueWithProperties(context, device, null, null);
 
         cl_mem pointsBuffer = clCreateBuffer(context, CL.CL_MEM_READ_ONLY | CL.CL_MEM_COPY_HOST_PTR, Sizeof.cl_float * points.length, Pointer.to(points), null);
         cl_mem meansBuffer = clCreateBuffer(context, CL.CL_MEM_READ_WRITE | CL.CL_MEM_COPY_HOST_PTR, Sizeof.cl_float * means.length, Pointer.to(means), null);

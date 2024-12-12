@@ -247,10 +247,12 @@ public class PaletteChooserController {
 
         cancelButton.setOnAction(event -> {
             taskThread.interrupt();
+            System.gc();
         });
 
         closeButton.setOnAction(event -> {
             taskThread.interrupt();
+            System.gc();
             progressStage.close();
         });
 

@@ -5,6 +5,7 @@ import javafx.scene.image.Image;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
+import java.awt.image.DataBufferByte;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -83,5 +84,31 @@ public class ImageConversion {
     public static Image byteArraytoImage(byte[] imageBytes) {
         ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(imageBytes);
         return new Image(byteArrayInputStream);
+    }
+
+    public static BufferedImage convertToJpgBufferedImage(BufferedImage inputImage) {
+        BufferedImage jpgImage = new BufferedImage(
+                inputImage.getWidth(),
+                inputImage.getHeight(),
+                BufferedImage.TYPE_INT_RGB);
+
+        // Draw the original image onto the new image
+        Graphics2D g2d = jpgImage.createGraphics();
+        g2d.drawImage(inputImage, 0, 0, null);
+        g2d.dispose();
+
+        return jpgImage;
+    }
+
+
+    public static byte[] extractByteArrayFromImage(BufferedImage image) {
+        BufferedImage formattedImage = new BufferedImage(
+                image.getWidth(),
+                image.getHeight(),
+                BufferedImage.TYPE_3BYTE_BGR);
+        Graphics2D g2d = formattedImage.createGraphics();
+        g2d.drawImage(image, 0, 0, null);
+        g2d.dispose();
+        return ((DataBufferByte) formattedImage.getRaster().getDataBuffer()).getData();
     }
 }

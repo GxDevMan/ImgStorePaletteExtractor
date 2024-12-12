@@ -37,6 +37,7 @@ public class ConfigFileHandler {
             boolean default_gmmiter = rootNode.has("default_gmmiter");
             boolean date_sorting = rootNode.has("date_sorting");
             boolean default_gmmimageheightwidth = rootNode.has("default_gmmimageheightwidth");
+            boolean default_meanshift_bandwidth = rootNode.has("default_meanshift_bandwidth");
 
 
             boolean fieldsCheck = default_db &&
@@ -49,7 +50,8 @@ public class ConfigFileHandler {
                     default_spectraliter &&
                     default_gmmiter &&
                     date_sorting &&
-                    default_gmmimageheightwidth;
+                    default_gmmimageheightwidth &&
+                    default_meanshift_bandwidth;
 
             if (!fieldsCheck) {
                 createDefaultConfigFile(configFile);
@@ -66,6 +68,7 @@ public class ConfigFileHandler {
             configData.put("default_gmmiter", rootNode.get("default_gmmiter").asText());
             configData.put("date_sorting", rootNode.get("date_sorting").asText());
             configData.put("default_gmmimageheightwidth", rootNode.get("default_gmmimageheightwidth").asText());
+            configData.put("default_meanshift_bandwidth", rootNode.get("default_meanshift_bandwidth").asText());
 
         } catch (Exception e) {
             File configFile2 = new File(filePath);
@@ -111,6 +114,7 @@ public class ConfigFileHandler {
         defaultConfig.put("default_gmmiter", "100");
         defaultConfig.put("date_sorting","Descending");
         defaultConfig.put("default_gmmimageheightwidth","1000");
+        defaultConfig.put("default_meanshift_bandwidth", "25.0");
         ObjectMapper mapper = new ObjectMapper();
         ObjectWriter writer = mapper.writerWithDefaultPrettyPrinter();
         try {

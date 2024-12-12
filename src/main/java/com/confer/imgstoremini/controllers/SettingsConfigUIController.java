@@ -59,6 +59,9 @@ public class SettingsConfigUIController {
     private Spinner meanShiftConvergenceSPN;
 
     @FXML
+    private Spinner meanShiftBandWidthSPN;
+
+    @FXML
     private Spinner gmmHeightWidthSPN;
 
     @FXML
@@ -108,6 +111,11 @@ public class SettingsConfigUIController {
         gmmHeightWidthSPN.setEditable(true);
         addIntegerValidation(gmmHeightWidthSPN, 1,Integer.MAX_VALUE);
 
+        SpinnerValueFactory<Double> valueFactory9 = new SpinnerValueFactory.DoubleSpinnerValueFactory(0.1, Double.MAX_VALUE, 0.1, 1.0);
+        meanShiftBandWidthSPN.setValueFactory(valueFactory9);
+        meanShiftBandWidthSPN.setEditable(true);
+        addDoubleValidation(meanShiftBandWidthSPN, 0.1,Double.MAX_VALUE);
+
 
         ObservableList<String> processorChoices = FXCollections.observableArrayList("CPU", "GPU");
         processorChoiceBox.setItems(processorChoices);
@@ -137,6 +145,7 @@ public class SettingsConfigUIController {
         int default_gmmiter;
         String date_sorting;
         int default_gmmimageheightwidth;
+        double default_meanshift_bandwidth;
 
         if (!this.isSet) {
             this.configData = ConfigFileHandler.getConfig();
@@ -151,6 +160,7 @@ public class SettingsConfigUIController {
             default_gmmiter = Integer.parseInt(configData.get("default_gmmiter"));
             date_sorting = configData.get("date_sorting");
             default_gmmimageheightwidth = Integer.parseInt(configData.get("default_gmmimageheightwidth"));
+            default_meanshift_bandwidth = Double.parseDouble(configData.get("default_meanshift_bandwidth"));
         } else {
             DataStore dataStore = DataStore.getInstance();
             defaultDb = (String) dataStore.getObject("db_name");
@@ -164,12 +174,12 @@ public class SettingsConfigUIController {
             default_gmmiter = (int) dataStore.getObject("default_gmmiter");
             date_sorting = (String) dataStore.getObject("date_sorting");
             default_gmmimageheightwidth = (int) dataStore.getObject("default_gmmimageheightwidth");
+            default_meanshift_bandwidth = (double) dataStore.getObject("default_meanshift_bandwidth");
 
             dbNameTxtField.setDisable(true);
             newdbBTN.setDisable(true);
             selectDefaultBTN.setDisable(true);
             saveBTN.setText("Set");
-
         }
 
         selectedDefaultTxtField.setText(defaultDb);
@@ -181,6 +191,7 @@ public class SettingsConfigUIController {
         meanShiftConvergenceSPN.getValueFactory().setValue(default_convergence_threshold);
         gmmSPN.getValueFactory().setValue(default_gmmiter);
         gmmHeightWidthSPN.getValueFactory().setValue(default_gmmimageheightwidth);
+        meanShiftBandWidthSPN.getValueFactory().setValue(default_meanshift_bandwidth);
         processorChoiceBox.setValue(preferred_processor);
         dateSortingChoiceBox.setValue(date_sorting);
     }
@@ -234,6 +245,7 @@ public class SettingsConfigUIController {
             newConfiguration.put("default_gmmiter", gmmSPN.getValue().toString());
             newConfiguration.put("date_sorting", dateSortingChoiceBox.getValue());
             newConfiguration.put("default_gmmimageheightwidth", gmmHeightWidthSPN.getValue().toString());
+            newConfiguration.put("default_meanshift_bandwidth", meanShiftBandWidthSPN.getValue().toString());
             ConfigFileHandler.createCustomConfigFile(newConfiguration);
         }
         else{
@@ -248,6 +260,7 @@ public class SettingsConfigUIController {
             dataStore.insertObject("default_gmmiter", gmmSPN.getValue());
             dataStore.insertObject("date_sorting", dateSortingChoiceBox.getValue());
             dataStore.insertObject("default_gmmimageheightwidth", gmmHeightWidthSPN.getValue());
+            dataStore.insertObject("default_meanshift_bandwidth", meanShiftBandWidthSPN.getValue());
         }
     }
 

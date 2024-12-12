@@ -1,23 +1,22 @@
 package com.confer.imgstoremini.util.PaletteExtraction;
 
 public enum KernelOpenCLENUM {
-    COMPUTE_COLOR_DISTANCE("\n" +
+    MEANSHIFT_COMPUTE_COLOR_DISTANCE("\n" +
             "__kernel void compute_color_distance(__global const uchar4* colors,  // Image pixels\n" +
             "                                     __global const float* query_color,  // Current mean shift point\n" +
             "                                     __global float* distances, \n" +
             "                                     const int num_pixels) {\n" +
             "    int idx = get_global_id(0);\n" +
             "    if (idx < num_pixels) {\n" +
-            "        float dist = 0.0f;\n" +
-            "        // Compute Euclidean distance between color pixels (in RGB)\n" +
-            "        dist += pow(colors[idx].x - query_color[0], 2);  // Red\n" +
-            "        dist += pow(colors[idx].y - query_color[1], 2);  // Green\n" +
-            "        dist += pow(colors[idx].z - query_color[2], 2);  // Blue\n" +
-            "        distances[idx] = sqrt(dist);\n" +
+            "        // Compute squared Euclidean distance between colors\n" +
+            "        float dx = (float)colors[idx].x - query_color[0];  // Red\n" +
+            "        float dy = (float)colors[idx].y - query_color[1];  // Green\n" +
+            "        float dz = (float)colors[idx].z - query_color[2];  // Blue\n" +
+            "        distances[idx] = dx * dx + dy * dy + dz * dz;  // Store squared distance\n" +
             "    }\n" +
-            "}\n"),
+            "}"),
 
-    FIND_NEIGHBORS_WITHIN_BANDWIDTH("\n" +
+    MEANSHIFT_FIND_NEIGHBORS_WITHIN_BANDWIDTH("\n" +
             "__kernel void find_neighbors_within_bandwidth(__global const float* distances,\n" +
             "                                              __global const uchar4* colors,  // Image pixels\n" +
             "                                              __global uchar4* new_mean,  // Updated mean (centroid) of the neighborhood\n" +
@@ -35,7 +34,7 @@ public enum KernelOpenCLENUM {
             "    }" +
             "}"),
 
-    UPDATE_CLUSTER_CENTER("\n" +
+    MEANSHIFTUPDATE_CLUSTER_CENTER("\n" +
             "__kernel void update_cluster_center(__global uchar4* new_mean,  // New mean of the cluster\n" +
             "                                    __global float* new_center,  // Output updated color centroid\n" +
             "                                    const int dim) {\n" +
@@ -47,7 +46,7 @@ public enum KernelOpenCLENUM {
             "    }\n" +
             "}\n"),
 
-    CHECK_CONVERGENCE("\n" +
+    MEANSHIFTCHECK_CONVERGENCE("\n" +
             "__kernel void check_convergence(__global const float* old_center, \n" +
             "                                 __global const float* new_center, \n" +
             "                                 __global int* converged_flag,\n" +

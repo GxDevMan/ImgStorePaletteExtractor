@@ -3,6 +3,7 @@ module com.confer.imgstoremini {
     requires javafx.fxml;
     requires javafx.web;
 
+    requires java.desktop;
     requires org.controlsfx.controls;
     requires com.dlsc.formsfx;
     requires net.synedra.validatorfx;
@@ -11,7 +12,7 @@ module com.confer.imgstoremini {
     requires eu.hansolo.tilesfx;
     requires com.almasb.fxgl.all;
     requires com.fasterxml.jackson.databind;
-    requires java.desktop;
+
     requires javafx.swing;
     requires java.persistence;
     requires java.naming;
@@ -20,6 +21,7 @@ module com.confer.imgstoremini {
     requires commons.math3;
     requires jocl;
     requires SearchCriteriaUtil;
+    requires opencv;
 
     opens com.confer.imgstoremini.model;
     opens com.confer.imgstoremini to javafx.fxml;
