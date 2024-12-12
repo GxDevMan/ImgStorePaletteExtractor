@@ -1,4 +1,4 @@
-package com.confer.imgstoremini.controllers;
+package com.confer.imgstoremini.controllers.components;
 
 import com.confer.imgstoremini.ConfigFileHandler;
 import com.confer.imgstoremini.util.DataStore;

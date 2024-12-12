@@ -1,5 +1,6 @@
-package com.confer.imgstoremini.controllers;
+package com.confer.imgstoremini.controllers.components;
 
+import com.confer.imgstoremini.controllers.interfaces.ImageContract;
 import com.confer.imgstoremini.model.ImageThumbObjDTO;
 import com.confer.imgstoremini.util.ImageConversion;
 import com.confer.imgstoremini.util.TimeFormatter;

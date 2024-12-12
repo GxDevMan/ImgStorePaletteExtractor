@@ -1,29 +1,23 @@
-package com.confer.imgstoremini.controllers;
+package com.confer.imgstoremini.controllers.components;
 
 import com.confer.imgstoremini.ImageStoreMiniApplication;
+import com.confer.imgstoremini.controllers.interfaces.PaletteViewImageContract;
 import com.confer.imgstoremini.model.ImageType;
 import com.confer.imgstoremini.util.DataStore;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
-import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
-import javafx.scene.control.ScrollBar;
-import javafx.scene.control.ScrollPane;
-import javafx.scene.control.TitledPane;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.Clipboard;
-import javafx.scene.input.MouseEvent;
-import javafx.scene.input.ScrollEvent;
-import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.StackPane;
-import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
+import javafx.util.Pair;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -32,6 +26,7 @@ import java.util.List;
 public class PaletteUIController implements PaletteViewImageContract {
     Stage stage;
     private PureViewUIController pureViewUIController;
+    private boolean isSet;
 
     @FXML
     private Button pasteBTN;
@@ -60,32 +55,29 @@ public class PaletteUIController implements PaletteViewImageContract {
         }
     }
 
-    public void setPaletteUIController(Stage stage) {
+    public void setPaletteUIController(Stage stage, boolean isSet) {
         this.stage = stage;
+        this.isSet = isSet;
         try {
-            FXMLLoader loader = new FXMLLoader(ImageStoreMiniApplication.class.getResource("PureViewUI.fxml"));
-            BorderPane previewComponent = loader.load();
-            PureViewUIController controller = loader.getController();
-            this.pureViewUIController = controller;
-
-            controller.setPureViewUI(null, stage);
+            Pair<BorderPane, PureViewUIController> pairResult = ComponentFactory.pureViewAsComponent();
+            BorderPane previewComponent = pairResult.getKey();
+            this.pureViewUIController = pairResult.getValue();
+            this.pureViewUIController.setPureViewUI(null, stage);
             viewImageStackPane.getChildren().addAll(previewComponent);
         } catch (Exception e) {
             ErrorDialog.showErrorDialog(e, "FXML Error", "There was a problem Pure View UI");
         }
-
     }
 
-    private void setPaletteUIController(Stage stage, Image image) {
+    private void setPaletteUIController(Stage stage, Image image, boolean isSet) {
+        this.isSet = isSet;
         this.stage = stage;
         viewImageStackPane.getChildren().clear();
         try {
-            FXMLLoader loader = new FXMLLoader(ImageStoreMiniApplication.class.getResource("PureViewUI.fxml"));
-            BorderPane previewComponent = loader.load();
-            PureViewUIController controller = loader.getController();
-            this.pureViewUIController = controller;
-
-            controller.setPureViewUI(image, stage);
+            Pair<BorderPane, PureViewUIController> pairResult = ComponentFactory.pureViewAsComponent();
+            BorderPane previewComponent = pairResult.getKey();
+            this.pureViewUIController = pairResult.getValue();
+            this.pureViewUIController.setPureViewUI(image, stage);
             viewImageStackPane.getChildren().addAll(previewComponent);
         } catch (Exception e) {
             ErrorDialog.showErrorDialog(e, "FXML Error", "There was a problem Pure View UI");
@@ -96,22 +88,7 @@ public class PaletteUIController implements PaletteViewImageContract {
     private void processPaletteExtraction(ImageView imageDisp) {
         if (imageDisp.getImage() != null) {
             try {
-                FXMLLoader fxmlLoader = new FXMLLoader(ImageStoreMiniApplication.class.getResource("PaletteStrategyChooserUI.fxml"));
-                Scene scene = new Scene(fxmlLoader.load(), 380, 210);
-
-                Stage stage = new Stage();
-                stage.setTitle("Image Store - Choose Palette Strategy");
-                stage.setScene(scene);
-                stage.initModality(Modality.WINDOW_MODAL);
-                stage.setResizable(false);
-
-                DataStore dataStore = DataStore.getInstance();
-                Image icon = (Image) dataStore.getObject("image_icon");
-                stage.getIcons().add(icon);
-
-                PaletteChooserController controller = fxmlLoader.getController();
-                controller.setViewHelperController(imageDisp, stage, this);
-                stage.show();
+                ComponentFactory.showPaletteMenuExtraction(imageDisp.getImage(),this);
             } catch (Exception e) {
                 ErrorDialog.showErrorDialog(e, "Palette Strategy Chooser Failed", "There was a problem loading the Palette Strategy Chooser UI");
             }
@@ -122,22 +99,7 @@ public class PaletteUIController implements PaletteViewImageContract {
 
     private void checkSettings() {
         try {
-            FXMLLoader fxmlLoader = new FXMLLoader(ImageStoreMiniApplication.class.getResource("SettingsConfigUI.fxml"));
-            Scene scene = new Scene(fxmlLoader.load(), 550, 250);
-
-            Stage stage = new Stage();
-            stage.setTitle("Image Store");
-            stage.setScene(scene);
-            stage.initModality(Modality.APPLICATION_MODAL);
-
-            DataStore dataStore = DataStore.getInstance();
-            Image icon = (Image) dataStore.getObject("image_icon");
-            stage.getIcons().add(icon);
-
-            SettingsConfigUIController controller = fxmlLoader.getController();
-            controller.setConfigurationSetting(stage, true);
-
-            stage.show();
+            ComponentFactory.checkSettingsUI(isSet);
         } catch (Exception e) {
             ErrorDialog.showErrorDialog(e, "Configuration Error", "There was a problem with the Config.json");
         }
@@ -163,7 +125,7 @@ public class PaletteUIController implements PaletteViewImageContract {
 
         if (selectedFile != null) {
             Image selectedImage = new Image(selectedFile.toURI().toString());
-            setPaletteUIController(stage, selectedImage);
+            setPaletteUIController(stage, selectedImage, isSet);
         }
     }
 
@@ -171,29 +133,14 @@ public class PaletteUIController implements PaletteViewImageContract {
         Clipboard clipboard = Clipboard.getSystemClipboard();
         if (clipboard.hasImage()) {
             Image image = clipboard.getImage();
-            setPaletteUIController(stage, image);
+            setPaletteUIController(stage, image, isSet);
         }
     }
 
     @Override
     public void displayPalette(Image paletteImage) {
         try {
-            FXMLLoader fxmlLoader = new FXMLLoader(ImageStoreMiniApplication.class.getResource("PureViewUI.fxml"));
-            Scene scene = new Scene(fxmlLoader.load(), 200, 200);
-
-            Stage stage = new Stage();
-            stage.setTitle("Image Store");
-            stage.setScene(scene);
-            stage.initModality(Modality.WINDOW_MODAL);
-
-            DataStore dataStore = DataStore.getInstance();
-            Image icon = (Image) dataStore.getObject("image_icon");
-            stage.getIcons().add(icon);
-
-            PureViewUIController controller = fxmlLoader.getController();
-            controller.setPureViewUI(paletteImage, stage);
-
-            stage.show();
+            ComponentFactory.displayPureView(paletteImage);
         } catch (Exception e) {
             ErrorDialog.showErrorDialog(e, "Palette Viewing Failed", "There was a problem loading the extracted Palette Image");
         }

@@ -2,6 +2,8 @@ package com.confer.imgstoremini.controllers;
 
 import com.confer.imgstoremini.ConfigFileHandler;
 import com.confer.imgstoremini.ImageStoreMiniApplication;
+import com.confer.imgstoremini.controllers.components.ComponentFactory;
+import com.confer.imgstoremini.controllers.components.ErrorDialog;
 import com.confer.imgstoremini.util.DataStore;
 import com.confer.imgstoremini.util.hibernateUtil;
 import javafx.event.ActionEvent;
@@ -12,9 +14,7 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.TextField;
-import javafx.scene.image.Image;
 import javafx.stage.FileChooser;
-import javafx.stage.Modality;
 import javafx.stage.Stage;
 
 import java.io.File;
@@ -89,7 +89,7 @@ public class EntryUIController {
     private void goToPaletteExtractor() {
         loadFinalDataStoreConfiguration();
         try {
-            ComponentFactory.showPaletteExtractor();
+            ComponentFactory.showPaletteExtractor(false);
         } catch (Exception e) {
             ErrorDialog.showErrorDialog(e,"FXML Error","There was a problem loading Palette UI");
         }

@@ -4,9 +4,9 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<AnchorPane xmlns="http://javafx.com/javafx/17.0.2-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.confer.imgstoremini.controllers.PaletteChooserController">
+<AnchorPane xmlns="http://javafx.com/javafx/17.0.2-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.confer.imgstoremini.controllers.components.PaletteChooserController">
     <stylesheets>
-        <URL value="@styles/dark-theme.css" />
+        <URL value="@../styles/dark-theme.css" />
     </stylesheets>
    <children>
       <ScrollPane pannable="true">

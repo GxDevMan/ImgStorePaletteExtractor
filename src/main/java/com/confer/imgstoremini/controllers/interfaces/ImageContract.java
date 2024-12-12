@@ -1,4 +1,4 @@
-package com.confer.imgstoremini.controllers;
+package com.confer.imgstoremini.controllers.interfaces;
 import com.confer.imgstoremini.model.ImageObj;
 import com.confer.imgstoremini.model.ImageThumbObjDTO;
 

@@ -1,5 +1,5 @@
 package com.confer.imgstoremini;
-import com.confer.imgstoremini.controllers.ComponentFactory;
+import com.confer.imgstoremini.controllers.components.ComponentFactory;
 import com.confer.imgstoremini.util.DataStore;
 import com.confer.imgstoremini.util.hibernateUtil;
 import javafx.application.Application;

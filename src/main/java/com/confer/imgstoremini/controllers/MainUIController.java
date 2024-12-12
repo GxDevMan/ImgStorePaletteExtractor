@@ -1,6 +1,10 @@
 package com.confer.imgstoremini.controllers;
 
 import com.confer.imgstoremini.ImageStoreMiniApplication;
+import com.confer.imgstoremini.controllers.components.ComponentFactory;
+import com.confer.imgstoremini.controllers.components.ErrorDialog;
+import com.confer.imgstoremini.controllers.components.PreviewImageComponentUIController;
+import com.confer.imgstoremini.controllers.interfaces.ImageContract;
 import com.confer.imgstoremini.model.*;
 import com.confer.imgstoremini.util.DataStore;
 import com.confer.imgstoremini.util.DbHandler;
@@ -166,7 +170,7 @@ public class MainUIController implements ImageContract {
 
     private void goToPaletteExtractor() {
         try {
-            ComponentFactory.showPaletteExtractor();
+            ComponentFactory.showPaletteExtractor(true);
         } catch (Exception e) {
             ErrorDialog.showErrorDialog(e, "FXML Error", "There was a problem loading Palette UI");
         }
@@ -258,7 +262,7 @@ public class MainUIController implements ImageContract {
         imageViews.getChildren().clear();
         for (ImageThumbObjDTO imageInstance : imageObjList) {
             try {
-                FXMLLoader loader = new FXMLLoader(ImageStoreMiniApplication.class.getResource("PreviewImageComponentUI.fxml"));
+                FXMLLoader loader = new FXMLLoader(ImageStoreMiniApplication.class.getResource("components/PreviewImageComponentUI.fxml"));
                 AnchorPane previewComponent = loader.load();
 
                 PreviewImageComponentUIController controller = loader.getController();

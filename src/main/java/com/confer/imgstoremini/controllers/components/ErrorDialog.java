@@ -1,4 +1,4 @@
-package com.confer.imgstoremini.controllers;
+package com.confer.imgstoremini.controllers.components;
 
 import com.confer.imgstoremini.ImageStoreMiniApplication;
 import javafx.scene.control.Alert;

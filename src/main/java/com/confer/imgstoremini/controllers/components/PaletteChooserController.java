@@ -1,6 +1,7 @@
-package com.confer.imgstoremini.controllers;
+package com.confer.imgstoremini.controllers.components;
 
 import com.confer.imgstoremini.ImageStoreMiniApplication;
+import com.confer.imgstoremini.controllers.interfaces.PaletteViewImageContract;
 import com.confer.imgstoremini.util.*;
 import com.confer.imgstoremini.util.PaletteExtraction.*;
 import javafx.application.Platform;

@@ -1,5 +1,7 @@
 package com.confer.imgstoremini.controllers;
 
+import com.confer.imgstoremini.controllers.interfaces.WindowMediator;
+
 public abstract class BaseController {
     protected WindowMediator mediator;
 

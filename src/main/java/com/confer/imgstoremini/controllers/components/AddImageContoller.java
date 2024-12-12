@@ -1,6 +1,7 @@
-package com.confer.imgstoremini.controllers;
+package com.confer.imgstoremini.controllers.components;
 
 import com.confer.imgstoremini.ImageStoreMiniApplication;
+import com.confer.imgstoremini.controllers.interfaces.ImageContract;
 import com.confer.imgstoremini.exceptions.InvalidImgObjException;
 import com.confer.imgstoremini.model.ImageObj;
 import com.confer.imgstoremini.model.ImageObjFactory;
@@ -18,6 +19,7 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.StackPane;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
+import javafx.util.Pair;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -54,12 +56,10 @@ public class AddImageContoller {
         this.addStage = stage;
         viewImageStackPane.getChildren().clear();
         try {
-            FXMLLoader loader = new FXMLLoader(ImageStoreMiniApplication.class.getResource("PureViewUI.fxml"));
-            BorderPane previewComponent = loader.load();
-            PureViewUIController controller = loader.getController();
-            this.pureViewUIController = controller;
-
-            controller.setPureViewUI(image, stage);
+            Pair<BorderPane, PureViewUIController> pairReturn = ComponentFactory.pureViewAsComponent();
+            this.pureViewUIController = pairReturn.getValue();
+            BorderPane previewComponent = pairReturn.getKey();
+            this.pureViewUIController.setPureViewUI(image,stage);
             viewImageStackPane.getChildren().addAll(previewComponent);
         } catch (Exception e) {
             ErrorDialog.showErrorDialog(e, "FXML Error", "There was a problem Pure View UI");

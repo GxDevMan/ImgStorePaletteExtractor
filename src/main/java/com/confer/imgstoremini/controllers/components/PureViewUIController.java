@@ -1,4 +1,4 @@
-package com.confer.imgstoremini.controllers;
+package com.confer.imgstoremini.controllers.components;
 
 import com.confer.imgstoremini.model.ImageType;
 import com.confer.imgstoremini.util.ImageConversion;
