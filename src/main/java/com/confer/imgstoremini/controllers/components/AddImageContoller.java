@@ -1,6 +1,5 @@
 package com.confer.imgstoremini.controllers.components;
 
-import com.confer.imgstoremini.ImageStoreMiniApplication;
 import com.confer.imgstoremini.controllers.interfaces.ImageContract;
 import com.confer.imgstoremini.exceptions.InvalidImgObjException;
 import com.confer.imgstoremini.model.ImageObj;
@@ -9,7 +8,6 @@ import com.confer.imgstoremini.model.ImageType;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-import javafx.fxml.FXMLLoader;
 import javafx.scene.control.Button;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;

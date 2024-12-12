@@ -1,6 +1,6 @@
 package com.confer.imgstoremini.controllers.components;
 
-import com.confer.imgstoremini.ImageStoreMiniApplication;
+import com.confer.imgstoremini.ImageStoreApplication;
 import javafx.scene.control.Alert;
 import javafx.scene.control.DialogPane;
 import javafx.stage.Stage;
@@ -17,7 +17,7 @@ public class ErrorDialog {
         ComponentFactory.setIcon(stage);
 
         DialogPane dialogPane = alert.getDialogPane();
-        dialogPane.getStylesheets().add(ImageStoreMiniApplication.class.getResource("styles/dark-theme.css").toExternalForm());
+        dialogPane.getStylesheets().add(ImageStoreApplication.class.getResource("styles/dark-theme.css").toExternalForm());
         alert.showAndWait();
     }
 }

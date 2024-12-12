@@ -1,5 +1,5 @@
 package com.confer.imgstoremini.controllers.components;
-import com.confer.imgstoremini.ImageStoreMiniApplication;
+import com.confer.imgstoremini.ImageStoreApplication;
 import com.confer.imgstoremini.controllers.interfaces.ImageContract;
 import com.confer.imgstoremini.controllers.interfaces.PaletteViewImageContract;
 import com.confer.imgstoremini.model.ImageThumbObjDTO;
@@ -19,6 +19,7 @@ import javafx.scene.control.ButtonType;
 import javafx.scene.control.DialogPane;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
@@ -29,7 +30,7 @@ import java.util.Optional;
 public class ComponentFactory {
 
     public static void checkSettingsUI(boolean isSet) throws Exception {
-        FXMLLoader fxmlLoader = new FXMLLoader(ImageStoreMiniApplication.class.getResource("components/SettingsConfigUI.fxml"));
+        FXMLLoader fxmlLoader = new FXMLLoader(ImageStoreApplication.class.getResource("components/SettingsConfigUI.fxml"));
         Scene scene = new Scene(fxmlLoader.load(), 550, 250);
 
         Stage stage = new Stage();
@@ -44,7 +45,7 @@ public class ComponentFactory {
     }
 
     public static void displayPureView(ImageThumbObjDTO imageThumbObjDTO) throws Exception {
-        FXMLLoader fxmlLoader = new FXMLLoader(ImageStoreMiniApplication.class.getResource("components/PureViewUI.fxml"));
+        FXMLLoader fxmlLoader = new FXMLLoader(ImageStoreApplication.class.getResource("components/PureViewUI.fxml"));
         Scene scene = new Scene(fxmlLoader.load(), 500, 500);
 
         Stage stage = new Stage();
@@ -61,7 +62,7 @@ public class ComponentFactory {
     }
 
     public static void displayPureView(Image image) throws Exception {
-        FXMLLoader fxmlLoader = new FXMLLoader(ImageStoreMiniApplication.class.getResource("components/PureViewUI.fxml"));
+        FXMLLoader fxmlLoader = new FXMLLoader(ImageStoreApplication.class.getResource("components/PureViewUI.fxml"));
         Scene scene = new Scene(fxmlLoader.load(), 500, 500);
 
         Stage stage = new Stage();
@@ -76,14 +77,14 @@ public class ComponentFactory {
     }
 
     public static Pair<BorderPane, PureViewUIController> pureViewAsComponent() throws Exception {
-        FXMLLoader loader = new FXMLLoader(ImageStoreMiniApplication.class.getResource("components/PureViewUI.fxml"));
+        FXMLLoader loader = new FXMLLoader(ImageStoreApplication.class.getResource("components/PureViewUI.fxml"));
         BorderPane previewComponent = loader.load();
         PureViewUIController controller = loader.getController();
         return new Pair<>(previewComponent,controller);
     }
 
     public static void viewImageRecord(ImageThumbObjDTO imageThumbObjDTO, ImageContract contract) throws Exception {
-        FXMLLoader fxmlLoader = new FXMLLoader(ImageStoreMiniApplication.class.getResource("components/ViewImageUI.fxml"));
+        FXMLLoader fxmlLoader = new FXMLLoader(ImageStoreApplication.class.getResource("components/ViewImageUI.fxml"));
         Scene scene = new Scene(fxmlLoader.load(), 600, 600);
 
         Stage stage = new Stage();
@@ -99,7 +100,7 @@ public class ComponentFactory {
     }
 
     public static void showPaletteExtractor(boolean isSet) throws Exception {
-        FXMLLoader fxmlLoader = new FXMLLoader(ImageStoreMiniApplication.class.getResource("components/PaletteUI.fxml"));
+        FXMLLoader fxmlLoader = new FXMLLoader(ImageStoreApplication.class.getResource("components/PaletteUI.fxml"));
         Scene scene = new Scene(fxmlLoader.load(), 500, 500);
 
         Stage stage = new Stage();
@@ -114,7 +115,7 @@ public class ComponentFactory {
     }
 
     public static void showPaletteMenuExtraction(Image image, PaletteViewImageContract contract) throws Exception {
-        FXMLLoader fxmlLoader = new FXMLLoader(ImageStoreMiniApplication.class.getResource("components/PaletteStrategyChooserUI.fxml"));
+        FXMLLoader fxmlLoader = new FXMLLoader(ImageStoreApplication.class.getResource("components/PaletteStrategyChooserUI.fxml"));
         Scene scene = new Scene(fxmlLoader.load(), 380, 210);
 
         Stage stage = new Stage();
@@ -131,7 +132,7 @@ public class ComponentFactory {
     }
 
     public static void showAddImageUI(ImageContract contract) throws Exception {
-        FXMLLoader fxmlLoader = new FXMLLoader(ImageStoreMiniApplication.class.getResource("components/AddImageUI.fxml"));
+        FXMLLoader fxmlLoader = new FXMLLoader(ImageStoreApplication.class.getResource("components/AddImageUI.fxml"));
         Scene scene = new Scene(fxmlLoader.load(), 600, 500);
 
         Stage stage = new Stage();
@@ -145,13 +146,22 @@ public class ComponentFactory {
         stage.show();
     }
 
+    public static AnchorPane previewImageComponent(ImageContract contract, ImageThumbObjDTO imageInstance) throws Exception {
+        FXMLLoader loader = new FXMLLoader(ImageStoreApplication.class.getResource("components/PreviewImageComponentUI.fxml"));
+        AnchorPane previewComponent = loader.load();
+
+        PreviewImageComponentUIController controller = loader.getController();
+        controller.setComponent(contract, imageInstance);
+        return previewComponent;
+    }
+
     public static boolean imageConfirmationDeleteDialog(ImageThumbObjDTO deleteThisImage) {
         Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
         alert.setTitle("Delete Confirmation");
         alert.setHeaderText("Are you sure you want to delete this image?");
         alert.setContentText("Image Title: " + deleteThisImage.getImageTitle());
         DialogPane dialogPane = alert.getDialogPane();
-        dialogPane.getStylesheets().add(ImageStoreMiniApplication.class.getResource("styles/dark-theme.css").toExternalForm());
+        dialogPane.getStylesheets().add(ImageStoreApplication.class.getResource("styles/dark-theme.css").toExternalForm());
 
         Stage stage = (Stage) alert.getDialogPane().getScene().getWindow();
         setIcon(stage);

@@ -1,13 +1,9 @@
 package com.confer.imgstoremini.controllers.components;
 
-import com.confer.imgstoremini.ImageStoreMiniApplication;
 import com.confer.imgstoremini.controllers.interfaces.PaletteViewImageContract;
 import com.confer.imgstoremini.model.ImageType;
-import com.confer.imgstoremini.util.DataStore;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-import javafx.fxml.FXMLLoader;
-import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
@@ -15,7 +11,6 @@ import javafx.scene.input.Clipboard;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.StackPane;
 import javafx.stage.FileChooser;
-import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.util.Pair;
 

@@ -1,9 +1,8 @@
 package com.confer.imgstoremini.controllers;
 
-import com.confer.imgstoremini.ImageStoreMiniApplication;
+import com.confer.imgstoremini.ImageStoreApplication;
 import com.confer.imgstoremini.controllers.components.ComponentFactory;
 import com.confer.imgstoremini.controllers.components.ErrorDialog;
-import com.confer.imgstoremini.controllers.components.PreviewImageComponentUIController;
 import com.confer.imgstoremini.controllers.interfaces.ImageContract;
 import com.confer.imgstoremini.model.*;
 import com.confer.imgstoremini.util.DataStore;
@@ -22,7 +21,7 @@ import javafx.scene.layout.TilePane;
 import javafx.stage.Stage;
 import java.util.List;
 
-public class MainUIController implements ImageContract {
+public class MainUIController extends BaseController implements ImageContract {
 
     @FXML
     private Button searchBTN;
@@ -262,11 +261,7 @@ public class MainUIController implements ImageContract {
         imageViews.getChildren().clear();
         for (ImageThumbObjDTO imageInstance : imageObjList) {
             try {
-                FXMLLoader loader = new FXMLLoader(ImageStoreMiniApplication.class.getResource("components/PreviewImageComponentUI.fxml"));
-                AnchorPane previewComponent = loader.load();
-
-                PreviewImageComponentUIController controller = loader.getController();
-                controller.setComponent(this, imageInstance);
+                AnchorPane previewComponent = ComponentFactory.previewImageComponent(this,imageInstance);
                 imageViews.getChildren().add(previewComponent);
             } catch (Exception e) {
                 ErrorDialog.showErrorDialog(e, "FXML Error", "There was a problem loading Preview Image Component UI");
@@ -276,26 +271,17 @@ public class MainUIController implements ImageContract {
 
     private void goToNextMenu(ActionEvent event) {
         try {
-            FXMLLoader fxmlLoader = new FXMLLoader(ImageStoreMiniApplication.class.getResource("EntryUI.fxml"));
-            Parent viewParent = fxmlLoader.load();
-            Scene viewScene = new Scene(viewParent);
-
-            Stage sourceWin = (Stage) ((Node) event.getSource()).getScene().getWindow();
-            sourceWin.setHeight(200);
-            sourceWin.setWidth(400);
-            sourceWin.setScene(viewScene);
-
-            sourceWin.setTitle("Image Store");
-
             hibernateUtil util = hibernateUtil.getInstance();
             if (util != null)
                 util.shutdown();
-
-            sourceWin.show();
         } catch (Exception e) {
             ErrorDialog.showErrorDialog(e, "FXML Error", "There was a problem loading Entry UI");
         }
-
+        mediator.switchTo("entryUI",null);
     }
 
+    @Override
+    public void setupSelectedController(Object data) {
+        refreshList();
+    }
 }

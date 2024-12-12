@@ -1,7 +1,7 @@
 package com.confer.imgstoremini.controllers;
 
 import com.confer.imgstoremini.ConfigFileHandler;
-import com.confer.imgstoremini.ImageStoreMiniApplication;
+import com.confer.imgstoremini.ImageStoreApplication;
 import com.confer.imgstoremini.controllers.components.ComponentFactory;
 import com.confer.imgstoremini.controllers.components.ErrorDialog;
 import com.confer.imgstoremini.util.DataStore;
@@ -16,12 +16,11 @@ import javafx.scene.control.Button;
 import javafx.scene.control.TextField;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
-
 import java.io.File;
 import java.util.Map;
 import java.util.Optional;
 
-public class EntryUIController {
+public class EntryUIController extends BaseController {
 
     @FXML
     private Button createNew;
@@ -40,8 +39,6 @@ public class EntryUIController {
 
     @FXML
     private TextField outputArea;
-
-
 
     @FXML
     protected void buttonClick(ActionEvent event) {
@@ -106,31 +103,8 @@ public class EntryUIController {
     }
 
     private void goToNextMenu(ActionEvent event) {
-        try {
-            loadFinalDataStoreConfiguration();
-            FXMLLoader fxmlLoader = new FXMLLoader(ImageStoreMiniApplication.class.getResource("MainUI.fxml"));
-            Parent viewParent = fxmlLoader.load();
-            Scene viewScene = new Scene(viewParent);
-
-            MainUIController mainUIController = fxmlLoader.getController();
-            mainUIController.setMainUiController();
-
-            Stage sourceWin = (Stage) ((Node) event.getSource()).getScene().getWindow();
-            sourceWin.setHeight(700);
-            sourceWin.setWidth(700);
-
-            String stageTitle = sourceWin.getTitle();
-            DataStore dataStore = DataStore.getInstance();
-            String connectedDB = (String) dataStore.getObject("db_name");
-            sourceWin.setTitle(String.format("%s - %s", stageTitle, connectedDB));
-            sourceWin.setScene(viewScene);
-
-            sourceWin.show();
-        } catch (Exception e) {
-            ErrorDialog.showErrorDialog(e,"Something went wrong","Cannot Load Main UI");
-            outputArea.setText("Something went wrong");
-        }
-
+        loadFinalDataStoreConfiguration();
+        mediator.switchTo("mainUI", null);
     }
 
     private void loadFinalDataStoreConfiguration() {
@@ -176,4 +150,7 @@ public class EntryUIController {
         Map<String, String> loadedConfiguration = ConfigFileHandler.getConfig();
         return loadedConfiguration.get(key);
     }
+
+    @Override
+    public void setupSelectedController(Object data) {}
 }

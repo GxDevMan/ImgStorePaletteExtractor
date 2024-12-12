@@ -1,6 +1,6 @@
 package com.confer.imgstoremini.controllers.components;
 
-import com.confer.imgstoremini.ImageStoreMiniApplication;
+import com.confer.imgstoremini.ImageStoreApplication;
 import com.confer.imgstoremini.controllers.interfaces.PaletteViewImageContract;
 import com.confer.imgstoremini.util.*;
 import com.confer.imgstoremini.util.PaletteExtraction.*;
@@ -187,7 +187,7 @@ public class PaletteChooserController {
         progressStage.initModality(Modality.WINDOW_MODAL);
         progressStage.setResizable(false);
 
-        vbox.getStylesheets().add(ImageStoreMiniApplication.class.getResource("styles/dark-theme.css").toExternalForm());
+        vbox.getStylesheets().add(ImageStoreApplication.class.getResource("styles/dark-theme.css").toExternalForm());
         DataStore dataStore = DataStore.getInstance();
         Image icon = (Image) dataStore.getObject("image_icon");
         progressStage.getIcons().add(icon);

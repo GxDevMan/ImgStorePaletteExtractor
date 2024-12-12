@@ -1,6 +1,5 @@
 package com.confer.imgstoremini.controllers.components;
 
-import com.confer.imgstoremini.ImageStoreMiniApplication;
 import com.confer.imgstoremini.controllers.interfaces.ImageContract;
 import com.confer.imgstoremini.controllers.interfaces.PaletteViewImageContract;
 import com.confer.imgstoremini.model.ImageObj;
@@ -10,18 +9,14 @@ import javafx.application.Platform;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-import javafx.fxml.FXMLLoader;
-import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
 import javafx.scene.input.*;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.StackPane;
-import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.util.Pair;
 

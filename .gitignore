@@ -47,3 +47,6 @@ Image DB Test Pics/
 *.jpg
 *.jar
 config.json
+
+### White List ###
+!Database.png
