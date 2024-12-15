@@ -188,9 +188,7 @@ public class PaletteChooserController {
         progressStage.setResizable(false);
 
         vbox.getStylesheets().add(ImageStoreApplication.class.getResource("styles/dark-theme.css").toExternalForm());
-        DataStore dataStore = DataStore.getInstance();
-        Image icon = (Image) dataStore.getObject("image_icon");
-        progressStage.getIcons().add(icon);
+        ComponentFactory.setIcon(progressStage);
 
         progressStage.show();
 
@@ -237,7 +235,7 @@ public class PaletteChooserController {
                     contract.displayPalette(finalImage);
                 });
             } catch (Exception e) {
-                e.printStackTrace();
+//                e.printStackTrace();
 //                Platform.runLater(() -> {
 //                    ErrorDialog errorDialog = new ErrorDialog();
 //                    errorDialog.errorDialog(e, "Palette Extraction Failed", "There was a problem extracting the palette.");

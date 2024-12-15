@@ -62,10 +62,6 @@ public class MainUIController extends BaseController implements ImageContract {
     @FXML
     private ScrollPane rootScrollPane;
 
-    public void setMainUiController() {
-        refreshList();
-    }
-
     @FXML
     protected void buttonClick(ActionEvent event) {
         if (event.getSource().equals(searchBTN)) {
@@ -88,6 +84,11 @@ public class MainUIController extends BaseController implements ImageContract {
     }
 
     @Override
+    public void setupSelectedController(Object data) {
+        refreshList();
+    }
+
+    @Override
     public void deleteImage(ImageThumbObjDTO deleteThisImage) {
         boolean result = ComponentFactory.imageConfirmationDeleteDialog(deleteThisImage);
         if (result) {
@@ -105,10 +106,8 @@ public class MainUIController extends BaseController implements ImageContract {
                 }).start();
             } catch (Exception e) {
                 ErrorDialog.showErrorDialog(e, "Database Error", "There was a problem deleting this image");
-                return;
             }
         }
-        refreshList();
     }
 
     @Override
@@ -278,10 +277,5 @@ public class MainUIController extends BaseController implements ImageContract {
             ErrorDialog.showErrorDialog(e, "FXML Error", "There was a problem loading Entry UI");
         }
         mediator.switchTo("entryUI",null);
-    }
-
-    @Override
-    public void setupSelectedController(Object data) {
-        refreshList();
     }
 }
