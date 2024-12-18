@@ -12,6 +12,7 @@ Hibernate is configured to use the sql Lite dialect.
 - Observer
 - Factory
 - Singleton
+- Strategy
 
 ## Features
 
